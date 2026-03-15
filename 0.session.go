@@ -78,19 +78,6 @@ func (a *App_t) SessionEpochBump(sessionID string) int {
 	return epoch
 }
 
-func (a *App_t) SimpleStateGet(r *http.Request) (SimpleState_t, bool) {
-	id, ok := a.SessionID(r)
-	if !ok { return SimpleState_t{}, false }
-	out, ok := a.sessionState[id]
-	return out, ok
-}
-
-func (a *App_t) SimpleStateSet(sessionID string, state SimpleState_t) {
-	sessionID = Trim(sessionID)
-	if sessionID == `` { return }
-	a.sessionState[sessionID] = state
-}
-
 func (a *App_t) FilterStateGet(r *http.Request) (FilterState_t, bool) {
 	id, ok := a.SessionID(r)
 	if !ok { return FilterState_t{}, false }

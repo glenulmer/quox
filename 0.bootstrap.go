@@ -52,7 +52,6 @@ func Bootstrap() {
 	dbx := OpenRuntimeDB(cfg.db)
 	App = App_t{
 		DB:            dbx,
-		sessionState:  make(map[string]SimpleState_t),
 		sessionFilters: make(map[string]FilterState_t),
 		sessionCustomers: make(map[string]CustomerState_t),
 		sessionEpoch: make(map[string]int),

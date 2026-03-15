@@ -14,17 +14,11 @@ type Session_t struct {
 	SameSite http.SameSite
 }
 
-type SimpleState_t struct {
-	nickname string
-	categ    int
-}
-
 type App_t struct {
 	DB            *DB_t
 	Port          string
 	StaticVersion string
 	Session       Session_t
-	sessionState  map[string]SimpleState_t
 	sessionFilters map[string]FilterState_t
 	sessionCustomers map[string]CustomerState_t
 	sessionEpoch map[string]int
