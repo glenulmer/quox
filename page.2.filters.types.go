@@ -1,27 +1,18 @@
 package main
 
-type CodebookOption_t struct {
+import . "pm/lib/htmlHelper"
+
+type SelectOption_t struct {
 	id   int
 	name string
 }
 
-type LevelName_t struct {
-	level int
-	name  string
-}
-
-type FilterLookups_t struct {
-	hospitalLevels []LevelName_t
-	dentalLevels []LevelName_t
-	priorCoverOptions []CodebookOption_t
-	priorCoverDefault int
-	priorCoverAllowed map[int]bool
-	examOptions []CodebookOption_t
-	examDefault int
-	examAllowed map[int]bool
-	specialistOptions []CodebookOption_t
-	specialistDefault int
-	specialistAllowed map[int]bool
+func SelectFromOptions(name string, selected int, options []SelectOption_t) Elem_t {
+	sel := Select().Name(name).Id(name).Class(`ios-select`)
+	for _, x := range options {
+		sel = sel.Wrap(Option().Value(x.id).Text(x.name))
+	}
+	return sel.SelO(selected)
 }
 
 type FilterState_t struct {

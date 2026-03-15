@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	. "pm/lib/date"
 	. "pm/lib/dec2"
 	. "pm/lib/htmlHelper"
 	. "pm/lib/output"
@@ -20,8 +21,8 @@ func Page2FiltersGet(w0 http.ResponseWriter, req *http.Request) {
 	sessionID := App.EnsureSession(w0, req)
 	epoch := App.SessionEpochGet(sessionID)
 	customerState := LoadCustomerPageState(req)
-	filterState, filterLookups := LoadFiltersPageState(req)
-	FiltersPage(w0, customerState, filterState, filterLookups, epoch)
+	filterState := LoadFiltersPageState(req)
+	FiltersPage(w0, customerState, filterState, epoch)
 }
 
 func Page2CustomerPost(w http.ResponseWriter, req *http.Request) {
@@ -67,29 +68,29 @@ func Page2FiltersPost(w http.ResponseWriter, req *http.Request) {
 	epoch := App.SessionEpochGet(sessionID)
 	customerState := LoadCustomerPageState(req)
 	if ParseFormInt(req.FormValue(`epoch`)) != epoch {
-		state, lookups := LoadFiltersPageState(req)
-		Rewrites(w, RewriteRow(`filters-record`, FiltersRecord(state, lookups, customerState, epoch)))
+		state := LoadFiltersPageState(req)
+		Rewrites(w, RewriteRow(`filters-record`, FiltersRecord(state, customerState, epoch)))
 		return
 	}
-	state, lookups := LoadFiltersPageState(req)
+	state := LoadFiltersPageState(req)
 	deductValues := CurrentDeductValues(customerState)
 
 	if _, ok := req.Form[`deduct-min`]; ok { state.deductMin = PickEuroFlat(ParseFormInt(req.FormValue(`deduct-min`)), deductValues, state.deductMin) }
 	if _, ok := req.Form[`deduct-max`]; ok { state.deductMax = PickEuroFlat(ParseFormInt(req.FormValue(`deduct-max`)), deductValues, state.deductMax) }
-	if _, ok := req.Form[`hospital-min`]; ok { state.hospitalMin = PickLevel(ParseFormInt(req.FormValue(`hospital-min`)), lookups.hospitalLevels, state.hospitalMin) }
-	if _, ok := req.Form[`hospital-max`]; ok { state.hospitalMax = PickLevel(ParseFormInt(req.FormValue(`hospital-max`)), lookups.hospitalLevels, state.hospitalMax) }
-	if _, ok := req.Form[`dental-min`]; ok { state.dentalMin = PickLevel(ParseFormInt(req.FormValue(`dental-min`)), lookups.dentalLevels, state.dentalMin) }
-	if _, ok := req.Form[`dental-max`]; ok { state.dentalMax = PickLevel(ParseFormInt(req.FormValue(`dental-max`)), lookups.dentalLevels, state.dentalMax) }
-	if _, ok := req.Form[`prior-cover`]; ok { state.priorCover = PickCodebook(ParseFormInt(req.FormValue(`prior-cover`)), lookups.priorCoverAllowed, state.priorCover) }
-	if _, ok := req.Form[`exam`]; ok { state.exam = PickCodebook(ParseFormInt(req.FormValue(`exam`)), lookups.examAllowed, state.exam) }
-	if _, ok := req.Form[`specialist`]; ok { state.specialist = PickCodebook(ParseFormInt(req.FormValue(`specialist`)), lookups.specialistAllowed, state.specialist) }
+	if _, ok := req.Form[`hospital-min`]; ok { state.hospitalMin = PickOption(ParseFormInt(req.FormValue(`hospital-min`)), App.lookup.hospitalLevels, state.hospitalMin) }
+	if _, ok := req.Form[`hospital-max`]; ok { state.hospitalMax = PickOption(ParseFormInt(req.FormValue(`hospital-max`)), App.lookup.hospitalLevels, state.hospitalMax) }
+	if _, ok := req.Form[`dental-min`]; ok { state.dentalMin = PickOption(ParseFormInt(req.FormValue(`dental-min`)), App.lookup.dentalLevels, state.dentalMin) }
+	if _, ok := req.Form[`dental-max`]; ok { state.dentalMax = PickOption(ParseFormInt(req.FormValue(`dental-max`)), App.lookup.dentalLevels, state.dentalMax) }
+	if _, ok := req.Form[`prior-cover`]; ok { state.priorCover = PickOption(ParseFormInt(req.FormValue(`prior-cover`)), App.lookup.priorCoverOptions, state.priorCover) }
+	if _, ok := req.Form[`exam`]; ok { state.exam = PickOption(ParseFormInt(req.FormValue(`exam`)), App.lookup.examOptions, state.exam) }
+	if _, ok := req.Form[`specialist`]; ok { state.specialist = PickOption(ParseFormInt(req.FormValue(`specialist`)), App.lookup.specialistOptions, state.specialist) }
 
 	if state.deductMin > state.deductMax { state.deductMin, state.deductMax = state.deductMax, state.deductMin }
 	if state.hospitalMin > state.hospitalMax { state.hospitalMin, state.hospitalMax = state.hospitalMax, state.hospitalMin }
 	if state.dentalMin > state.dentalMax { state.dentalMin, state.dentalMax = state.dentalMax, state.dentalMin }
 
 	App.FilterStateSet(sessionID, state)
-	Rewrites(w, RewriteRow(`filters-record`, FiltersRecord(state, lookups, customerState, epoch)))
+	Rewrites(w, RewriteRow(`filters-record`, FiltersRecord(state, customerState, epoch)))
 }
 
 func LoadCustomerPageState(req *http.Request) (state CustomerState_t) {
@@ -100,7 +101,7 @@ func LoadCustomerPageState(req *http.Request) (state CustomerState_t) {
 
 func DefaultCustomerState() CustomerState_t {
 	out := CustomerState_t{
-		buy: QueryCurrentDateISO(),
+		buy: CurrentDBDate(),
 		cover: CoverDefaultValue(),
 	}
 	for _, segment := range App.lookup.segments.sort {
@@ -115,8 +116,8 @@ func DefaultCustomerState() CustomerState_t {
 func NormalizeCustomerState(state CustomerState_t) CustomerState_t {
 	out := DefaultCustomerState()
 	out.name = NormalizeCustomerName(state.name)
-	out.birth = NormalizeDateInput(state.birth)
-	out.buy = NormalizeDateInput(state.buy)
+	if Valid(state.birth) { out.birth = state.birth }
+	if Valid(state.buy) { out.buy = state.buy }
 	if cover, ok := NormalizeCoverValue(state.cover, CoverMaxValue()); ok {
 		out.cover = cover
 	}
@@ -134,10 +135,16 @@ func NormalizeCustomerName(raw string) string {
 	return out
 }
 
-func NormalizeDateInput(raw string) string {
+func NormalizeDateInput(raw string) CalDate_t {
 	out := Trim(raw)
 	if len(out) > 10 { out = out[:10] }
-	return out
+	if out == `` { return 0 }
+	return Parse(`yyyy-mm-dd`, out)
+}
+
+func DateInputValue(x CalDate_t) string {
+	if !Valid(x) { return `` }
+	return x.Format(`yyyy-mm-dd`)
 }
 
 func NormalizeCoverInput(raw string, max int) (EuroFlat_t, bool) {
@@ -193,14 +200,10 @@ func CurrentDeductValues(customer CustomerState_t) (out []EuroFlat_t) {
 	return
 }
 
-func AgeYearsFromBirthDate(birthISO, buyISO string) (ageYears int, ok bool) {
-	birthISO = Trim(birthISO)
-	buyISO = Trim(buyISO)
-	if len(birthISO) != 10 || len(buyISO) != 10 { return }
-	birthDate, e := time.Parse(`2006-01-02`, birthISO)
-	if e != nil { return }
-	buyDate, e := time.Parse(`2006-01-02`, buyISO)
-	if e != nil { return }
+func AgeYearsFromBirthDate(birth, buy CalDate_t) (ageYears int, ok bool) {
+	if !Valid(birth) || !Valid(buy) { return }
+	birthDate := time.Date(birth.Year(), time.Month(birth.Month()), birth.Day(), 0, 0, 0, 0, time.UTC)
+	buyDate := time.Date(buy.Year(), time.Month(buy.Month()), buy.Day(), 0, 0, 0, 0, time.UTC)
 	if buyDate.Before(birthDate) { return }
 	ageYears = buyDate.Year() - birthDate.Year()
 	anniversary := time.Date(buyDate.Year(), birthDate.Month(), birthDate.Day(), 0, 0, 0, 0, buyDate.Location())
@@ -210,48 +213,47 @@ func AgeYearsFromBirthDate(birthISO, buyISO string) (ageYears int, ok bool) {
 	return
 }
 
-func LoadFiltersPageState(req *http.Request) (state FilterState_t, lookups FilterLookups_t) {
-	lookups = App.lookup.filters
+func LoadFiltersPageState(req *http.Request) (state FilterState_t) {
 	customerState := LoadCustomerPageState(req)
-	state = DefaultFilterState(lookups, customerState)
-	if x, ok := App.FilterStateGet(req); ok { state = NormalizeFilterState(x, lookups, customerState) }
+	state = DefaultFilterState(customerState)
+	if x, ok := App.FilterStateGet(req); ok { state = NormalizeFilterState(x, customerState) }
 	return
 }
 
-func DefaultFilterState(x FilterLookups_t, customer CustomerState_t) FilterState_t {
+func DefaultFilterState(customer CustomerState_t) FilterState_t {
 	out := FilterState_t{
-		priorCover: x.priorCoverDefault,
-		exam: x.examDefault,
-		specialist: x.specialistDefault,
+		priorCover: FirstOptionID(App.lookup.priorCoverOptions),
+		exam: FirstOptionID(App.lookup.examOptions),
+		specialist: FirstOptionID(App.lookup.specialistOptions),
 	}
 	deductValues := CurrentDeductValues(customer)
 	if len(deductValues) > 0 {
 		out.deductMin = int(deductValues[0])
 		out.deductMax = int(deductValues[len(deductValues)-1])
 	}
-	if len(x.hospitalLevels) > 0 {
-		out.hospitalMin = x.hospitalLevels[0].level
-		out.hospitalMax = x.hospitalLevels[len(x.hospitalLevels)-1].level
+	if len(App.lookup.hospitalLevels) > 0 {
+		out.hospitalMin = App.lookup.hospitalLevels[0].id
+		out.hospitalMax = App.lookup.hospitalLevels[len(App.lookup.hospitalLevels)-1].id
 	}
-	if len(x.dentalLevels) > 0 {
-		out.dentalMin = x.dentalLevels[0].level
-		out.dentalMax = x.dentalLevels[len(x.dentalLevels)-1].level
+	if len(App.lookup.dentalLevels) > 0 {
+		out.dentalMin = App.lookup.dentalLevels[0].id
+		out.dentalMax = App.lookup.dentalLevels[len(App.lookup.dentalLevels)-1].id
 	}
 	return out
 }
 
-func NormalizeFilterState(state FilterState_t, x FilterLookups_t, customer CustomerState_t) FilterState_t {
-	out := DefaultFilterState(x, customer)
+func NormalizeFilterState(state FilterState_t, customer CustomerState_t) FilterState_t {
+	out := DefaultFilterState(customer)
 	deductValues := CurrentDeductValues(customer)
 	out.deductMin = PickEuroFlat(state.deductMin, deductValues, out.deductMin)
 	out.deductMax = PickEuroFlat(state.deductMax, deductValues, out.deductMax)
-	out.hospitalMin = PickLevel(state.hospitalMin, x.hospitalLevels, out.hospitalMin)
-	out.hospitalMax = PickLevel(state.hospitalMax, x.hospitalLevels, out.hospitalMax)
-	out.dentalMin = PickLevel(state.dentalMin, x.dentalLevels, out.dentalMin)
-	out.dentalMax = PickLevel(state.dentalMax, x.dentalLevels, out.dentalMax)
-	out.priorCover = PickCodebook(state.priorCover, x.priorCoverAllowed, out.priorCover)
-	out.exam = PickCodebook(state.exam, x.examAllowed, out.exam)
-	out.specialist = PickCodebook(state.specialist, x.specialistAllowed, out.specialist)
+	out.hospitalMin = PickOption(state.hospitalMin, App.lookup.hospitalLevels, out.hospitalMin)
+	out.hospitalMax = PickOption(state.hospitalMax, App.lookup.hospitalLevels, out.hospitalMax)
+	out.dentalMin = PickOption(state.dentalMin, App.lookup.dentalLevels, out.dentalMin)
+	out.dentalMax = PickOption(state.dentalMax, App.lookup.dentalLevels, out.dentalMax)
+	out.priorCover = PickOption(state.priorCover, App.lookup.priorCoverOptions, out.priorCover)
+	out.exam = PickOption(state.exam, App.lookup.examOptions, out.exam)
+	out.specialist = PickOption(state.specialist, App.lookup.specialistOptions, out.specialist)
 	if out.deductMin > out.deductMax { out.deductMin, out.deductMax = out.deductMax, out.deductMin }
 	if out.hospitalMin > out.hospitalMax { out.hospitalMin, out.hospitalMax = out.hospitalMax, out.hospitalMin }
 	if out.dentalMin > out.dentalMax { out.dentalMin, out.dentalMax = out.dentalMax, out.dentalMin }
@@ -270,14 +272,16 @@ func PickEuroFlat(wanted int, values []EuroFlat_t, fallback int) int {
 	return fallback
 }
 
-func PickLevel(wanted int, values []LevelName_t, fallback int) int {
-	for _, x := range values { if x.level == wanted { return x.level } }
+func PickOption(wanted int, values []SelectOption_t, fallback int) int {
+	for _, x := range values {
+		if x.id == wanted { return wanted }
+	}
 	return fallback
 }
 
-func PickCodebook(wanted int, allowed map[int]bool, fallback int) int {
-	if allowed[wanted] { return wanted }
-	return fallback
+func FirstOptionID(values []SelectOption_t) int {
+	if len(values) == 0 { return 0 }
+	return values[0].id
 }
 
 func ParseFormInt(raw string) int {
@@ -301,7 +305,7 @@ func Bool01(x bool) string {
 	return `0`
 }
 
-func FiltersPage(w0 http.ResponseWriter, customerState CustomerState_t, state FilterState_t, lookups FilterLookups_t, epoch int) {
+func FiltersPage(w0 http.ResponseWriter, customerState CustomerState_t, state FilterState_t, epoch int) {
 	head := Head().
 		CSS(Str(`/static/css/phone.quote.css?v=`, App.StaticVersion)).
 		JSTail(Str(`/static/js/validate.js?v=`, App.StaticVersion)).
@@ -317,7 +321,7 @@ func FiltersPage(w0 http.ResponseWriter, customerState CustomerState_t, state Fi
 					CustomerRecord(customerState, epoch),
 				).Id(`customer-post`).Post(postCustomerState),
 			Div(
-				FiltersRecord(state, lookups, customerState, epoch),
+				FiltersRecord(state, customerState, epoch),
 			).Id(`filters-post`).Post(postFiltersState),
 		),
 		NL, head.Right(), NL,
@@ -361,8 +365,8 @@ func RenderCustomer(state CustomerState_t) Elem_t {
 					Name(`birth`).
 					Id(`birth`).
 					Class(`ios-input`).
-					KV(`data-orig`, state.birth).
-					Value(state.birth),
+					KV(`data-orig`, DateInputValue(state.birth)).
+					Value(DateInputValue(state.birth)),
 			),
 			IOSFormField(`buy`, `Buy date`,
 				Elem(`input`).
@@ -370,8 +374,8 @@ func RenderCustomer(state CustomerState_t) Elem_t {
 					Name(`buy`).
 					Id(`buy`).
 					Class(`ios-input`).
-					KV(`data-orig`, state.buy).
-					Value(state.buy),
+					KV(`data-orig`, DateInputValue(state.buy)).
+					Value(DateInputValue(state.buy)),
 			),
 		).Class(`ios-row2`, `ios-row-dates`),
 		Div(
@@ -425,20 +429,20 @@ func CustomerTitle(name string) string {
 	return `Customer`
 }
 
-func FiltersRecord(state FilterState_t, lookups FilterLookups_t, customer CustomerState_t, epoch int) Elem_t {
+func FiltersRecord(state FilterState_t, customer CustomerState_t, epoch int) Elem_t {
 	return Div(
 		Elem(`details`).Class(`ios-card`).KV(`open`).Id(`card-filters`).Wrap(
 			Elem(`summary`).Class(`ios-title`).Wrap(
 				Span(`Filters`).Class(`ios-title-text`),
 			),
 			Div(
-				RenderFilters(state, lookups, customer),
+				RenderFilters(state, customer),
 			).Class(`ios-card-body`),
 		),
 	).Id(`filters-record`).Args(`state:1,epoch:`, epoch)
 }
 
-func RenderFilters(state FilterState_t, lookups FilterLookups_t, customer CustomerState_t) Elem_t {
+func RenderFilters(state FilterState_t, customer CustomerState_t) Elem_t {
 	deductValues := CurrentDeductValues(customer)
 	return Div(
 		Div(
@@ -451,29 +455,29 @@ func RenderFilters(state FilterState_t, lookups FilterLookups_t, customer Custom
 		).Class(`ios-row2`),
 		Div(
 			IOSFormField(`hospital-min`, `Hospital Level Min`,
-				LevelSelect(`hospital-min`, state.hospitalMin, lookups.hospitalLevels),
+				SelectFromOptions(`hospital-min`, state.hospitalMin, App.lookup.hospitalLevels),
 			),
 			IOSFormField(`hospital-max`, `Hospital Level Max`,
-				LevelSelect(`hospital-max`, state.hospitalMax, lookups.hospitalLevels),
+				SelectFromOptions(`hospital-max`, state.hospitalMax, App.lookup.hospitalLevels),
 			),
 		).Class(`ios-row2`),
 		Div(
 			IOSFormField(`dental-min`, `Dental Level Min`,
-				LevelSelect(`dental-min`, state.dentalMin, lookups.dentalLevels),
+				SelectFromOptions(`dental-min`, state.dentalMin, App.lookup.dentalLevels),
 			),
 			IOSFormField(`dental-max`, `Dental Level Max`,
-				LevelSelect(`dental-max`, state.dentalMax, lookups.dentalLevels),
+				SelectFromOptions(`dental-max`, state.dentalMax, App.lookup.dentalLevels),
 			),
 		).Class(`ios-row2`),
 		Div(
 			IOSFormField(`prior-cover`, `Prior Cover`,
-				CodebookSelect(`prior-cover`, state.priorCover, lookups.priorCoverOptions).Class(`ios-select-compact`),
+				SelectFromOptions(`prior-cover`, state.priorCover, App.lookup.priorCoverOptions).Class(`ios-select-compact`),
 			),
 			IOSFormField(`exam`, `Exam`,
-				CodebookSelect(`exam`, state.exam, lookups.examOptions).Class(`ios-select-compact`),
+				SelectFromOptions(`exam`, state.exam, App.lookup.examOptions).Class(`ios-select-compact`),
 			),
 			IOSFormField(`specialist`, `Specialist`,
-				CodebookSelect(`specialist`, state.specialist, lookups.specialistOptions).Class(`ios-select-compact`),
+				SelectFromOptions(`specialist`, state.specialist, App.lookup.specialistOptions).Class(`ios-select-compact`),
 			),
 		).Class(`ios-row3f`, `ios-row-reg-top`),
 	).Class(`ios-stack`)
@@ -511,17 +515,5 @@ func SegmentSelect(selected int, idMap IdMap_t[Segment_t]) Elem_t {
 		if !ok { continue }
 		sel = sel.Wrap(Option().Value(x.segment).Text(x.name))
 	}
-	return sel.SelO(selected)
-}
-
-func LevelSelect(name string, selected int, values []LevelName_t) Elem_t {
-	sel := Select().Name(name).Id(name).Class(`ios-select`)
-	for _, x := range values { sel = sel.Wrap(Option().Value(x.level).Text(x.name)) }
-	return sel.SelO(selected)
-}
-
-func CodebookSelect(name string, selected int, values []CodebookOption_t) Elem_t {
-	sel := Select().Name(name).Id(name).Class(`ios-select`)
-	for _, x := range values { sel = sel.Wrap(Option().Value(x.id).Text(x.name)) }
 	return sel.SelO(selected)
 }
