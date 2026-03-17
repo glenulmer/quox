@@ -28,8 +28,8 @@ This is the target architecture and coding style for new UI work in `quo`, based
 
 ## HTML Readability Rules
 
-- Prefer semantic element builders (`main`, `section`, `form`, `label`, `input`, `select`, `button`) over raw HTML string blocks.
 - Prefer `Elem(...).Class(...).Wrap(...)` composition over long text fragments that look like templates.
+- Building on that if you have a generic style for a data card, define a function Card(contents ...any) that then resolves to Div().Class(`cardClass`,`large`).Id(`customerCard`).Wrap(contents)
 - Keep one UI block per builder call chain so structure is easy to scan in code review.
 - Keep content text in `.Text(...)` and attributes in `.KV(...)`/`.Id(...)`/`.Name(...)`/`.Value(...)`.
 - Use CSS classes for appearance; avoid inline style attributes in Go unless there is a strict one-off need.

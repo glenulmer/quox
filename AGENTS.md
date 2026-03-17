@@ -32,7 +32,13 @@
 1. Keep feedback technical and concrete.
 2. Do not label the user with moral/political identity terms.
 
-## 5) Enforcement
+## 5) Quality Check
+
+- You must achieve simplicity, maintainability, and no needless code duplication.
+- I will ask another AI to criticize your for all three factors.
+- Anticipate all criticisms, do not rush to a solution.
+
+## 6) Enforcement
 
 - `./scripts/check-guardrails.sh`
 - `./scripts/check-all.sh`
