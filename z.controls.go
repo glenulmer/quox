@@ -31,7 +31,16 @@ func ni(name string, value, min, max, step int) Elem_t {
 			KV(`max`, max).
 			KV(`step`, step).
 			Class(`right`),
-		Span(`€`).Class(`euro-mark`),
+			Span(`€`).Class(`euro-mark`),
+	)
+}
+
+func CheckCell(name, text string, varBool ...bool) Elem_t {
+	var checked bool
+	if len(varBool) > 0 { checked = varBool[0] }
+	return Div().Class(`check-cell`, `center`).Wrap(
+		CBox(name, checked),
+		Span(text).Class(`check-text`),
 	)
 }
 
@@ -42,14 +51,26 @@ func CustomerCard() Elem_t {
 	// buyYear := buy.Year()
 
 	body := Div().Class(`card-body`).Id(`Customer`).Wrap(
-			Field(12).Wrap(ti().Name(`name`).Place(`Customer name`)),
-			Field(`Segment`, 4).Wrap(Chooser(`quo_segments_chooser`).Name(`segment`)),
-			Field(`Birth date`, 4).Wrap(di(`birth`, birth).Class(`right`).Value(birth.Hyphens())),
-			Field(`Buy date`, 4).Wrap(di(`buy`, buy).Class(`right`).Value(buy.Hyphens())),
-			Field(`Sick cover`, 4).Wrap(ni(`sickcover`, 75000, 0, 150000, 1000)),
-			Field(`Prior cover`, 4).Wrap(Chooser(`quo_priorcov_chooser`).Name(`priorcov`)),
-			Field(`Exam`,4).Wrap(Chooser(`quo_noexam_chooser`).Name(`exam`)),
-		)
+		Field(8).Wrap(ti().Name(`name`).Place(`Customer name`)),
+		Field(4).Wrap(Chooser(`quo_segments_chooser`).Name(`segment`)),
+
+		Field(`Birth date`, 4).Wrap(di(`birth`, birth).Class(`right`).Value(birth.Hyphens())),
+		Field(`Buy date`, 4).Wrap(di(`buy`, buy).Class(`right`).Value(buy.Hyphens())),
+		Field(`Sick cover`, 4).Wrap(ni(`sickcover`, 75000, 0, 150000, 1000)),
+
+		Field(`Prior cover`, 4).Wrap(Chooser(`quo_priorcov_chooser`).Name(`priorcov`)),
+		Field(`Exam`,4).Wrap(Chooser(`quo_noexam_chooser`).Name(`exam`)),
+		Field(`Specialist`,4).Wrap(Chooser(`quo_specialist_chooser`).Name(`specialist`)),
+
+		Field(12).Wrap(
+			Div().Class(`check-grid`).Wrap(
+				CheckCell(`vision`, `Vision`, false),
+				CheckCell(`tempVisa`, `Temp Visa`, false),
+				CheckCell(`noPVN`, `No PVN`, false),
+				CheckCell(`naturalMed`, `Natural Med`, false),
+			),
+		),
+	)
 	title := Div(`Customer`).Class(`card-title`)
 	return Div().Class(`card`).Wrap(title, body)
 }

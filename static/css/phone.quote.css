@@ -25,7 +25,7 @@ label {
 	color: #43536b;
 }
 
-.card .card-field :is(input, select) {
+.card .card-field :is(input[type="text"], input[type="date"], input[type="number"], select) {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 0.4rem 0.5rem;
@@ -65,6 +65,35 @@ label {
 
 .card :is(input, select, textarea).center { text-align: center; }
 .card :is(input, select, textarea).right { text-align: right; }
+
+.card .check-grid {
+	--check-cols: 4;
+	display: grid;
+	grid-template-columns: repeat(var(--check-cols), minmax(0, 1fr));
+	gap: var(--customer-vspace) var(--customer-col-gap);
+}
+
+.card .check-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.card .check-cell input[type="checkbox"] {
+	width: 0.8rem;
+	height: 0.8rem;
+	margin: 0;
+}
+
+.card .check-cell .check-text {
+	margin-top: 0.125rem;
+	font-size: 0.72rem;
+	font-weight: 400;
+	color: #43536b;
+	line-height: 1.2;
+	text-align: center;
+}
 
 .card {
 	--customer-title-bg: #e6f2fc;
