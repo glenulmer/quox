@@ -24,10 +24,14 @@ type App_t struct {
 	staticVersion string
 	session       Session_t
 	lookup struct {
-		years IdMap_t[YearVars_t]
-		categs IdMap_t[Categ_t]
-		levels IdMap_t[Level_t]
-		prices map[YAP_t]Price_t
+		years		IdMap_t[YearVars_t]
+		categs		IdMap_t[Categ_t]
+		levels 		IdMap_t[Level_t]
+		plans       []PlanName_t // alphabetical sort
+		products	map[ProductId_t]Product_t
+		prices		map[YAP_t]Price_t
+		filters		map[PlanId_t]Filters_t
+		planAddons	map[PlanCateg_t]CatChoice_t
 	}
 }
 
