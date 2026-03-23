@@ -35,7 +35,7 @@ func LoadCategIdMap() IdMap_t[Categ_t] {
 		var x Categ_t
 		rows.Scan(&x.categId, &x.name, &x.catsur, &x.required)
 		if rows.HasError() { panic(rows.Message()) }
-		out = out.Add(int(x.categId), x)
+		out.Add(int(x.categId), x)
 	}
 	return out
 }
@@ -58,7 +58,7 @@ func LoadLevelIdMap() IdMap_t[Level_t] {
 		var x Level_t
 		rows.Scan(&x.levelId, &x.label, &x.categId, &x.segments, &x.canStack)
 		if rows.HasError() { panic(rows.Message()) }
-		out = out.Add(int(x.levelId), x)
+		out.Add(int(x.levelId), x)
 	}
 	return out
 }
@@ -82,7 +82,7 @@ func LoadYearVarsIdMap() IdMap_t[YearVars_t] {
 		rows.Scan(&x.year, &x.maxshare, &x.cover, &x.ltccap, &exists, &isPast, new(sql.NullString))
 		if rows.HasError() { panic(rows.Message()) }
 		if isPast || !exists || x.year <= 0 { continue }
-		out = out.Add(x.year, x)
+		out.Add(x.year, x)
 	}
 	return out
 }
@@ -116,7 +116,7 @@ func LoadProducts() map[ProductId_t]Product_t {
 	defer rows.Close()
 	var p Product_t
 	for rows.Next() {
-		rows.Scan(&p.productId, &p.providerId, &p.name, &p.categ, &p.level, &p.segs)
+		rows.Scan(&p.productId, &p.providerId, &p.name, &p.categ, &p.level, &p.segmask)
 		if rows.HasError() { panic(rows.Message()) }
 		products[p.productId] = p
 	}

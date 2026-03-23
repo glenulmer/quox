@@ -1,16 +1,13 @@
 package main
 
 import "net/http"
+import "github.com/alexedwards/scs/v2"
 import . "pm/lib/wrapdb"
 import . "pm/lib/dec2"
 
-type Session_t struct {
-	name     string
-	path     string
-	maxAge   int
-	httpOnly bool
-	secure   bool
-	sameSite http.SameSite
+type Sessions_t struct {
+	manager *scs.SessionManager
+	header  string
 }
 
 type YAP_t struct { year, age, productId int }
@@ -22,7 +19,8 @@ type App_t struct {
 	DB            *DB_t
 	port          string
 	staticVersion string
-	session       Session_t
+	Auth          func(http.HandlerFunc) http.HandlerFunc
+	sessions      Sessions_t
 	lookup struct {
 		years		IdMap_t[YearVars_t]
 		categs		IdMap_t[Categ_t]

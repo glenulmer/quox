@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"io/fs"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -59,14 +58,8 @@ func Bootstrap() {
 	App = App_t{
 		DB: OpenDB(dbUser, dbPass, dbName),
 		port: port,
-		session: Session_t{
-			name:     `session`,
-			path:     `/`,
-			maxAge:   60 * 60 * 24 * 365,
-			httpOnly: true,
-			secure:   false,
-			sameSite: http.SameSiteLaxMode,
-		},
+		Auth: TrueAuth,
+		sessions: NewSessions(),
 	}
 
 	LoadStaticData()

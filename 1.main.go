@@ -13,7 +13,11 @@ func main() {
 	defer App.DB.Close()
 
 	r := chi.NewRouter()
-	r.Get(`/`, Page0Home)
+	r.Use(App.sessions.Middleware)
+	r.Get(`/`, App.Auth(Page0Home))
+	r.Get(`/signin`, SignInHandler)
+	r.Post(`/signin`, SignInHandler)
+	r.Get(`/signout`, SignOutHandler)
 
 	r.Handle(`/static/*`, http.StripPrefix(`/static/`, http.FileServer(http.Dir(`./static`))))
 

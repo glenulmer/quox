@@ -25,11 +25,11 @@ type Product_t struct {
 	name       string
 	level      int
 	categ      int
-	segs       SegBits_t
+	segmask    SegBits_t
 }
 
 type Plan_t struct {
-	Product_t
+	exactAge bool
 	familyId                      int
 	hospital, dental              int
 	referral, priorcov, fasttrack int
@@ -49,20 +49,13 @@ type DeductibleSide_t struct {
 }
 
 type Deductible_t struct {
-	adult DeductibleSide_t
-	child DeductibleSide_t
-}
-
-type NoClaimSide_t struct {
-	months Months_t
-	flat   EuroFlat_t
+	adult, child  struct { euro EuroFlat_t; percent Percent_t }
 }
 
 type NoClaims_t struct {
 	promise bool
-	adult   NoClaimSide_t
-	child   NoClaimSide_t
-	note    string
+	adult, child struct { months Months_t; flat EuroFlat_t }
+	note string
 }
 
 type Vision_t struct {

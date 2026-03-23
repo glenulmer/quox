@@ -7,7 +7,10 @@ import (
 	. "pm/lib/output"
 )
 
-func Page0Home(w0 http.ResponseWriter, _ *http.Request) {
+func Page0Home(w0 http.ResponseWriter, req *http.Request) {
+	state := GetState(req)
+	_ = state
+
 	head := Head().
 		CSS(Str(`/static/css/phone.quote.css?v=`, App.staticVersion)).
 		Title(`Quo2`).
@@ -17,7 +20,7 @@ func Page0Home(w0 http.ResponseWriter, _ *http.Request) {
 	w.Add(
 		head.Left(), NL,
 		Elem(`main`).Class(`page`, `customer-home`).Wrap(
-			CustomerCard(),
+			CustomerCard(), NL,
 		), NL,
 		head.Right(), NL,
 	)
