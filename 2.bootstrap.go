@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -46,6 +47,10 @@ func Bootstrap() {
 	dbName := pick(dbNameFlag, os.Getenv(envDBName))
 	dbUser := pick(dbUserFlag, os.Getenv(envDBUser))
 	dbPass := pick(dbPassFlag, os.Getenv(envDBPass))
+	auth := TrueAuth
+	if os.Getenv(`HOME`) == `/home/glen` {
+		auth = FakeAuth
+	}
 
 	missing := make([]string, 0, 3)
 	if dbName == `` { missing = append(missing, envDBName) }
@@ -58,7 +63,7 @@ func Bootstrap() {
 	App = App_t{
 		DB: OpenDB(dbUser, dbPass, dbName),
 		port: port,
-		Auth: TrueAuth,
+		Auth: auth,
 		sessionManager: NewSessionManager(),
 	}
 
@@ -101,4 +106,25 @@ func ComputeStaticVersion() string {
 	if e != nil { panic(Error(`could not compute static version from `, root, `: `, e)) }
 	if count == 0 { panic(Error(`could not compute static version from `, root, `: no files`)) }
 	return Str(count, `-`, sumSize, `-`, newest)
+}
+
+func FakeAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		state := GetState(r)
+		if !state.LoggedIn() {
+			state.user = UserInfo_t{ 1, `Glen`, `glen.ulmer@gmail.com` }
+			SetState(r, state)
+		}
+		next.ServeHTTP(w, r)
+	}
+}
+
+func TrueAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !GetState(r).LoggedIn() {
+			http.Redirect(w, r, `/signin`, http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r)
+	}
 }

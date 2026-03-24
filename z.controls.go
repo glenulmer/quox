@@ -14,7 +14,7 @@ func CustomerCard() Elem_t {
 	adult := true
 	max := true
 
-	body := Div().Class(`card-body`).Id(`Customer`).Wrap(
+	body := Div().Class(`card-body`).Wrap(
 		Field(8).Wrap(ti().Name(`custName`).Place(`Customer name`)),
 		Field(4).Wrap(Chooser(`quo_segments_chooser`).Name(`segment`)),
 
