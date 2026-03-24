@@ -159,3 +159,145 @@ label {
 .card .w12-10 { --span: 10; }
 .card .w12-11 { --span: 11; }
 .card .w12-12 { --span: 12; }
+
+#planList {
+	margin-top: 0.625rem;
+}
+
+#planList > .plan-list-body {
+	justify-content: flex-start;
+}
+
+#planList > .plan-list-body > .card {
+	width: 100%;
+}
+
+#planList .plan-card-body {
+	justify-content: flex-start;
+}
+
+#planList .plan-label {
+	flex: 1 1 auto;
+	text-align: left;
+}
+
+#planList .plan-line {
+	width: 100%;
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+#planList .plan-price {
+	font-size: 0.86rem;
+	font-weight: 700;
+	text-align: right;
+	white-space: nowrap;
+}
+
+#planList .plan-addon-details {
+	width: 100%;
+	margin-top: 0.2rem;
+	border: 0.0625rem solid #d7e2ec;
+	border-radius: 0.45rem;
+	background: #fdfefe;
+	overflow: hidden;
+}
+
+#planList .plan-addon-title {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(4.6rem, auto) minmax(4.6rem, auto);
+	align-items: baseline;
+	column-gap: 0.5rem;
+	padding: 0.35rem 0.5rem;
+	background: #edf5fd;
+	cursor: pointer;
+}
+
+#planList .plan-addon-title-label,
+#planList .plan-addon-title-sum {
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: #1f324b;
+}
+
+#planList .plan-addon-title-sum {
+	text-align: right;
+	white-space: nowrap;
+}
+
+#planList .plan-addon-title .plan-addon-cat {
+	font-weight: 700;
+}
+
+#planList .plan-addon-body {
+	--addon-row-h: 1.5rem;
+	padding: 0.05rem 0.35rem 0.25rem;
+}
+
+#planList .plan-addon-row {
+	width: 100%;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(4.6rem, auto) minmax(4.6rem, auto);
+	align-items: center;
+	column-gap: 0.35rem;
+	min-height: var(--addon-row-h);
+	padding-top: 0;
+	border-top: 0.0625rem solid #d7e2ec;
+}
+
+#planList .plan-addon-head {
+	width: 100%;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(4.6rem, auto) minmax(4.6rem, auto);
+	align-items: center;
+	column-gap: 0.35rem;
+	min-height: var(--addon-row-h);
+	padding-top: 0;
+}
+
+#planList .plan-addon-cat,
+#planList .plan-addon-pick {
+	text-align: left;
+	font-size: 0.82rem;
+	color: #34465f;
+	min-width: 0;
+}
+
+#planList .plan-addon-base,
+#planList .plan-addon-surch {
+	text-align: right;
+	white-space: nowrap;
+	font-size: 0.79rem;
+	color: #34465f;
+	min-width: 4.6rem;
+	line-height: 1;
+}
+
+#planList .plan-addon-head .plan-addon-base,
+#planList .plan-addon-head .plan-addon-surch,
+#planList .plan-addon-sum .plan-addon-base,
+#planList .plan-addon-sum .plan-addon-surch,
+#planList .plan-addon-sum .plan-addon-cat {
+	font-weight: 700;
+}
+
+#planList .plan-addon-sum {
+	border-top-color: #c2d1e0;
+}
+
+#planList .plan-addon-pick > select {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	height: 1.35rem;
+	padding: 0.05rem 0.3rem;
+	border: 0.0625rem solid #9cb6d4;
+	border-radius: 0.5rem;
+	background: #fff;
+	color: #1e2a3b;
+	font-family: inherit;
+	font-size: 0.79rem;
+	line-height: 1;
+}

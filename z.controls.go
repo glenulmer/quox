@@ -20,8 +20,8 @@ func CustomerCard() Elem_t {
 		Field(8).Wrap(ti().Name(`custName`).Place(`Customer name`)),
 		Field(4).Wrap(Chooser(`quo_segments_chooser`).Name(`segment`)),
 
-		Field(`Birth date`, 4).Wrap(di(`birth`, birth).Class(`right`).Value(birth.Hyphens())),
-		Field(`Buy date`, 4).Wrap(di(`buy`, buy).Class(`right`).Value(buy.Hyphens())),
+		Field(`Birth date`, 4).Wrap(di(`birth`, birth).Class(`right`).KV(`lang`, `en-GB`)),
+		Field(`Buy date`, 4).Wrap(di(`buy`, buy).Class(`right`).KV(`lang`, `en-GB`)),
 		Field(`Sick cover`, 4).Wrap(ni(`sickCover`, 75000, 0, 150000, 1000)),
 
 		Field(`Prior cover`, 4).Wrap(Chooser(`quo_priorcov_chooser`).Name(`priorCov`)),

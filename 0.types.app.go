@@ -24,6 +24,7 @@ type App_t struct {
 		products	map[ProductId_t]Product_t
 		prices		map[YAP_t]Price_t
 		planAddons	map[PlanCateg_t]CatChoice_t
+		planAddonChoices map[PlanCateg_t][]CatChoice_t
 	}
 }
 

@@ -15,7 +15,7 @@ func LoadStaticData() {
 	App.lookup.plans = LoadPlanDetailsIdMap()
 	App.lookup.products = LoadProducts()
 	App.lookup.prices = LoadPrices()
-	App.lookup.planAddons = LoadPlanAddons()
+	App.lookup.planAddons, App.lookup.planAddonChoices = LoadPlanAddons()
 }
 
 type Categ_t struct {
@@ -159,19 +159,22 @@ type CatChoice_t struct {
 	label	string
 }
 
-func LoadPlanAddons() map[PlanCateg_t]CatChoice_t {
-	choices := make(map[PlanCateg_t]CatChoice_t)
+func LoadPlanAddons() (map[PlanCateg_t]CatChoice_t, map[PlanCateg_t][]CatChoice_t) {
+	defaults := make(map[PlanCateg_t]CatChoice_t)
+	choices := make(map[PlanCateg_t][]CatChoice_t)
 
-	rows := App.DB.Call(`quo_plan_categ_addons`)
+	rows := App.DB.Call(`quo_plan_categ_addons`, 0)
 	defer rows.Close()
 	if rows.HasError() { panic(rows.Message()) }
 	var k PlanCateg_t
 	var v CatChoice_t 
 	for rows.Next() {
-		rows.Scan(&k.plan, &k.categ, &v.addon, &v.level, &v.isdef, &v.label)
+		rows.Scan(&k.plan, &v.addon, &k.categ, &v.level, &v.isdef, &v.label)
 		if rows.HasError() { panic(rows.Message()) }
-		choices[k] = v
+		choices[k] = append(choices[k], v)
+		current, has := defaults[k]
+		if v.isdef || !has || !current.isdef { defaults[k] = v }
 	}
 
-	return choices
+	return defaults, choices
 }

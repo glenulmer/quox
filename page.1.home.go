@@ -24,6 +24,7 @@ func Page0Home(w0 http.ResponseWriter, req *http.Request) {
 		head.Left(), NL,
 		Elem(`main`).Class(`page`, `customer-home`).Wrap(
 			card, NL,
+			ListPlans(state), NL,
 		), NL,
 		head.Right(), NL,
 	)
