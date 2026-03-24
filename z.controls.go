@@ -6,6 +6,8 @@ import (
 //	. "pm/lib/output"
 )
 
+const catHospital, catDental = 3, 4
+
 func CustomerCard() Elem_t {
 	today := CurrentDBDate()
 	birth := DateFromYMD(today.Year()-32, 6, 15)
