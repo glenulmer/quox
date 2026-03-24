@@ -12,10 +12,9 @@ func LoadStaticData() {
 	App.lookup.years = LoadYearVarsIdMap()
 	App.lookup.categs = LoadCategIdMap()
 	App.lookup.levels = LoadLevelIdMap()
-	App.lookup.plans = LoadPlanAlpha()
+	App.lookup.plans = LoadPlanDetailsIdMap()
 	App.lookup.products = LoadProducts()
 	App.lookup.prices = LoadPrices()
-	App.lookup.filters = LoadFilters()
 	App.lookup.planAddons = LoadPlanAddons()
 }
 
@@ -36,6 +35,31 @@ func LoadCategIdMap() IdMap_t[Categ_t] {
 		rows.Scan(&x.categId, &x.name, &x.catsur, &x.required)
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(int(x.categId), x)
+	}
+	return out
+}
+
+func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
+	out := IdMap[Plan_t]()
+	rows := App.DB.Call(`quo_plan_details_query`)
+	if rows.HasError() { panic(rows.Message()) }
+	defer rows.Close()
+	for rows.Next() {
+		var p Plan_t
+		rows.Scan(
+			&p.planId, &p.familyId,
+			&p.hospital, &p.dental,
+			&p.priorcov, &p.noexam, &p.specref,
+			&p.tempvisa, &p.surcharge, &p.shi,
+			&p.vision.percent, &p.vision.euro, 
+			&p.comonths,
+			&p.ded.adult.euro, &p.ded.adult.percent, &p.ded.child.euro, &p.ded.adult.percent,
+			&p.nc.promise, &p.nc.note,
+			&p.nc.adult.months, &p.nc.adult.flat, &p.nc.child.months, &p.nc.child.flat, 
+			&p.name, &p.provName, &p.exactAge, &p.segmask,
+		)
+		if rows.HasError() { panic(rows.Message()) }
+		out.Add(int(p.planId), p)
 	}
 	return out
 }
@@ -123,33 +147,6 @@ func LoadProducts() map[ProductId_t]Product_t {
 	return products
 }
 
-type Filters_t struct {
-	plan PlanId_t
-	segmask, priorcov, noexam, referral int
-    vis_dec2 int
-	vis_pct bool
-	tempvisa bool
-    hospital, dental int
-	ad_value, ch_value EuroFlat_t
-}
-
-func LoadFilters() map[PlanId_t]Filters_t {
-	filters := make(map[PlanId_t]Filters_t)
-	rows := App.DB.Call(`quo_plan_filters_query`)
-	if rows.HasError() { panic(rows.Message()) }
-	defer rows.Close()
-	var p Filters_t
-	for rows.Next() {
-		rows.Scan(
-			&p.plan, &p.segmask, &p.priorcov, &p.noexam, &p.referral, &p.vis_pct, &p.vis_dec2,
-			&p.tempvisa, &p.hospital, &p.dental, &p.ad_value, &p.ch_value,
-		)
-		if rows.HasError() { panic(rows.Message()) }
-		filters[p.plan] = p
-	}
-	return filters
-}
-
 type PlanCateg_t struct {
 	plan	PlanId_t
 	categ	CategId_t
@@ -178,21 +175,3 @@ func LoadPlanAddons() map[PlanCateg_t]CatChoice_t {
 
 	return choices
 }
-
-type PlanName_t struct { plan PlanId_t; exact_age bool; name string }
-func LoadPlanAlpha() []PlanName_t {
-	var plans []PlanName_t
-
-	rows := App.DB.Call(`quo_plan_name_query`)
-	defer rows.Close()
-	if rows.HasError() { panic(rows.Message()) }
-	var k PlanName_t
-	for rows.Next() {
-		rows.Scan(&k.plan, &k.exact_age, &k.name)
-		if rows.HasError() { panic(rows.Message()) }
-		plans = append(plans, k)
-	}
-
-	return plans
-}
-

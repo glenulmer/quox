@@ -21,7 +21,6 @@ type SegBits_t int
 type Product_t struct {
 	productId  ProductId_t
 	providerId int
-	exactAge   bool
 	name       string
 	level      int
 	categ      int
@@ -29,23 +28,20 @@ type Product_t struct {
 }
 
 type Plan_t struct {
-	exactAge bool
-	familyId                      int
-	hospital, dental              int
-	referral, priorcov, fasttrack int
-	tempvisa, register            bool
-	vis                           Vision_t
-	surcharge                     bool
-	comonths                      Months_t // months of commission paid
-	deductible                    Deductible_t
-	noclaims                      NoClaims_t
+	planId PlanId_t
+	familyId  int
+	hospital, dental int
+	priorcov, noexam, specref int
+	tempvisa, surcharge, shi bool
+	vision Vision_t
+	comonths Months_t // months of commission paid
+	ded Deductible_t
+	nc NoClaims_t
 	// excluding plan_noclaim_categs, since they seem to be one-off & sparse
 	// excluding plan_incentives, since we have no meaningful content
-}
-
-type DeductibleSide_t struct {
-	euro    EuroFlat_t
-	percent Percent_t
+	name, provName  string
+	exactAge bool
+	segmask    SegBits_t
 }
 
 type Deductible_t struct {
@@ -54,12 +50,11 @@ type Deductible_t struct {
 
 type NoClaims_t struct {
 	promise bool
-	adult, child struct { months Months_t; flat EuroFlat_t }
 	note string
+	adult, child struct { months Months_t; flat EuroFlat_t }
 }
 
 type Vision_t struct {
-	isPct   bool
-	euro    EuroCent_t
 	percent Percent_t
+	euro    EuroCent_t
 }

@@ -41,11 +41,9 @@ func CustomerCard() Elem_t {
 		Field(`Hospital`, 4).Wrap(Chooser(`quo_level_chooser_max`, 3, !max).Name(`hospitalMin`)), // use categ
 		Field(`Dental`, 4).Wrap(Chooser(`quo_level_chooser_max`, 4, !max).Name(`dentalMin`)), // use categ
 
-
 		Field(4).Wrap(Chooser(`quo_deductibles_chooser`, adult, max).Name(`deductibleMax`).Class(`right`)),
 		Field(4).Wrap(Chooser(`quo_level_chooser_max`, 3, max).Name(`hospitalMax`)), // use categ
 		Field(4).Wrap(Chooser(`quo_level_chooser_max`, 4, max).Name(`dentalMax`)), // use categ
-
 	)
 
 	title := Div(`Quote Information`).Class(`card-title`)

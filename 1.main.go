@@ -13,7 +13,7 @@ func main() {
 	defer App.DB.Close()
 
 	r := chi.NewRouter()
-	r.Use(App.sessions.Middleware)
+	r.Use(SessionMiddleware)
 	r.Get(`/`, App.Auth(Page0Home))
 	r.Get(`/signin`, SignInHandler)
 	r.Post(`/signin`, SignInHandler)

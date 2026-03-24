@@ -24,13 +24,14 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	state.user = info
 	SetState(r, state)
 
+	token, _, e := App.sessionManager.Commit(r.Context())
+	if e == nil { SetSessionCookie(w, token) }
 	http.Redirect(w, r, `/`, http.StatusSeeOther)
 }
 
 func SignOutHandler(w http.ResponseWriter, r *http.Request) {
-	state := GetState(r)
-	state.user = UserInfo_t{}
-	SetState(r, state)
+	App.sessionManager.Destroy(r.Context())
+	ClearSessionCookie(w)
 	http.Redirect(w, r, `/`, http.StatusSeeOther)
 }
 

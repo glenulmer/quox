@@ -59,7 +59,7 @@ func Bootstrap() {
 		DB: OpenDB(dbUser, dbPass, dbName),
 		port: port,
 		Auth: TrueAuth,
-		sessions: NewSessions(),
+		sessionManager: NewSessionManager(),
 	}
 
 	LoadStaticData()
