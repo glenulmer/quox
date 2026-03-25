@@ -155,7 +155,6 @@ type PlanCateg_t struct {
 type CatChoice_t struct {
 	addon	AddonId_t
 	level	int
-	isdef	bool
 	label	string
 }
 
@@ -169,11 +168,10 @@ func LoadPlanAddons() (map[PlanCateg_t]CatChoice_t, map[PlanCateg_t][]CatChoice_
 	var k PlanCateg_t
 	var v CatChoice_t 
 	for rows.Next() {
-		rows.Scan(&k.plan, &v.addon, &k.categ, &v.level, &v.isdef, &v.label)
+		rows.Scan(&k.plan, &v.addon, &k.categ, &v.level, &v.label)
 		if rows.HasError() { panic(rows.Message()) }
 		choices[k] = append(choices[k], v)
-		current, has := defaults[k]
-		if v.isdef || !has || !current.isdef { defaults[k] = v }
+		if _, has := defaults[k]; !has { defaults[k] = v }
 	}
 
 	return defaults, choices

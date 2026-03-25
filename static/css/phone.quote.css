@@ -301,3 +301,79 @@ label {
 	font-size: 0.79rem;
 	line-height: 1;
 }
+
+#filterList {
+	margin-top: 0.625rem;
+}
+
+#filterList > .filter-list-body {
+	justify-content: flex-start;
+	padding: 0.35rem 0.5rem;
+}
+
+#filterList .filter-list-details {
+	width: 100%;
+	border: 0.0625rem solid #d7e2ec;
+	border-radius: 0.45rem;
+	background: #fdfefe;
+	overflow: hidden;
+}
+
+#filterList .filter-list-summary {
+	cursor: pointer;
+	padding: 0.35rem 0.5rem;
+	background: #edf5fd;
+	color: #1f324b;
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+#filterList .filter-list-rows {
+	padding: 0.05rem 0.35rem 0.25rem;
+}
+
+#filterList .filter-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 0.18rem;
+	align-items: center;
+	min-height: 1.42rem;
+	padding: 0.2rem 0;
+	border-top: 0.0625rem solid #d7e2ec;
+}
+
+#filterList .filter-row:first-child {
+	border-top: none;
+}
+
+#filterList .filter-plan-label {
+	font-size: 0.79rem;
+	color: #1f324b;
+	line-height: 1.15;
+}
+
+#filterList .filter-pill-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.2rem;
+}
+
+#filterList .filter-pill {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.02rem;
+	padding: 0 0.42rem;
+	border-radius: 999px;
+	border: 0.0625rem solid #c8d8ea;
+	background: #edf4fd;
+	color: #28415f;
+	font-size: 0.69rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+#filterList .filter-empty {
+	font-size: 0.78rem;
+	color: #556980;
+	padding: 0.1rem 0;
+}

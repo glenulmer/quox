@@ -12,6 +12,7 @@ func Page0Home(w0 http.ResponseWriter, req *http.Request) {
 
 	head := Head().
 		CSS(Str(`/static/css/phone.quote.css?v=`, App.staticVersion)).
+		JSTail(Str(`/static/js/page.1.home.js?v=`, App.staticVersion)).
 		Title(`Quo2`).
 		End()
 

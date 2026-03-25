@@ -44,7 +44,10 @@ func (x *tSessionWriter) Write(b []byte) (int, error) {
 func (x *tSessionWriter) commitSession() {
 	if x.done { return }
 	x.done = true
-	_, _, _ = x.manager.Commit(x.ctx)
+	token, _, _ := x.manager.Commit(x.ctx)
+	if token != `` {
+		SetSessionCookie(x.ResponseWriter, token)
+	}
 }
 
 func SessionMiddleware(next http.Handler) http.Handler {

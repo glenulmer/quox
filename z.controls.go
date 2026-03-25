@@ -49,7 +49,7 @@ func CustomerCard() Elem_t {
 	)
 
 	title := Div(`Quote Information`).Class(`card-title`)
-	return Div().Class(`card`).Wrap(title, body)
+	return Div().Id(`QuoteInformation`).Class(`card`).Wrap(title, body)
 }
 
 /*
