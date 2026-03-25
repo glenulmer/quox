@@ -96,14 +96,10 @@ func LookupPrice(buyYear, age, productId int) (base, surcharge EuroCent_t, ok bo
 	return price.base, price.surcharge, true
 }
 
-func SickMult(sickCover int) EuroCent_t {
-	return EuroCent_t(sickCover / 4500)
-}
-
 func CatPrice(buyYear, age, productId int, categId CategId_t, sickCover int) (base, surcharge EuroCent_t, ok bool) {
 	base, surcharge, ok = LookupPrice(buyYear, age, productId)
 	if !ok { return 0, 0, false }
-	if categId == catSick { base *= SickMult(sickCover) }
+	if categId == catSick { base *= EuroCent_t(sickCover / 4500) }
 	return base, surcharge, true
 }
 
@@ -120,30 +116,14 @@ func AddonName(choice CatChoice_t) string {
 	return Str(choice.addon)
 }
 
-func LogFirstPlanAddonChoices(categ Categ_t, choices []CatChoice_t, buyYear, age, sickCover int) {
-	for _, choice := range choices {
-		base, surch, ok := CatPrice(buyYear, age, int(choice.addon), categ.categId, sickCover)
-		star := ``
-		if choice.isdef { star = ` *` }
-		Log(`planList first plan addon:`,
-			`categ=`, categ.name,
-			`addon=`, AddonName(choice) + star,
-			`base=`, PriceText(base, ok),
-			`surcharge=`, PriceText(surch, ok),
-		)
-	}
-}
-
 func ListPlans(state State_t) Elem_t {
 	buyYear, yearAge, exactAge := PlanAges(state)
 	sickCover := StateInt(state, `sickCover`)
 
 	var list []Elem_t
-	loggedFirst := false
 	for planId, plan := range App.lookup.plans.All() {
 		age := yearAge
 		if plan.exactAge { age = exactAge }
-		firstPlan := !loggedFirst
 
 		planBase, planSurch, planOk := CatPrice(buyYear, age, planId, 0, sickCover)
 		sumBase, sumSurch := EuroCent_t(0), EuroCent_t(0)
@@ -160,8 +140,6 @@ func ListPlans(state State_t) Elem_t {
 			key := PlanCateg_t{ plan: planKey, categ: categ.categId }
 			choices := App.lookup.planAddonChoices[key]
 			if len(choices) == 0 { continue }
-
-			if firstPlan { LogFirstPlanAddonChoices(categ, choices, buyYear, age, sickCover) }
 
 			choice, ok := App.lookup.planAddons[key]
 			if !ok { continue }
@@ -189,11 +167,8 @@ func ListPlans(state State_t) Elem_t {
 		sumBaseText := PriceText(sumBase, true)
 		sumSurchText := PriceText(sumSurch, true)
 		totalText := PriceText(sumBase + sumSurch, true)
-		if firstPlan {
-			Log(`planList first plan:`, `yearAge=`, yearAge, `planId=`, planId, `price=`, totalText)
-		}
+
 		list = append(list, PlanCard(planId, plan, totalText, sumBaseText, sumSurchText, addonRows))
-		loggedFirst = true
 	}
 
 	return Div().Id(`planList`).Class(`card`).Wrap(

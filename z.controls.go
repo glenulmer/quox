@@ -26,7 +26,7 @@ func CustomerCard() Elem_t {
 
 		Field(`Prior cover`, 4).Wrap(Chooser(`quo_priorcov_chooser`).Name(`priorCov`)),
 		Field(`Exam`,4).Wrap(Chooser(`quo_noexam_chooser`).Name(`exam`)),
-		Field(`Specialist`,4).Wrap(Chooser(`quo_specialist_chooser`).Name(`specialist`)),
+		Field(`Specialist`,4).Wrap(Chooser(`quo_specialist_chooser`).Name(`specref`)),
 
 		Field(1).Wrap(`&nbsp;`),
 		Field(10).Wrap(
