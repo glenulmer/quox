@@ -1,93 +1,81 @@
 package main
 
 import (
+	"fmt"
 	"sort"
+
 	. "pm/lib/date"
 	. "pm/lib/dec2"
-	. "pm/lib/htmlHelper"
 	. "pm/lib/output"
 )
 
-const catSick CategId_t = 1
-const specrefAddon = 2
-const segmentStudent = 4
-
-func PlanCard(planId int, plan Plan_t, priceText, sumBaseText, sumSurchText string, addonRows []Elem_t) Elem_t {
-	body := Div().Class(`card-body`, `plan-card-body`).Wrap(
-		Div().Class(`plan-line`).Wrap(
-			Div(plan.provName, ` / `, plan.name).Class(`plan-label`),
-			Div(priceText).Class(`plan-price`),
-		),
-	)
-	if len(addonRows) > 0 {
-		body = body.Wrap(
-			Elem(`details`).Class(`plan-addon-details`).Wrap(
-				Elem(`summary`).Class(`plan-addon-title`).Wrap(
-					Span(`Total`).Class(`plan-addon-cat`, `plan-addon-title-label`),
-					Span(``).Class(`plan-addon-pick`),
-					Span(sumBaseText).Class(`plan-addon-base`, `plan-addon-title-sum`),
-					Span(sumSurchText).Class(`plan-addon-surch`, `plan-addon-title-sum`),
-				),
-				Div().Class(`plan-addon-body`).Wrap(addonRows),
-			),
-		)
-	}
-	return Div().Class(`card`).Id(`planId`, planId).Wrap(body)
+type QuotePlanAddon_t struct {
+	categId CategId_t
+	categ string
+	label string
+	addon AddonId_t
+	level int
+	hasMulti bool
+	base EuroCent_t
+	surcharge EuroCent_t
+	priceOk bool
+	choices []CatChoice_t
 }
 
-func PlanAddonHead() Elem_t {
-	return Div().Class(`plan-addon-head`).Wrap(
-		Div(``).Class(`plan-addon-cat`),
-		Div(``).Class(`plan-addon-pick`),
-		Div(`base`).Class(`plan-addon-base`),
-		Div(`surch`).Class(`plan-addon-surch`),
-	)
+type QuotePlan_t struct {
+	planId int
+	label string
+	price EuroCent_t
+	planBase EuroCent_t
+	planSurcharge EuroCent_t
+	planOk bool
+	base EuroCent_t
+	surcharge EuroCent_t
+	addons []QuotePlanAddon_t
 }
 
-func PlanAddonRow(cat, pick any, baseText, surchText string, class ...string) Elem_t {
-	row := Div().Class(`plan-addon-row`)
-	if len(class) > 0 { row = row.Class(class...) }
-	return row.Wrap(
-		Div().Class(`plan-addon-cat`).Wrap(cat),
-		Div().Class(`plan-addon-pick`).Wrap(pick),
-		Div(baseText).Class(`plan-addon-base`),
-		Div(surchText).Class(`plan-addon-surch`),
-	)
+type QuotePlanFiltered_t struct {
+	planId int
+	label string
+	reasons []string
 }
 
-func PlanCatSelect(planId int, categ Categ_t, choices []CatChoice_t, selected AddonId_t) Elem_t {
-	var options []Elem_t
+type QuotePlans_t struct {
+	plans []QuotePlan_t
+	filtered []QuotePlanFiltered_t
+}
+
+type PlanFilters_t struct {
+	segment int
+	prior int
+	noExam bool
+	specref int
+	vision bool
+	tempVisa bool
+	noPVN bool
+	naturalMed bool
+	deductMin, deductMax int
+	hospitalMin, hospitalMax int
+	dentalMin, dentalMax int
+}
+
+func QuotePlanCatControlName(planId int, categId CategId_t) string {
+	return Str(`plancat-`, planId, `-`, categId)
+}
+
+func QuotePlanCatControl(name string) (planId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `plancat-%d-%d`, &planId, &cat)
+	if err != nil || n != 2 { return 0, 0, false }
+	if planId <= 0 || cat <= 0 { return 0, 0, false }
+	return planId, CategId_t(cat), true
+}
+
+func QuoteChoiceByAddon(choices []CatChoice_t, addon AddonId_t) (CatChoice_t, bool) {
 	for _, choice := range choices {
-		options = append(options, Option().KV(`value`, choice.addon).Text(AddonName(choice)))
+		if choice.addon == addon { return choice, true }
 	}
-	return Select(options).Id(`plancat-`, planId, `-`, categ.categId).Choose(selected)
-}
-
-func StateValue(state State_t, key string) string {
-	v := state.quote[key]
-	if v == `` { v = state.quote[Q(key)] }
-	v = Trim(v)
-	if len(v) >= 2 && v[0] == '"' && v[len(v)-1] == '"' { v = v[1:len(v)-1] }
-	return v
-}
-
-func StateInt(state State_t, key string) int {
-	return Atoi(StateValue(state, key))
-}
-
-func StateIntOK(state State_t, key string) (int, bool) {
-	v := StateValue(state, key)
-	if v == `` { return 0, false }
-	return Atoi(v), true
-}
-
-func StateIntAny(state State_t, keys ...string) (int, bool) {
-	for _, key := range keys { if v, ok := StateIntOK(state, key); ok { return v, true } }
-	return 0, false
-}
-
-func StateDate(state State_t, key string) CalDate_t {
-	return Parse(`yyyy-mm-dd`, StateValue(state, key))
+	return CatChoice_t{}, false
 }
 
 func PlanAges(state State_t) (buyYear, yearAge, exactAge int) {
@@ -127,17 +115,6 @@ func AddonName(choice CatChoice_t) string {
 	product, ok := App.lookup.products[ProductId_t(choice.addon)]
 	if ok { return product.name }
 	return Str(choice.addon)
-}
-
-func StateBool(state State_t, keys ...string) bool {
-	for _, key := range keys {
-		v := Lower(StateValue(state, key))
-		switch v {
-		case `1`, `on`, `yes`, `true`:
-			return true
-		}
-	}
-	return false
 }
 
 func CategIs(categ Categ_t, tag string) bool {
@@ -246,20 +223,6 @@ func VisionAmount(plan Plan_t, planBase EuroCent_t) (EuroCent_t, bool) {
 	return 0, false
 }
 
-type PlanFilters_t struct {
-	segment int
-	prior int
-	noExam bool
-	specref int
-	vision bool
-	tempVisa bool
-	noPVN bool
-	naturalMed bool
-	deductMin, deductMax int
-	hospitalMin, hospitalMax int
-	dentalMin, dentalMax int
-}
-
 func PlanFilters(state State_t) PlanFilters_t {
 	f := PlanFilters_t{
 		specref: specrefAddon,
@@ -309,48 +272,12 @@ func PlanFilterReasons(plan Plan_t, f PlanFilters_t) []string {
 	return reasons
 }
 
-type PlanFiltered_t struct {
-	planId int
-	label string
-	reasons []string
-}
-
-func FilterRow(x PlanFiltered_t) Elem_t {
-	var pills []Elem_t
-	for _, reason := range x.reasons {
-		pills = append(pills, Span(reason).Class(`filter-pill`))
-	}
-	return Div().Class(`filter-row`).Id(`fplanId`, x.planId).Wrap(
-		Div(x.label).Class(`filter-plan-label`),
-		Div().Class(`filter-pill-list`).Wrap(pills),
-	)
-}
-
-func FilterListCard(filtered []PlanFiltered_t) Elem_t {
-	var rows []Elem_t
-	for _, x := range filtered { rows = append(rows, FilterRow(x)) }
-	if len(rows) == 0 { rows = append(rows, Div(`No plans filtered out.`).Class(`filter-empty`)) }
-
-	return Div().Id(`filterList`).Class(`card`).Wrap(
-		Div(`Filtered Out (`, len(filtered), `)`).Class(`card-title`),
-		Div().Class(`card-body`, `filter-list-body`).Wrap(
-			Elem(`details`).Class(`filter-list-details`).Wrap(
-				Elem(`summary`).Class(`filter-list-summary`).Wrap(
-					Span(`Show filtered plans`),
-				),
-				Div().Class(`filter-list-rows`).Wrap(rows),
-			),
-		),
-	)
-}
-
-func ListPlans(state State_t) Elem_t {
+func QuotePlans(state State_t) QuotePlans_t {
 	buyYear, yearAge, exactAge := PlanAges(state)
 	sickCover := StateInt(state, `sickCover`)
 	filter := PlanFilters(state)
 
-	var list []Elem_t
-	var filtered []PlanFiltered_t
+	out := QuotePlans_t{}
 	for planId, plan := range App.lookup.plans.All() {
 		age := yearAge
 		if plan.exactAge { age = exactAge }
@@ -360,96 +287,104 @@ func ListPlans(state State_t) Elem_t {
 		reasons := PlanFilterReasons(plan, filter)
 		if !planOk || planBase == 0 { reasons = append(reasons, `Zero price`) }
 		if len(reasons) > 0 {
-			filtered = append(filtered, PlanFiltered_t{
+			out.filtered = append(out.filtered, QuotePlanFiltered_t{
 				planId: int(plan.planId),
 				label: Str(plan.provName, ` / `, plan.name),
 				reasons: reasons,
 			})
 			continue
 		}
-		sumBase, sumSurch := EuroCent_t(0), EuroCent_t(0)
-		if planOk { sumBase += planBase; sumSurch += planSurch }
 
-		addonRows := []Elem_t{
-			PlanAddonHead(),
-			PlanAddonRow(`Plan`, ``, PriceText(planBase, planOk), PriceText(planSurch, planOk)),
+		row := QuotePlan_t{
+			planId: int(plan.planId),
+			label: Str(plan.provName, ` / `, plan.name),
+			planBase: planBase,
+			planSurcharge: planSurch,
+			planOk: planOk,
+		}
+		if planOk {
+			row.base += planBase
+			row.surcharge += planSurch
 		}
 
 		planKey := plan.planId
-			for _, categ := range App.lookup.categs.All() {
-				if categ.categId == 0 { continue }
-				if filter.noPVN && CategIs(categ, `pvn`) { continue }
+		for _, categ := range App.lookup.categs.All() {
+			if categ.categId == 0 { continue }
+			if filter.noPVN && CategIs(categ, `pvn`) { continue }
 
-				key := PlanCateg_t{ plan: planKey, categ: categ.categId }
-				choices := App.lookup.planAddonChoices[key]
-				if len(choices) == 0 { continue }
-				choices = EnsureFreeChoice(plan, categ.categId, choices)
+			key := PlanCateg_t{ plan: planKey, categ: categ.categId }
+			choices := App.lookup.planAddonChoices[key]
+			if len(choices) == 0 { continue }
+			choices = EnsureFreeChoice(plan, categ.categId, choices)
 			choices = EnsureOptionalChoice(categ, choices)
 
 			choice, ok := App.lookup.planAddons[key]
 			if !ok { continue }
-				if IsHospDental(categ.categId) {
-					minLevel, maxLevel := filter.hospitalMin, filter.hospitalMax
-					if int(categ.categId) == catDental { minLevel, maxLevel = filter.dentalMin, filter.dentalMax }
-					choice = PickRangeChoice(plan, categ.categId, choices, minLevel, maxLevel)
+			if IsHospDental(categ.categId) {
+				minLevel, maxLevel := filter.hospitalMin, filter.hospitalMax
+				if int(categ.categId) == catDental { minLevel, maxLevel = filter.dentalMin, filter.dentalMax }
+				choice = PickRangeChoice(plan, categ.categId, choices, minLevel, maxLevel)
+			}
+			if CategIs(categ, `natural`) {
+				if !filter.naturalMed {
+					choice.addon = 0
+					choice.label = `---`
+				} else if choice.addon == 0 {
+					choice.addon = PickAnyAddon(choices)
 				}
-				if CategIs(categ, `natural`) {
-					if !filter.naturalMed {
-						choice.addon = 0
-						choice.label = `---`
-					} else if choice.addon == 0 {
-						choice.addon = PickAnyAddon(choices)
+			}
+			if !(CategIs(categ, `natural`) && !filter.naturalMed) {
+				keyName := QuotePlanCatControlName(int(plan.planId), categ.categId)
+				if selected, ok := StateIntOK(state, keyName); ok {
+					if picked, found := QuoteChoiceByAddon(choices, AddonId_t(selected)); found {
+						choice = picked
 					}
 				}
-			hasMulti := len(choices) > 1
-			if !hasMulti && choice.addon == 0 { continue }
-
-			var base, surch EuroCent_t
-			priceOk := false
-			if choice.addon != 0 {
-					base, surch, priceOk = CatPrice(buyYear, age, int(choice.addon), categ.categId, sickCover, suppressSurch)
-				if priceOk { sumBase += base; sumSurch += surch }
 			}
 
-			rowPick := any(``)
-			label := Trim(choice.label)
-			if label != `` && Lower(label) != Lower(Trim(categ.name)) { rowPick = label }
-			if hasMulti {
-				rowPick = PlanCatSelect(planId, categ, choices, choice.addon)
+			x := QuotePlanAddon_t{
+				categId: categ.categId,
+				categ: categ.name,
+				label: choice.label,
+				addon: choice.addon,
+				level: choice.level,
+				hasMulti: len(choices) > 1,
+				choices: choices,
 			}
-			addonRows = append(addonRows,
-				PlanAddonRow(categ.name, rowPick, PriceText(base, priceOk), PriceText(surch, priceOk)),
-			)
+			if !x.hasMulti && x.addon == 0 { continue }
+
+			if x.addon != 0 {
+				x.base, x.surcharge, x.priceOk = CatPrice(buyYear, age, int(x.addon), categ.categId, sickCover, suppressSurch)
+				if x.priceOk {
+					row.base += x.base
+					row.surcharge += x.surcharge
+				}
+			}
+
+			row.addons = append(row.addons, x)
 		}
+
 		if filter.vision {
 			visionBase, visionOk := VisionAmount(plan, planBase)
 			if visionOk {
-				sumBase += visionBase
-				addonRows = append(addonRows,
-					PlanAddonRow(`Vision`, ``, PriceText(visionBase, true), `-`),
-				)
+				row.base += visionBase
+				row.addons = append(row.addons, QuotePlanAddon_t{
+					categ: `Vision`,
+					base: visionBase,
+					priceOk: true,
+				})
 			}
 		}
 
-		sumBaseText := PriceText(sumBase, true)
-		sumSurchText := PriceText(sumSurch, true)
-		totalText := PriceText(sumBase + sumSurch, true)
-
-		list = append(list, PlanCard(planId, plan, totalText, sumBaseText, sumSurchText, addonRows))
+		row.price = row.base + row.surcharge
+		out.plans = append(out.plans, row)
 	}
 
-	sort.Slice(filtered, func(i, j int) bool {
-		return Lower(filtered[i].label) < Lower(filtered[j].label)
+	sort.Slice(out.plans, func(i, j int) bool {
+		return Lower(out.plans[i].label) < Lower(out.plans[j].label)
 	})
-
-	planList := Div().Id(`planList`).Class(`card`).Wrap(
-		Div(`Plans (`, len(list), `)`).Class(`card-title`),
-		Div().Class(`card-body`, `plan-list-body`).Wrap(list),
-	)
-	filterList := FilterListCard(filtered)
-
-	return Div().Id(`PlansAndFilters`).Wrap(
-		planList,
-		filterList,
-	)
+	sort.Slice(out.filtered, func(i, j int) bool {
+		return Lower(out.filtered[i].label) < Lower(out.filtered[j].label)
+	})
+	return out
 }

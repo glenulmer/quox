@@ -1,6 +1,6 @@
 # AGENTS - Quo2 Guardrails
 
-## 1) Non-Negotiables
+## A) Non-Negotiables
 
 1. Keep `package main` + page-oriented files (`0.*`, `page.*`).
 2. Keep `chi` + `net/http`; explicit route lines.
@@ -10,18 +10,21 @@
 6. Never put `panic(...)` in request/page handlers (`page.*.go`).
 7. No detailed error plumbing
 
-## 2) Interaction Rule
+## B) Code style
+ 1. Read CODING_STYLE.md before writing or modifying go code.
+
+## C) Interaction Rule
 
 1. Keep feedback technical and concrete.
 2. Do not label the user with moral/political identity terms.
 
-## 3) Quality Check
+## D) Quality Check
 
 - You must achieve code clarity, simplicity, maintainability, and no needless duplication.
-- I will ask another AI to criticize your for all three factors.
+- I will ask another AI to criticize your work for all three factors.
 - Anticipate all criticisms, do not rush to a solution.
 
-## 4) Enforcement
+## E) Enforcement
 
 - `./scripts/check-guardrails.sh`
 - `./scripts/check-all.sh`

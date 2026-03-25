@@ -14,8 +14,8 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(SessionMiddleware)
-	r.Get(`/`, App.Auth(Page0Home))
-	r.Post(`/quote-info-change`, App.Auth(QuoteInfoChangeHandler))
+	r.Get(`/`, App.Auth(Page1Quote))
+	r.Post(`/quote-info-change`, App.Auth(Page1QuoteChange))
 	r.Get(`/signin`, SignInHandler)
 	r.Post(`/signin`, SignInHandler)
 	r.Get(`/signout`, SignOutHandler)

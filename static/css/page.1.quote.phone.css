@@ -1,0 +1,283 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: #f3f4f6;
+	color: #1d2430;
+	font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.quote-page-phone {
+	max-width: 26.875rem;
+	margin: 0 auto;
+	padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.quote-form {
+	margin: 0;
+}
+
+.quote-card,
+.quote-plan-card,
+.quote-filter-box {
+	border: 0.0625rem solid #b9c3cf;
+	border-radius: 0.625rem;
+	background: #f8fcff;
+	overflow: hidden;
+}
+
+.quote-card {
+	margin-bottom: 0.625rem;
+	padding: 0;
+}
+
+.quote-card-title {
+	margin: 0;
+	padding: 0.625rem 0.75rem;
+	background: #e6f2fc;
+	color: #0e1a2a;
+	font-size: 0.96rem;
+	font-weight: 700;
+}
+
+.quote-grid {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 0.5rem 0.625rem;
+	padding: 0.5rem;
+}
+
+.quote-field,
+.quote-control,
+.quote-check {
+	min-width: 0;
+}
+
+.quote-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3125rem;
+	font-size: 0.78rem;
+	color: #43536b;
+}
+
+.quote-label {
+	padding-left: 0.4rem;
+	font-size: 0.78rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.quote-field :is(input[type="text"], input[type="date"], input[type="number"], select),
+.quote-control :is(input[type="text"], input[type="date"], input[type="number"], select) {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.42rem 0.5rem;
+	border: 0.0625rem solid #9cb6d4;
+	border-radius: 0.5rem;
+	background: #fff;
+	font-size: 0.9rem;
+	color: #1e2a3b;
+	font-family: inherit;
+}
+
+.quote-phone-right :is(input[type="number"], select) {
+	text-align: right;
+}
+
+.quote-phone-no-label .quote-label {
+	display: none;
+}
+
+.quote-phone-no-label :is(input[type="text"], input[type="date"], input[type="number"], select) {
+	margin-top: 0;
+}
+
+.quote-spacer {
+	min-height: 0.25rem;
+}
+
+.quote-phone-checks {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.5rem 0.625rem;
+	align-items: start;
+}
+
+.quote-check.quote-phone-check {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 0.16rem;
+	padding: 0.05rem 0;
+}
+
+.quote-check.quote-phone-check input[type="checkbox"] {
+	width: 0.8rem;
+	height: 0.8rem;
+	margin: 0;
+}
+
+.quote-check-text {
+	font-size: 0.72rem;
+	font-weight: 400;
+	color: #43536b;
+	line-height: 1.2;
+	text-align: center;
+}
+
+.quote-span-1 { grid-column: span 1; }
+.quote-span-2 { grid-column: span 2; }
+.quote-span-3 { grid-column: span 3; }
+.quote-span-4 { grid-column: span 4; }
+.quote-span-5 { grid-column: span 5; }
+.quote-span-6 { grid-column: span 6; }
+.quote-span-7 { grid-column: span 7; }
+.quote-span-8 { grid-column: span 8; }
+.quote-span-9 { grid-column: span 9; }
+.quote-span-10 { grid-column: span 10; }
+.quote-span-11 { grid-column: span 11; }
+.quote-span-12 { grid-column: span 12; }
+
+.quote-plan-results {
+	display: grid;
+	gap: 0.625rem;
+}
+
+.quote-plan-list,
+.quote-filtered-list {
+	display: grid;
+	gap: 0.625rem;
+}
+
+.quote-plan-card {
+	padding: 0.6rem;
+	background: #f8fcff;
+}
+
+.quote-plan-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.quote-plan-label,
+.quote-filtered-label {
+	font-weight: 700;
+}
+
+.quote-plan-price {
+	font-size: 0.88rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.quote-plan-total-label {
+	font-size: 0.74rem;
+	font-weight: 700;
+	color: #43536b;
+	text-transform: uppercase;
+}
+
+.quote-plan-sums {
+	margin-top: 0.2rem;
+	display: grid;
+	gap: 0.1rem;
+	font-size: 0.8rem;
+	color: #4f6275;
+}
+
+.quote-plan-addon-list {
+	margin-top: 0.25rem;
+}
+
+.quote-plan-addon,
+.quote-plan-addon-base-row {
+	width: 100%;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(4.6rem, auto) minmax(4.6rem, auto);
+	align-items: center;
+	column-gap: 0.35rem;
+	padding-top: 0.18rem;
+	border-top: 0.0625rem solid #d7e2ec;
+}
+
+.quote-plan-addon:first-child {
+	border-top: 0;
+	padding-top: 0;
+}
+
+.quote-plan-addon-cat {
+	font-size: 0.8rem;
+	font-weight: 700;
+}
+
+.quote-plan-addon-pick,
+.quote-plan-addon-base,
+.quote-plan-addon-surch,
+.quote-filtered-reasons,
+.quote-filtered-empty {
+	font-size: 0.78rem;
+	color: #4f6275;
+}
+
+.quote-plan-addon-base,
+.quote-plan-addon-surch {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.quote-plan-addon-pick > select {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	height: 1.35rem;
+	padding: 0.05rem 0.3rem;
+	border: 0.0625rem solid #9cb6d4;
+	border-radius: 0.5rem;
+	background: #fff;
+	color: #1e2a3b;
+	font-family: inherit;
+	font-size: 0.79rem;
+	line-height: 1;
+}
+
+.quote-filter-box-title {
+	padding: 0.625rem 0.75rem;
+	font-weight: 700;
+	cursor: pointer;
+	background: #e6f2fc;
+}
+
+.quote-filter-box .quote-filtered-list {
+	padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.quote-filtered-plan {
+	padding-top: 0.35rem;
+	border-top: 0.0625rem solid #d7e2ec;
+}
+
+.quote-filtered-plan:first-child {
+	padding-top: 0;
+	border-top: 0;
+}
+
+@media (max-width: 22rem) {
+	.quote-span-4,
+	.quote-span-5,
+	.quote-span-6,
+	.quote-span-7,
+	.quote-span-8,
+	.quote-span-9,
+	.quote-span-10,
+	.quote-span-11,
+	.quote-span-12 {
+		grid-column: span 12;
+	}
+}

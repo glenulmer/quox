@@ -1,12 +1,10 @@
 (() => {
-	const root = document.getElementById('QuoteInformation');
-	if (!root) return;
-
-	const selector = 'input[name], select[name], textarea[name]';
+	const selector = '#QuoteForm input[name], #QuoteForm select[name], #QuoteForm textarea[name], #QuotePlans select[name^="plancat-"]';
 	const lastSent = new Map();
+	const debounceMs = 250;
 	const custNameDebounceMs = 450;
 	let seq = 0;
-	let custNameTimer = 0;
+	let timer = 0;
 
 	const controlValue = (el) => (el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value);
 	const sendIfChanged = (name, value) => {
@@ -49,6 +47,13 @@
 			.catch(() => {});
 	};
 
+	const schedule = (name, value, wait) => {
+		window.clearTimeout(timer);
+		timer = window.setTimeout(() => {
+			sendIfChanged(name, value);
+		}, wait);
+	};
+
 	const onControlChange = (ev) => {
 		const el = ev.target;
 		if (!(el instanceof HTMLElement)) return;
@@ -58,15 +63,16 @@
 		if (!name) return;
 		const value = controlValue(el);
 		if (name === 'custName') {
-			window.clearTimeout(custNameTimer);
-			custNameTimer = window.setTimeout(() => {
-				sendIfChanged(name, value);
-			}, custNameDebounceMs);
+			schedule(name, value, custNameDebounceMs);
+			return;
+		}
+		if (el.tagName === 'INPUT' && el.getAttribute('type') !== 'checkbox') {
+			schedule(name, value, debounceMs);
 			return;
 		}
 		sendIfChanged(name, value);
 	};
 
-	root.addEventListener('change', onControlChange);
-	root.addEventListener('input', onControlChange);
+	document.addEventListener('change', onControlChange);
+	document.addEventListener('input', onControlChange);
 })();

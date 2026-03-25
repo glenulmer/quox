@@ -16,6 +16,7 @@ import (
 
 const (
 	envPort              = `PM_PORT`
+	envLayout            = `PM_LAYOUT`
 	envDBName            = `PM_DBNAME`
 	envDBUser            = `PM_DBUSER`
 	envDBPass            = `PM_DBPASS`
@@ -23,9 +24,12 @@ const (
 	dbPingPause          = 200 * time.Millisecond
 )
 
+const layoutPhone, layoutDesktop = `phone`, `desktop`
+
 func Bootstrap() {
-	var portFlag, dbNameFlag, dbUserFlag, dbPassFlag string
+	var portFlag, layoutFlag, dbNameFlag, dbUserFlag, dbPassFlag string
 	flag.StringVar(&portFlag, `port`, ``, Str(`Web port number (or $`, envPort, `)`))
+	flag.StringVar(&layoutFlag, `layout`, ``, Str(`Layout name (`, layoutPhone, ` or `, layoutDesktop, `, or $`, envLayout, `)`))
 	flag.StringVar(&dbNameFlag, `db`, ``, Str(`Database name (or $`, envDBName, `)`))
 	flag.StringVar(&dbUserFlag, `user`, ``, Str(`Database user (or $`, envDBUser, `)`))
 	flag.StringVar(&dbPassFlag, `pass`, ``, Str(`Database password (or $`, envDBPass, `)`))
@@ -42,6 +46,14 @@ func Bootstrap() {
 	port := pick(portFlag, os.Getenv(envPort), `4444`)
 	if n, e := strconv.Atoi(port); e != nil || n < 1 || n > 65535 {
 		panic(Str(`Invalid port configuration: `, port))
+	}
+	layoutDefault := layoutPhone
+	if port == `3333` { layoutDefault = layoutDesktop }
+	layout := pick(layoutFlag, os.Getenv(envLayout), layoutDefault)
+	switch layout {
+	case layoutPhone, layoutDesktop:
+	default:
+		panic(Str(`Invalid layout configuration: `, layout))
 	}
 
 	dbName := pick(dbNameFlag, os.Getenv(envDBName))
@@ -63,6 +75,7 @@ func Bootstrap() {
 	App = App_t{
 		DB: OpenDB(dbUser, dbPass, dbName),
 		port: port,
+		layout: layout,
 		Auth: auth,
 		sessionManager: NewSessionManager(),
 	}

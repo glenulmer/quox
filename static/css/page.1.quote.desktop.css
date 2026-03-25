@@ -1,0 +1,242 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	margin: 10px;
+	background: #fbfaf7;
+	color: #474747;
+	font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.quote-page-desktop {
+	min-width: 1180px;
+}
+
+.quote-form {
+	margin: 0 0 12px;
+}
+
+.quote-desk-workbench {
+	width: 812px;
+	border: 0.0625rem solid #d6cfbb;
+	border-radius: 0.5rem;
+	background: #fffdf8;
+	overflow: hidden;
+}
+
+.quote-desk-rows {
+	display: grid;
+	row-gap: 8px;
+	padding: 10px;
+}
+
+.quote-desk-row {
+	display: grid;
+	column-gap: 8px;
+	align-items: end;
+}
+
+.quote-desk-row + .quote-desk-row {
+	border-top: 0.0625rem solid #ece3c6;
+	padding-top: 8px;
+}
+
+.quote-desk-row-top {
+	grid-template-columns: 256px 128px 1fr;
+}
+
+.quote-desk-row-mid,
+.quote-desk-row-bottom {
+	grid-template-columns: repeat(6, 125.333px);
+}
+
+.quote-desk-flags {
+	display: grid;
+	grid-template-columns: repeat(4, 72px);
+	column-gap: 6px;
+	justify-content: center;
+	align-items: end;
+}
+
+.quote-field,
+.quote-control,
+.quote-check {
+	min-width: 0;
+}
+
+.quote-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.22rem;
+}
+
+.quote-label {
+	display: block;
+	padding-left: 0.12rem;
+	font-size: 0.72rem;
+	font-weight: 700;
+	line-height: 1.1;
+	color: #5e5e5e;
+}
+
+.quote-field :is(input[type="text"], input[type="date"], input[type="number"], select),
+.quote-control :is(input[type="text"], input[type="date"], input[type="number"], select) {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.36rem 0.42rem;
+	border: 0.0625rem solid #b7b7b7;
+	border-radius: 0.28rem;
+	background: #fff;
+	color: inherit;
+	font-size: 0.86rem;
+	font-family: inherit;
+}
+
+.quote-desk-right :is(input[type="number"], select) {
+	text-align: right;
+}
+
+.quote-desk-no-label .quote-label {
+	display: none;
+}
+
+.quote-desk-no-label :is(input[type="text"], input[type="date"], input[type="number"], select) {
+	margin-top: 0;
+}
+
+.quote-check {
+	display: flex;
+	align-items: center;
+	gap: 0.3rem;
+	font-size: 0.78rem;
+	font-weight: 400;
+	color: #4f4f4f;
+}
+
+.quote-check input[type="checkbox"] {
+	width: 0.9rem;
+	height: 0.9rem;
+	margin: 0;
+}
+
+.quote-check.quote-desk-flag {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.22rem;
+	padding: 0;
+	min-height: 1.8rem;
+	width: 72px;
+	text-align: center;
+}
+
+.quote-check.quote-desk-flag input[type="checkbox"] {
+	width: 0.74rem;
+	height: 0.74rem;
+}
+
+.quote-check.quote-desk-flag .quote-check-text {
+	font-size: 0.66rem;
+	font-weight: 400;
+	line-height: 1.05;
+	color: #4f4f4f;
+}
+
+.quote-card-title {
+	margin: 0 0 0.35rem;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.quote-desk-results-title {
+	margin-top: 0.3rem;
+}
+
+.quote-plan-results {
+	width: 1201px;
+	display: grid;
+	row-gap: 10px;
+}
+
+.quote-plan-table {
+	border: 0.0625rem solid #ddd4bc;
+	background: #fff;
+}
+
+.quote-plan-table-row {
+	display: grid;
+	grid-template-columns: 70px 255px 92px 130px 90px 115px 105px 100px;
+	border-top: 0.0625rem solid #ece3c6;
+	align-items: center;
+}
+
+.quote-plan-table-row:first-child {
+	border-top: 0;
+}
+
+.quote-plan-table-head {
+	background: #fccc38;
+	font-weight: 700;
+}
+
+.quote-plan-cell {
+	padding: 0.38rem 0.45rem;
+	font-size: 0.78rem;
+	line-height: 1.2;
+}
+
+.quote-plan-total-cell {
+	text-align: right;
+	padding-right: 0.6rem;
+	color: #5a5a5a;
+}
+
+.quote-plan-name-cell {
+	font-weight: 700;
+	color: #2f2f2f;
+}
+
+.quote-filter-box {
+	border: 0.0625rem solid #ddd4bc;
+	border-radius: 0.45rem;
+	background: #fff;
+	overflow: hidden;
+}
+
+.quote-filter-box-title {
+	padding: 0.55rem 0.7rem;
+	background: #fff4d5;
+	font-size: 0.82rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.quote-filtered-list {
+	display: grid;
+	row-gap: 0;
+	padding: 0.3rem 0.7rem 0.55rem;
+}
+
+.quote-filtered-plan {
+	padding: 0.34rem 0;
+	border-top: 0.0625rem solid #ece3c6;
+}
+
+.quote-filtered-plan:first-child {
+	border-top: 0;
+}
+
+.quote-filtered-label {
+	font-size: 0.82rem;
+	font-weight: 700;
+}
+
+.quote-filtered-reasons,
+.quote-filtered-empty {
+	font-size: 0.76rem;
+	color: #6e6e6e;
+}
