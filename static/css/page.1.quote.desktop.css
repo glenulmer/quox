@@ -157,7 +157,7 @@ body {
 }
 
 .quote-plan-results {
-	width: 1201px;
+	width: max-content;
 	display: grid;
 	row-gap: 10px;
 }
@@ -221,12 +221,35 @@ body {
 	padding: 0.38rem 0.45rem;
 	font-size: 0.78rem;
 	line-height: 1.2;
+	text-align: center;
+}
+
+.quote-plan-table-row .quote-plan-cell:nth-child(odd) {
+	background: #fffef8;
+}
+
+.quote-plan-table-row .quote-plan-cell:nth-child(even) {
+	background: #f6efd8;
+}
+
+.quote-plan-table-head .quote-plan-cell:nth-child(odd) {
+	background: #fccc38;
+}
+
+.quote-plan-table-head .quote-plan-cell:nth-child(even) {
+	background: #f7bf1d;
 }
 
 .quote-plan-cell-pick {
 	font-size: 0.74rem;
 	color: #4f4f4f;
 	line-height: 1.15;
+	text-align: center;
+}
+
+.quote-plan-cell-money {
+	text-align: center;
+	white-space: nowrap;
 }
 
 .quote-plan-cell-pick > select {
@@ -242,17 +265,20 @@ body {
 	font-family: inherit;
 	font-size: 0.74rem;
 	line-height: 1;
+	text-align: center;
+	text-align-last: center;
 }
 
 .quote-plan-total-cell {
-	text-align: right;
-	padding-right: 0.6rem;
+	text-align: center;
+	padding-right: 0.45rem;
 	color: #5a5a5a;
 }
 
 .quote-plan-name-cell {
 	font-weight: 700;
 	color: #2f2f2f;
+	text-align: left;
 }
 
 .quote-filter-box {

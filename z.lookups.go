@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	. "pm/lib/dec2"
-//	. "pm/lib/output"
 )
 
 func (x YearVars_t)maxCover() EuroFlat_t { return x.cover * 2 }
@@ -23,6 +22,7 @@ type Categ_t struct {
 	name string
 	catsur int
 	required int
+	display int
 }
 
 func LoadCategIdMap() IdMap_t[Categ_t] {
@@ -32,6 +32,7 @@ func LoadCategIdMap() IdMap_t[Categ_t] {
 	defer rows.Close()
 	for rows.Next() {
 		var x Categ_t
+		x.display = 1
 		rows.Scan(&x.categId, &x.name, &x.catsur, &x.required)
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(int(x.categId), x)

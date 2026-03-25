@@ -127,6 +127,7 @@ func QuotePlanDesktopCategs() []Categ_t {
 	var out []Categ_t
 	for _, categ := range App.lookup.categs.All() {
 		if categ.categId == 0 { continue }
+		if categ.display == 0 { continue }
 		out = append(out, categ)
 	}
 	return out
@@ -140,13 +141,34 @@ func QuoteSortSelectView(sortBy string) Elem_t {
 	).Name(`sortBy`).Choose(mode).Class(`quote-plan-sort-input`)
 }
 
-func QuotePlanDesktopGridStyle(categCount int, showVision bool) string {
+func QuotePlanDesktopCategWidth(categ Categ_t) int {
+	name := Lower(Trim(categ.name))
+	switch {
+	case Contains(name, `sick`):
+		return 72
+	case Contains(name, `pvn`):
+		return 50
+	case Contains(name, `hospital`):
+		return 108
+	case Contains(name, `dental`):
+		return 108
+	case Contains(name, `consumer`):
+		return 84
+	case Contains(name, `natural`):
+		return 80
+	case Contains(name, `special`):
+		return 90
+	}
+	return 120
+}
+
+func QuotePlanDesktopGridStyle(categs []Categ_t, showVision bool) string {
 	x := `grid-template-columns: 70px 294px`
-	for i := 0; i < categCount; i++ {
-		x += ` 120px`
+	for _, categ := range categs {
+		x += Str(` `, QuotePlanDesktopCategWidth(categ), `px`)
 	}
 	if showVision {
-		x += ` 120px`
+		x += ` 60px`
 	}
 	x += `;`
 	return x
@@ -166,7 +188,7 @@ func QuotePlanDesktopHead(categs []Categ_t, showVision bool) Elem_t {
 	}
 	return Div().
 		Class(`quote-plan-table-row`, `quote-plan-table-head`).
-		KV(`style`, QuotePlanDesktopGridStyle(len(categs), showVision)).
+		KV(`style`, QuotePlanDesktopGridStyle(categs, showVision)).
 		Wrap(cols)
 }
 
@@ -199,12 +221,12 @@ func QuotePlanDesktopVisionCellView(x QuotePlan_t) Elem_t {
 	addon, ok := QuotePlanAddonByTag(x, `vision`)
 	if !ok { return Div().Class(`quote-plan-cell-pick`) }
 	if !addon.priceOk { return Div().Class(`quote-plan-cell-pick`) }
-	return Div(PriceText(addon.base+addon.surcharge, addon.priceOk)).Class(`quote-plan-cell-pick`)
+	return Div(PriceText(addon.base+addon.surcharge, addon.priceOk)).Class(`quote-plan-cell-pick`, `quote-plan-cell-money`)
 }
 
 func PriceTextWholeEuro(amount EuroCent_t, ok bool) string {
 	if !ok { return `-` }
-	return EuroFlatFromCent(amount).OutEuro()
+	return EuroFlat_t(amount / 100).OutEuro()
 }
 
 func QuotePlanDesktopRow(x QuotePlan_t, categs []Categ_t, showVision bool) Elem_t {
@@ -221,7 +243,7 @@ func QuotePlanDesktopRow(x QuotePlan_t, categs []Categ_t, showVision bool) Elem_
 	}
 	return Div().
 		Class(`quote-plan-table-row`).
-		KV(`style`, QuotePlanDesktopGridStyle(len(categs), showVision)).
+		KV(`style`, QuotePlanDesktopGridStyle(categs, showVision)).
 		Wrap(cols)
 }
 

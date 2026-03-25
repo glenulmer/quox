@@ -110,7 +110,7 @@ func CatPrice(buyYear, age, productId int, categId CategId_t, sickCover int, sup
 
 func PriceText(amount EuroCent_t, ok bool) string {
 	if !ok { return `-` }
-	return amount.String() + ` €`
+	return amount.OutEuro()
 }
 
 func AddonName(choice CatChoice_t) string {
