@@ -54,7 +54,7 @@ func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
 			&p.tempvisa, &p.surcharge, &p.shi,
 			&p.vision.percent, &p.vision.euro, 
 			&p.comonths,
-			&p.ded.adult.euro, &p.ded.adult.percent, &p.ded.child.euro, &p.ded.adult.percent,
+			&p.ded.adult.euro, &p.ded.adult.percent, &p.ded.child.euro, &p.ded.child.percent,
 			&p.nc.promise, &p.nc.note,
 			&p.nc.adult.months, &p.nc.adult.flat, &p.nc.child.months, &p.nc.child.flat, 
 			&p.name, &p.provName, &p.exactAge, &p.segmask,

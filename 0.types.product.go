@@ -45,13 +45,13 @@ type Plan_t struct {
 }
 
 type Deductible_t struct {
-	adult, child  struct { euro EuroFlat_t; percent Percent_t }
+	adult, child  struct { euro EuroCent_t; percent Percent_t }
 }
 
 type NoClaims_t struct {
 	promise bool
 	note string
-	adult, child struct { months Months_t; flat EuroFlat_t }
+	adult, child struct { months Months_t; flat EuroCent_t }
 }
 
 type Vision_t struct {

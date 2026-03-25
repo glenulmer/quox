@@ -26,6 +26,9 @@ type QuotePlan_t struct {
 	planId int
 	label string
 	price EuroCent_t
+	deduct EuroCent_t
+	noClaims EuroCent_t
+	commission EuroCent_t
 	planBase EuroCent_t
 	planSurcharge EuroCent_t
 	planOk bool
@@ -227,6 +230,21 @@ func VisionAmount(plan Plan_t, planBase EuroCent_t) (EuroCent_t, bool) {
 	return 0, false
 }
 
+func NoClaimsAmount(planBase EuroCent_t, plan Plan_t, isChild bool) EuroCent_t {
+	months := plan.nc.adult.months
+	flat := plan.nc.adult.flat
+	if isChild {
+		months = plan.nc.child.months
+		flat = plan.nc.child.flat
+	}
+	return flat + Commission(planBase, months)
+}
+
+func DeductAmount(plan Plan_t, isChild bool) EuroCent_t {
+	if isChild { return plan.ded.child.euro }
+	return plan.ded.adult.euro
+}
+
 func PlanFilters(state State_t) PlanFilters_t {
 	f := PlanFilters_t{
 		specref: specrefAddon,
@@ -278,6 +296,7 @@ func PlanFilterReasons(plan Plan_t, f PlanFilters_t) []string {
 
 func QuotePlans(state State_t) QuotePlans_t {
 	buyYear, yearAge, exactAge := PlanAges(state)
+	isChild := exactAge > 0 && exactAge < 21
 	sickCover := StateInt(state, `sickCover`)
 	filter := PlanFilters(state)
 	sortBy := QuoteSortMode(StateValue(state, `sortBy`))
@@ -306,6 +325,8 @@ func QuotePlans(state State_t) QuotePlans_t {
 		row := QuotePlan_t{
 			planId: int(plan.planId),
 			label: Str(plan.provName, ` / `, plan.name),
+			deduct: DeductAmount(plan, isChild),
+			noClaims: NoClaimsAmount(planBase, plan, isChild),
 			planBase: planBase,
 			planSurcharge: planSurch,
 			planOk: planOk,
@@ -383,6 +404,21 @@ func QuotePlans(state State_t) QuotePlans_t {
 				})
 			}
 		}
+
+		regularBase := row.planBase
+		pvnBase := EuroCent_t(0)
+		for _, addon := range row.addons {
+			if !addon.priceOk || addon.base == 0 { continue }
+			name := Lower(Trim(addon.categ))
+			if Contains(name, `vision`) { continue }
+			if Contains(name, `pvn`) {
+				pvnBase += addon.base
+				continue
+			}
+			regularBase += addon.base
+		}
+		upfront := Commission(regularBase, plan.comonths) + Commission(pvnBase, Months_t(200))
+		row.commission = ApplyPercent(upfront, Percent_t(20))
 
 		row.price = row.base + row.surcharge
 		out.plans = append(out.plans, row)

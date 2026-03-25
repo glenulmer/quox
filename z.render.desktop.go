@@ -44,13 +44,6 @@ func QuoteDesktopFormView(vars QuoteVars_t) Elem_t {
 
 func QuoteDesktopPlansView(data QuotePlans_t) Elem_t {
 	return Div().Id(`QuotePlans`).Class(`quote-plan-results`, `quote-desktop-results`).Wrap(
-		Div().Class(`quote-plan-toolbar`, `quote-desk-plan-toolbar`).Wrap(
-			Div(`Visible plans (` , len(data.plans), `)`).Class(`quote-card-title`, `quote-desk-results-title`),
-			Div().Class(`quote-plan-sort`).Wrap(
-				Span(`Sort`).Class(`quote-plan-sort-label`),
-				QuoteSortSelectView(data.sortBy),
-			),
-		),
 		QuotePlanDesktopView(data),
 		QuoteFilteredPlansBox(data.filtered),
 	)

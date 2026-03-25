@@ -39,8 +39,53 @@ body {
 	padding: 0.625rem 0.75rem;
 	background: #e6f2fc;
 	color: #0e1a2a;
-	font-size: 0.96rem;
+	font-size: 1rem;
 	font-weight: 700;
+}
+
+.quote-phone-fold-title {
+	list-style: none;
+	cursor: pointer;
+	position: relative;
+	text-align: left;
+}
+
+.quote-phone-fold-title::-webkit-details-marker {
+	display: none;
+}
+
+.quote-phone-fold-title::marker {
+	content: "";
+}
+
+.quote-phone-fold-title::before {
+	content: "";
+	position: absolute;
+	left: 0.4rem;
+	top: 50%;
+	width: 0;
+	height: 0;
+	border-top: 0.28rem solid transparent;
+	border-bottom: 0.28rem solid transparent;
+	border-left: 0.42rem solid #43536b;
+	transform: translateY(-50%);
+}
+
+details[open] > .quote-phone-fold-title::before {
+	transform: translateY(-50%) rotate(90deg);
+}
+
+.quote-phone-info-fold > .quote-phone-fold-title {
+	padding-left: 1.25rem;
+}
+
+.quote-phone-plans-fold > .quote-phone-fold-title {
+	padding-left: 1.15rem;
+}
+
+.quote-phone-fold-title > span,
+.quote-phone-fold-title .quote-card-title {
+	text-align: left;
 }
 
 .quote-grid {
@@ -166,7 +211,13 @@ body {
 	margin: 0;
 	padding: 0;
 	background: transparent;
-	font-size: 0.84rem;
+	font-size: 1rem;
+}
+
+.quote-phone-plans-body {
+	display: grid;
+	gap: 0.625rem;
+	margin-top: 0.3125rem;
 }
 
 .quote-plan-sort {
@@ -192,7 +243,11 @@ body {
 	font-size: 0.74rem;
 }
 
-.quote-plan-list,
+.quote-plan-list {
+	display: grid;
+	gap: 0.3125rem;
+}
+
 .quote-filtered-list {
 	display: grid;
 	gap: 0.625rem;
@@ -205,7 +260,7 @@ body {
 
 .quote-plan-head {
 	display: flex;
-	align-items: baseline;
+	align-items: flex-start;
 	justify-content: space-between;
 	gap: 0.5rem;
 }
@@ -215,17 +270,53 @@ body {
 	font-weight: 700;
 }
 
+.quote-plan-label {
+	font-size: 1rem;
+}
+
 .quote-plan-price {
 	font-size: 0.88rem;
 	font-weight: 700;
 	white-space: nowrap;
+	line-height: 1.1;
 }
 
-.quote-plan-total-label {
-	font-size: 0.74rem;
-	font-weight: 700;
+.quote-plan-total {
+	text-align: right;
+}
+
+.quote-plan-meta {
+	display: flex;
+	justify-content: center;
+	gap: 0.26rem;
+	margin-top: 0.18rem;
+	margin-bottom: 0.08rem;
+}
+
+.quote-plan-meta-item {
+	display: flex;
+	align-items: baseline;
+	justify-content: flex-end;
+	gap: 0.2rem;
+	width: 5rem;
+	padding: 0.08rem 0.22rem;
+	border: 0.0625rem solid #d7e2ec;
+	border-radius: 0.3rem;
+	background: transparent;
+	text-align: right;
+}
+
+.quote-plan-meta-label {
+	font-size: 0.68rem;
+	font-weight: 400;
 	color: #43536b;
-	text-transform: uppercase;
+}
+
+.quote-plan-meta-value {
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: #1f324b;
+	white-space: nowrap;
 }
 
 .quote-plan-sums {
@@ -240,6 +331,42 @@ body {
 	margin-top: 0.25rem;
 }
 
+.quote-plan-addon-details {
+	width: 100%;
+	margin-top: 0.22rem;
+	border: 0.0625rem solid #d7e2ec;
+	border-radius: 0.45rem;
+	background: #fdfefe;
+	overflow: hidden;
+}
+
+.quote-plan-addon-title {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(4.6rem, auto) minmax(4.6rem, auto);
+	align-items: baseline;
+	column-gap: 0.35rem;
+	padding: 0.34rem 0.5rem;
+	background: #edf5fd;
+	cursor: pointer;
+}
+
+.quote-plan-addon-title-label,
+.quote-plan-addon-title-sum {
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: #1f324b;
+}
+
+.quote-plan-addon-title-sum {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.quote-plan-addon-details .quote-plan-addon-list {
+	margin-top: 0;
+	padding: 0.05rem 0.35rem 0.25rem;
+}
+
 .quote-plan-addon,
 .quote-plan-addon-base-row {
 	width: 100%;
@@ -247,7 +374,8 @@ body {
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(4.6rem, auto) minmax(4.6rem, auto);
 	align-items: center;
 	column-gap: 0.35rem;
-	padding-top: 0.18rem;
+	min-height: 1.45rem;
+	padding-top: 0.05rem;
 	border-top: 0.0625rem solid #d7e2ec;
 }
 
@@ -280,22 +408,51 @@ body {
 	width: 100%;
 	max-width: 100%;
 	box-sizing: border-box;
-	height: 1.35rem;
+	height: 1.2rem;
 	padding: 0.05rem 0.3rem;
 	border: 0.0625rem solid #9cb6d4;
 	border-radius: 0.5rem;
 	background: #fff;
 	color: #1e2a3b;
 	font-family: inherit;
-	font-size: 0.79rem;
+	font-size: 0.74rem;
 	line-height: 1;
 }
 
 .quote-filter-box-title {
 	padding: 0.625rem 0.75rem;
+	list-style: none;
+	position: relative;
+	padding-left: 1.25rem;
+	font-size: 1rem;
 	font-weight: 700;
 	cursor: pointer;
 	background: #e6f2fc;
+}
+
+.quote-filter-box-title::-webkit-details-marker {
+	display: none;
+}
+
+.quote-filter-box-title::marker {
+	content: "";
+}
+
+.quote-filter-box-title::before {
+	content: "";
+	position: absolute;
+	left: 0.4rem;
+	top: 50%;
+	width: 0;
+	height: 0;
+	border-top: 0.26rem solid transparent;
+	border-bottom: 0.26rem solid transparent;
+	border-left: 0.4rem solid #43536b;
+	transform: translateY(-50%);
+}
+
+details[open] > .quote-filter-box-title::before {
+	transform: translateY(-50%) rotate(90deg);
 }
 
 .quote-filter-box .quote-filtered-list {
