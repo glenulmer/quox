@@ -2,6 +2,7 @@ package main
 
 import (
 	. "pm/lib/htmlHelper"
+	. "pm/lib/dec2"
 	. "pm/lib/output"
 )
 
@@ -104,7 +105,7 @@ func QuotePlanCardView(x QuotePlan_t) Elem_t {
 			Div(x.label).Class(`quote-plan-label`),
 			Div().Class(`quote-plan-total`).Wrap(
 				Div(`Total`).Class(`quote-plan-total-label`),
-				Div(PriceText(x.price, true)).Class(`quote-plan-price`),
+				Div(PriceTextWholeEuro(x.price, true)).Class(`quote-plan-price`),
 			),
 		),
 		Div().Class(`quote-plan-sums`).Wrap(
@@ -131,54 +132,104 @@ func QuotePlanDesktopCategs() []Categ_t {
 	return out
 }
 
-func QuotePlanDesktopGridStyle(categCount int) string {
-	x := `grid-template-columns: 70px 255px 92px`
+func QuoteSortSelectView(sortBy string) Elem_t {
+	mode := QuoteSortMode(sortBy)
+	return Select(
+		Option().KV(`value`, sortByName).Text(`Name`),
+		Option().KV(`value`, sortByPrice).Text(`Total`),
+	).Name(`sortBy`).Choose(mode).Class(`quote-plan-sort-input`)
+}
+
+func QuotePlanDesktopGridStyle(categCount int, showVision bool) string {
+	x := `grid-template-columns: 70px 294px`
 	for i := 0; i < categCount; i++ {
 		x += ` 120px`
 	}
-	x += ` 90px;`
+	if showVision {
+		x += ` 120px`
+	}
+	x += `;`
 	return x
 }
 
-func QuotePlanDesktopHead(categs []Categ_t) Elem_t {
+func QuotePlanDesktopHead(categs []Categ_t, showVision bool) Elem_t {
 	var cols []Elem_t
 	cols = append(cols,
 		Div(`Total`).Class(`quote-plan-cell`, `quote-plan-total-cell`),
 		Div(`Plan`).Class(`quote-plan-cell`, `quote-plan-name-cell`),
-		Div(`Plan row`).Class(`quote-plan-cell`),
 	)
 	for _, categ := range categs {
 		cols = append(cols, Div(categ.name).Class(`quote-plan-cell`))
 	}
-	cols = append(cols, Div(`Vision`).Class(`quote-plan-cell`))
+	if showVision {
+		cols = append(cols, Div(`Vision`).Class(`quote-plan-cell`))
+	}
 	return Div().
 		Class(`quote-plan-table-row`, `quote-plan-table-head`).
-		KV(`style`, QuotePlanDesktopGridStyle(len(categs))).
+		KV(`style`, QuotePlanDesktopGridStyle(len(categs), showVision)).
 		Wrap(cols)
 }
 
-func QuotePlanDesktopRow(x QuotePlan_t, categs []Categ_t) Elem_t {
+func QuotePlanDesktopAddonPickView(planId int, addon QuotePlanAddon_t) Elem_t {
+	if addon.hasMulti && len(addon.choices) > 0 {
+		return Div().Class(`quote-plan-cell-pick`).Wrap(QuotePlanAddonSelectView(planId, addon))
+	}
+	return Div(QuoteAddonPickText(addon)).Class(`quote-plan-cell-pick`)
+}
+
+func QuotePlanDesktopCategCellView(x QuotePlan_t, categId CategId_t) Elem_t {
+	addon, ok := QuotePlanAddonByCateg(x, categId)
+	if !ok { return Div().Class(`quote-plan-cell-pick`) }
+	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
+		return Div().Class(`quote-plan-cell-pick`)
+	}
+	return QuotePlanDesktopAddonPickView(x.planId, addon)
+}
+
+func QuotePlanDesktopTagCellView(x QuotePlan_t, tag string) Elem_t {
+	addon, ok := QuotePlanAddonByTag(x, tag)
+	if !ok { return Div().Class(`quote-plan-cell-pick`) }
+	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
+		return Div().Class(`quote-plan-cell-pick`)
+	}
+	return QuotePlanDesktopAddonPickView(x.planId, addon)
+}
+
+func QuotePlanDesktopVisionCellView(x QuotePlan_t) Elem_t {
+	addon, ok := QuotePlanAddonByTag(x, `vision`)
+	if !ok { return Div().Class(`quote-plan-cell-pick`) }
+	if !addon.priceOk { return Div().Class(`quote-plan-cell-pick`) }
+	return Div(PriceText(addon.base+addon.surcharge, addon.priceOk)).Class(`quote-plan-cell-pick`)
+}
+
+func PriceTextWholeEuro(amount EuroCent_t, ok bool) string {
+	if !ok { return `-` }
+	return EuroFlatFromCent(amount).OutEuro()
+}
+
+func QuotePlanDesktopRow(x QuotePlan_t, categs []Categ_t, showVision bool) Elem_t {
 	var cols []Elem_t
 	cols = append(cols,
-		Div(PriceText(x.price, true)).Class(`quote-plan-cell`, `quote-plan-total-cell`),
+		Div(PriceTextWholeEuro(x.price, true)).Class(`quote-plan-cell`, `quote-plan-total-cell`),
 		Div(x.label).Class(`quote-plan-cell`, `quote-plan-name-cell`),
-		Div(PriceText(x.planBase+x.planSurcharge, x.planOk)).Class(`quote-plan-cell`),
 	)
 	for _, categ := range categs {
-		cols = append(cols, Div(QuotePlanCategCellText(x, categ.categId)).Class(`quote-plan-cell`))
+		cols = append(cols, Div().Class(`quote-plan-cell`).Wrap(QuotePlanDesktopCategCellView(x, categ.categId)))
 	}
-	cols = append(cols, Div(QuotePlanCellText(x, `vision`)).Class(`quote-plan-cell`))
+	if showVision {
+		cols = append(cols, Div().Class(`quote-plan-cell`).Wrap(QuotePlanDesktopVisionCellView(x)))
+	}
 	return Div().
 		Class(`quote-plan-table-row`).
-		KV(`style`, QuotePlanDesktopGridStyle(len(categs))).
+		KV(`style`, QuotePlanDesktopGridStyle(len(categs), showVision)).
 		Wrap(cols)
 }
 
 func QuotePlanDesktopView(data QuotePlans_t) Elem_t {
 	categs := QuotePlanDesktopCategs()
 	var rows []Elem_t
-	rows = append(rows, QuotePlanDesktopHead(categs))
-	for _, x := range data.plans { rows = append(rows, QuotePlanDesktopRow(x, categs)) }
+	rows = append(rows, QuotePlanDesktopHead(categs, data.showVision))
+	for _, x := range data.plans { rows = append(rows, QuotePlanDesktopRow(x, categs, data.showVision)) }
 	return Div().Class(`quote-plan-table`).Wrap(rows)
 }
 

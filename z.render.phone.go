@@ -46,7 +46,13 @@ func QuotePhonePlansView(data QuotePlans_t) Elem_t {
 	var plans []Elem_t
 	for _, x := range data.plans { plans = append(plans, QuotePlanCardView(x)) }
 	return Div().Id(`QuotePlans`).Class(`quote-plan-results`, `quote-phone-results`).Wrap(
-		Div(`Visible plans (` , len(data.plans), `)`).Class(`quote-card-title`),
+		Div().Class(`quote-plan-toolbar`, `quote-phone-plan-toolbar`).Wrap(
+			Div(`Visible plans (` , len(data.plans), `)`).Class(`quote-card-title`),
+			Div().Class(`quote-plan-sort`).Wrap(
+				Span(`Sort`).Class(`quote-plan-sort-label`),
+				QuoteSortSelectView(data.sortBy),
+			),
+		),
 		Div().Class(`quote-plan-list`, `quote-plan-list-phone`).Wrap(plans),
 		QuoteFilteredPlansBox(data.filtered),
 	)

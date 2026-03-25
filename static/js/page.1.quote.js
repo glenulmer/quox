@@ -1,5 +1,5 @@
 (() => {
-	const selector = '#QuoteForm input[name], #QuoteForm select[name], #QuoteForm textarea[name], #QuotePlans select[name^="plancat-"]';
+	const selector = '#QuoteForm input[name], #QuoteForm select[name], #QuoteForm textarea[name], #QuotePlans select[name]';
 	const lastSent = new Map();
 	const debounceMs = 250;
 	const custNameDebounceMs = 450;

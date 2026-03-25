@@ -11,6 +11,7 @@ const catHospital, catDental = 3, 4
 const catSick CategId_t = 1
 const specrefAddon = 2
 const segmentStudent = 4
+const sortByName, sortByPrice = `name`, `price`
 
 type QuoteField_t struct {
 	name string
@@ -145,6 +146,7 @@ func QuoteControlsByGroup(layout, group string) []QuoteControl_t {
 func QuoteVars(state State_t) QuoteVars_t {
 	out := QuoteDefaultVars()
 	for k, v := range state.quote { out[k] = v }
+	out[`sortBy`] = QuoteSortMode(out[`sortBy`])
 	return out
 }
 
@@ -158,6 +160,7 @@ func QuoteFieldList(vars QuoteVars_t) []QuoteField_t {
 }
 
 func QuoteAllowsField(name string) bool {
+	if name == `sortBy` { return true }
 	if _, ok := QuoteControlByName(name); ok { return true }
 	_, _, ok := QuotePlanCatControl(name)
 	return ok
@@ -173,7 +176,13 @@ func QuoteDefaultVars() QuoteVars_t {
 		}
 		out[x.name] = x.defaultValue(ctx)
 	}
+	out[`sortBy`] = sortByPrice
 	return out
+}
+
+func QuoteSortMode(v string) string {
+	if Lower(Trim(v)) == sortByName { return sortByName }
+	return sortByPrice
 }
 
 func QuoteApply(state *State_t, name, value string) {

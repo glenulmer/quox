@@ -43,6 +43,8 @@ type QuotePlanFiltered_t struct {
 type QuotePlans_t struct {
 	plans []QuotePlan_t
 	filtered []QuotePlanFiltered_t
+	showVision bool
+	sortBy string
 }
 
 type PlanFilters_t struct {
@@ -99,7 +101,9 @@ func LookupPrice(buyYear, age, productId int) (base, surcharge EuroCent_t, ok bo
 func CatPrice(buyYear, age, productId int, categId CategId_t, sickCover int, suppressSurch bool) (base, surcharge EuroCent_t, ok bool) {
 	base, surcharge, ok = LookupPrice(buyYear, age, productId)
 	if !ok { return 0, 0, false }
-	if categId == catSick { base *= EuroCent_t(sickCover / 4500) }
+	if categId == catSick {
+		base = ApplyPercent(base, Percent_t(sickCover/45))
+	}
 	if suppressSurch { surcharge = 0 }
 	return base, surcharge, true
 }
@@ -226,7 +230,7 @@ func VisionAmount(plan Plan_t, planBase EuroCent_t) (EuroCent_t, bool) {
 func PlanFilters(state State_t) PlanFilters_t {
 	f := PlanFilters_t{
 		specref: specrefAddon,
-		deductMax: 300000,
+		deductMax: int(EuroFlat_t(3000).ToEuroCent()),
 		hospitalMax: 999,
 		dentalMax: 999,
 	}
@@ -240,8 +244,8 @@ func PlanFilters(state State_t) PlanFilters_t {
 	f.noPVN = StateBool(state, `noPVN`, `pvnoff`)
 	f.naturalMed = StateBool(state, `naturalMed`, `natural`)
 
-	if v, ok := StateIntAny(state, `deductibleMin`, `deductMin`); ok { f.deductMin = v * 100 }
-	if v, ok := StateIntAny(state, `deductibleMax`, `deductMax`); ok { f.deductMax = v * 100 }
+	if v, ok := StateIntAny(state, `deductibleMin`, `deductMin`); ok { f.deductMin = int(EuroFlat_t(v).ToEuroCent()) }
+	if v, ok := StateIntAny(state, `deductibleMax`, `deductMax`); ok { f.deductMax = int(EuroFlat_t(v).ToEuroCent()) }
 	if f.deductMin > f.deductMax { f.deductMin, f.deductMax = f.deductMax, f.deductMin }
 
 	if v, ok := StateIntAny(state, `hospitalMin`, `minHospital`); ok { f.hospitalMin = v }
@@ -276,8 +280,12 @@ func QuotePlans(state State_t) QuotePlans_t {
 	buyYear, yearAge, exactAge := PlanAges(state)
 	sickCover := StateInt(state, `sickCover`)
 	filter := PlanFilters(state)
+	sortBy := QuoteSortMode(StateValue(state, `sortBy`))
 
-	out := QuotePlans_t{}
+	out := QuotePlans_t{
+		showVision: filter.vision,
+		sortBy: sortBy,
+	}
 	for planId, plan := range App.lookup.plans.All() {
 		age := yearAge
 		if plan.exactAge { age = exactAge }
@@ -380,9 +388,18 @@ func QuotePlans(state State_t) QuotePlans_t {
 		out.plans = append(out.plans, row)
 	}
 
-	sort.Slice(out.plans, func(i, j int) bool {
-		return Lower(out.plans[i].label) < Lower(out.plans[j].label)
-	})
+	if sortBy == sortByPrice {
+		sort.Slice(out.plans, func(i, j int) bool {
+			if out.plans[i].price != out.plans[j].price {
+				return out.plans[i].price < out.plans[j].price
+			}
+			return Lower(out.plans[i].label) < Lower(out.plans[j].label)
+		})
+	} else {
+		sort.Slice(out.plans, func(i, j int) bool {
+			return Lower(out.plans[i].label) < Lower(out.plans[j].label)
+		})
+	}
 	sort.Slice(out.filtered, func(i, j int) bool {
 		return Lower(out.filtered[i].label) < Lower(out.filtered[j].label)
 	})
