@@ -87,6 +87,12 @@ details[open] > .quote-phone-fold-title::before {
 	padding-left: 1.25rem;
 }
 
+.quote-phone-sticky-anchor {
+	height: 0;
+	margin: 0;
+	padding: 0;
+}
+
 .quote-phone-sticky-card {
 	position: fixed;
 	left: 50%;

@@ -418,18 +418,16 @@ func QuotePlanDesktopView(data QuotePlans_t) Elem_t {
 
 func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
-	selected := QuoteSelectedItems(vars)
+	selectedRowsData := QuoteSelectedRows(state)
 	showVision := StateBool(state, `vision`, `glasses`)
 	categs := QuotePlanDesktopCategs()
 
 	var selectedRows []Elem_t
-	for _, item := range selected {
-		row, ok := QuoteSelectedPlanRow(state, item)
-		if !ok { continue }
-		selectedRows = append(selectedRows, QuotePlanDesktopSelectedRow(item, row, categs, showVision))
+	for _, x := range selectedRowsData {
+		selectedRows = append(selectedRows, QuotePlanDesktopSelectedRow(x.item, x.row, categs, showVision))
 	}
 
-	title := Str(`Selected Plans (` , len(selectedRows), `)`)
+	title := QuoteSelectedTitle(len(selectedRows))
 	var rows []Elem_t
 	rows = append(rows, QuotePlanDesktopHead(categs, showVision, title, ``, false))
 	rows = append(rows, selectedRows...)
@@ -448,21 +446,17 @@ func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
 
 func QuotePhoneSelectedPlansBox(vars QuoteVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
-	selected := QuoteSelectedItems(vars)
-	selectedCount := 0
+	selectedRowsData := QuoteSelectedRows(state)
 	var cards []Elem_t
-	for _, item := range selected {
-		row, ok := QuoteSelectedPlanRow(state, item)
-		if !ok { continue }
-		cards = append(cards, QuoteSelectedPlanCardView(item, row))
-		selectedCount++
+	for _, x := range selectedRowsData {
+		cards = append(cards, QuoteSelectedPlanCardView(x.item, x.row))
 	}
 	if len(cards) == 0 {
 		cards = append(cards, Div(`No plans selected.`).Class(`quote-selected-empty`))
 	}
 	return Elem(`details`).Id(`QuoteSelectedCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-selected-fold`, `quote-phone-selected-card`).Wrap(
 		Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`).Wrap(
-			Span(`Selected Plans (` , selectedCount, `)`),
+			Span(QuoteSelectedTitle(len(selectedRowsData))),
 		),
 		Div().Class(`quote-phone-selected-list`).Wrap(cards),
 	)

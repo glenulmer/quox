@@ -8,6 +8,8 @@
 	let seq = 0;
 	let timer = 0;
 	let pendingOpenSelected = false;
+	let phoneStickyOn = false;
+	let stickyFrame = 0;
 
 	const captureFoldStates = () => {
 		for (const id of foldIds) {
@@ -39,28 +41,62 @@
 		}
 	};
 
+	const setPhoneSticky = (info, selected, on, collapse = true) => {
+		phoneStickyOn = on;
+		if (on) {
+			info.classList.add('quote-phone-sticky-card');
+			selected.classList.add('quote-phone-sticky-card', 'quote-phone-sticky-second');
+			if (collapse) {
+				if (info.open) {
+					info.open = false;
+					foldState.set('QuoteInfoCard', false);
+				}
+				if (selected.open) {
+					selected.open = false;
+					foldState.set('QuoteSelectedCard', false);
+				}
+			}
+			return;
+		}
+		info.classList.remove('quote-phone-sticky-card');
+		selected.classList.remove('quote-phone-sticky-card', 'quote-phone-sticky-second');
+	};
+
 	const syncPhoneSticky = () => {
 		const info = document.getElementById('QuoteInfoCard');
 		const selected = document.getElementById('QuoteSelectedCard');
-		if (!(info instanceof HTMLDetailsElement) || !(selected instanceof HTMLDetailsElement)) return;
+		const anchor = document.getElementById('QuotePhoneStickyAnchor');
+		if (!(info instanceof HTMLDetailsElement) || !(selected instanceof HTMLDetailsElement) || !(anchor instanceof HTMLElement)) {
+			phoneStickyOn = false;
+			return;
+		}
 
-		const shouldStick = info.getBoundingClientRect().top <= 0 || selected.getBoundingClientRect().top <= 0;
-		if (shouldStick) {
-			info.classList.add('quote-phone-sticky-card');
-			selected.classList.add('quote-phone-sticky-card', 'quote-phone-sticky-second');
-			if (info.open) {
-				info.open = false;
-				foldState.set('QuoteInfoCard', false);
-			}
-			if (selected.open) {
-				selected.open = false;
-				foldState.set('QuoteSelectedCard', false);
+		const top = anchor.getBoundingClientRect().top;
+		if (!phoneStickyOn) {
+			if (top <= 0) {
+				setPhoneSticky(info, selected, true, true);
 			}
 			return;
 		}
 
-		info.classList.remove('quote-phone-sticky-card');
-		selected.classList.remove('quote-phone-sticky-card', 'quote-phone-sticky-second');
+		// Hysteresis keeps sticky state stable during tiny back/forth scroll moves.
+		if (top > 8) {
+			setPhoneSticky(info, selected, false);
+			return;
+		}
+
+		// After outerHTML rewrites, state may still be sticky but classes are gone on new nodes.
+		if (!info.classList.contains('quote-phone-sticky-card') || !selected.classList.contains('quote-phone-sticky-card')) {
+			setPhoneSticky(info, selected, true, false);
+		}
+	};
+
+	const scheduleStickySync = () => {
+		if (stickyFrame !== 0) return;
+		stickyFrame = window.requestAnimationFrame(() => {
+			stickyFrame = 0;
+			syncPhoneSticky();
+		});
 	};
 
 	const controlValue = (el) => {
@@ -167,6 +203,7 @@
 	document.addEventListener('input', onControlChange);
 	document.addEventListener('click', onButtonClick);
 	document.addEventListener('toggle', onFoldToggle, true);
-	window.addEventListener('scroll', syncPhoneSticky, { passive: true });
-	syncPhoneSticky();
+	window.addEventListener('scroll', scheduleStickySync, { passive: true });
+	window.addEventListener('resize', scheduleStickySync);
+	scheduleStickySync();
 })();

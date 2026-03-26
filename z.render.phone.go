@@ -2,47 +2,52 @@ package main
 
 import . "pm/lib/htmlHelper"
 
+func QuotePhoneFormBodyView(vars QuoteVars_t) Elem_t {
+	return Div().Id(`QuoteFormBody`).Wrap(
+		Div().Id(`QuotePhoneStickyAnchor`).Class(`quote-phone-sticky-anchor`),
+		Elem(`details`).Id(`QuoteInfoCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
+			Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`).Wrap(
+				Span(`Quote Information`),
+			),
+			Div().Class(`quote-grid`, `quote-grid-phone`).Wrap(
+			QuoteNamedControlOnlySpanView(layoutPhone, `custName`, vars, 8, `quote-phone-no-label`),
+			QuoteNamedControlOnlySpanView(layoutPhone, `segment`, vars, 4, `quote-phone-no-label`),
+			QuoteNamedControlSpanView(layoutPhone, `birth`, vars, 4),
+			QuoteNamedControlSpanView(layoutPhone, `buy`, vars, 4),
+			QuoteNamedControlSpanView(layoutPhone, `sickCover`, vars, 4, `quote-phone-right`),
+			QuoteNamedControlSpanView(layoutPhone, `priorCov`, vars, 4),
+			QuoteNamedControlSpanView(layoutPhone, `exam`, vars, 4),
+			QuoteNamedControlSpanView(layoutPhone, `specref`, vars, 4),
+
+			QuoteSpacer(1),
+			Div().Class(QuoteSpanClass(10), `quote-phone-checks`).Wrap(
+				QuoteNamedControlSpanView(layoutPhone, `vision`, vars, 1, `quote-phone-check`),
+				QuoteNamedControlSpanView(layoutPhone, `tempVisa`, vars, 1, `quote-phone-check`),
+				QuoteNamedControlSpanView(layoutPhone, `noPVN`, vars, 1, `quote-phone-check`),
+				QuoteNamedControlSpanView(layoutPhone, `naturalMed`, vars, 1, `quote-phone-check`),
+			),
+			QuoteSpacer(1),
+
+			QuoteNamedControlLabelSpanView(layoutPhone, `deductibleMin`, `Deductible`, vars, 4, `quote-phone-right`),
+			QuoteNamedControlLabelSpanView(layoutPhone, `hospitalMin`, `Hospital`, vars, 4),
+			QuoteNamedControlLabelSpanView(layoutPhone, `dentalMin`, `Dental`, vars, 4),
+
+			QuoteNamedControlOnlySpanView(layoutPhone, `deductibleMax`, vars, 4, `quote-phone-no-label`, `quote-phone-right`),
+			QuoteNamedControlOnlySpanView(layoutPhone, `hospitalMax`, vars, 4, `quote-phone-no-label`),
+			QuoteNamedControlOnlySpanView(layoutPhone, `dentalMax`, vars, 4, `quote-phone-no-label`),
+			),
+		),
+		QuotePhoneSelectedPlansBox(vars),
+	)
+}
+
 func QuotePhoneFormView(vars QuoteVars_t) Elem_t {
 	return Elem(`form`).
 		Id(`QuoteForm`).
 		Class(`quote-form`, `quote-form-phone`).
 		KV(`method`, `post`).
 		KV(`action`, `/quote-info-change`).
-		Wrap(
-			Elem(`details`).Id(`QuoteInfoCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
-				Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`).Wrap(
-					Span(`Quote Information`),
-				),
-				Div().Class(`quote-grid`, `quote-grid-phone`).Wrap(
-				QuoteNamedControlOnlySpanView(layoutPhone, `custName`, vars, 8, `quote-phone-no-label`),
-				QuoteNamedControlOnlySpanView(layoutPhone, `segment`, vars, 4, `quote-phone-no-label`),
-				QuoteNamedControlSpanView(layoutPhone, `birth`, vars, 4),
-				QuoteNamedControlSpanView(layoutPhone, `buy`, vars, 4),
-				QuoteNamedControlSpanView(layoutPhone, `sickCover`, vars, 4, `quote-phone-right`),
-				QuoteNamedControlSpanView(layoutPhone, `priorCov`, vars, 4),
-				QuoteNamedControlSpanView(layoutPhone, `exam`, vars, 4),
-				QuoteNamedControlSpanView(layoutPhone, `specref`, vars, 4),
-
-				QuoteSpacer(1),
-				Div().Class(QuoteSpanClass(10), `quote-phone-checks`).Wrap(
-					QuoteNamedControlSpanView(layoutPhone, `vision`, vars, 1, `quote-phone-check`),
-					QuoteNamedControlSpanView(layoutPhone, `tempVisa`, vars, 1, `quote-phone-check`),
-					QuoteNamedControlSpanView(layoutPhone, `noPVN`, vars, 1, `quote-phone-check`),
-					QuoteNamedControlSpanView(layoutPhone, `naturalMed`, vars, 1, `quote-phone-check`),
-				),
-				QuoteSpacer(1),
-
-				QuoteNamedControlLabelSpanView(layoutPhone, `deductibleMin`, `Deductible`, vars, 4, `quote-phone-right`),
-				QuoteNamedControlLabelSpanView(layoutPhone, `hospitalMin`, `Hospital`, vars, 4),
-				QuoteNamedControlLabelSpanView(layoutPhone, `dentalMin`, `Dental`, vars, 4),
-
-				QuoteNamedControlOnlySpanView(layoutPhone, `deductibleMax`, vars, 4, `quote-phone-no-label`, `quote-phone-right`),
-				QuoteNamedControlOnlySpanView(layoutPhone, `hospitalMax`, vars, 4, `quote-phone-no-label`),
-				QuoteNamedControlOnlySpanView(layoutPhone, `dentalMax`, vars, 4, `quote-phone-no-label`),
-				),
-			),
-			QuotePhoneSelectedPlansBox(vars),
-		)
+		Wrap(QuotePhoneFormBodyView(vars))
 }
 
 func QuotePhonePlansView(data QuotePlans_t) Elem_t {

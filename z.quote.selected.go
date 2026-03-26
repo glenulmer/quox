@@ -8,11 +8,24 @@ import (
 )
 
 const quoteSelectedSeqKey = `sel-seq`
+const quoteSelectedMaxCount = 5
 
 type QuoteSelectedItem_t struct {
 	itemId int
 	planId int
 	cats map[CategId_t]AddonId_t
+}
+
+type QuoteSelectedRow_t struct {
+	item QuoteSelectedItem_t
+	row QuotePlan_t
+}
+
+func QuoteSelectedTitle(count int) string {
+	if count >= quoteSelectedMaxCount {
+		return Str(`Selected Plans (` , quoteSelectedMaxCount, ` - full)`)
+	}
+	return Str(`Selected Plans (` , count, `)`)
 }
 
 func QuoteSelectedPlanKey(itemId int) string {
@@ -115,6 +128,22 @@ func QuoteSelectedPlanRow(state State_t, item QuoteSelectedItem_t) (QuotePlan_t,
 	return QuotePlan_t{}, false
 }
 
+func QuoteSelectedRows(state State_t) []QuoteSelectedRow_t {
+	selected := QuoteSelectedItems(state.quote)
+	var out []QuoteSelectedRow_t
+	for _, item := range selected {
+		row, ok := QuoteSelectedPlanRow(state, item)
+		if !ok { continue }
+		out = append(out, QuoteSelectedRow_t{ item:item, row:row })
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].row.price != out[j].row.price { return out[i].row.price < out[j].row.price }
+		if out[i].row.label != out[j].row.label { return Lower(out[i].row.label) < Lower(out[j].row.label) }
+		return out[i].item.itemId < out[j].item.itemId
+	})
+	return out
+}
+
 func QuoteSelectedDrop(state *State_t, itemId int) {
 	if state.quote == nil { return }
 
@@ -129,6 +158,7 @@ func QuoteSelectedDrop(state *State_t, itemId int) {
 func QuoteSelectedAdd(state *State_t, planId int) {
 	if planId <= 0 { return }
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	if len(QuoteSelectedItems(state.quote)) >= quoteSelectedMaxCount { return }
 
 	itemId := Atoi(state.quote[quoteSelectedSeqKey]) + 1
 	state.quote[quoteSelectedSeqKey] = Str(itemId)

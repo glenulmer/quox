@@ -10,14 +10,14 @@ import (
 func RewriteQuotePage(w http.ResponseWriter, state State_t) {
 	vars := QuoteVars(state)
 	plans := QuotePlans(state)
-	form := any(QuotePhoneFormView(vars))
+	form := any(QuotePhoneFormBodyView(vars))
 	planView := any(QuotePhonePlansView(plans))
 	if App.layout == layoutDesktop {
-		form = QuoteDesktopFormView(vars)
+		form = QuoteDesktopFormBodyView(vars)
 		planView = QuoteDesktopPlansView(plans)
 	}
 	SendResponse(w,
-		RewriteHTML(OuterHTML, `QuoteForm`, form),
+		RewriteHTML(OuterHTML, `QuoteFormBody`, form),
 		RewriteHTML(OuterHTML, `QuotePlans`, planView),
 	)
 }
