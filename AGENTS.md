@@ -21,7 +21,7 @@
 ## D) Quality Check
 
 - You must achieve code clarity, simplicity, maintainability, and no needless duplication.
-- I will ask another AI to criticize your work for all three factors.
+- I will ask another AI to criticize your work for all factors.
 - Anticipate all criticisms, do not rush to a solution.
 
 ## E) Enforcement

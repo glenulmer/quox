@@ -39,6 +39,7 @@ func QuoteDesktopFormView(vars QuoteVars_t) Elem_t {
 					),
 				),
 			),
+			QuoteDesktopSelectedPlansBox(vars),
 		)
 }
 

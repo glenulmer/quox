@@ -9,7 +9,7 @@ func QuotePhoneFormView(vars QuoteVars_t) Elem_t {
 		KV(`method`, `post`).
 		KV(`action`, `/quote-info-change`).
 		Wrap(
-			Elem(`details`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
+			Elem(`details`).Id(`QuoteInfoCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
 				Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`).Wrap(
 					Span(`Quote Information`),
 				),
@@ -41,6 +41,7 @@ func QuotePhoneFormView(vars QuoteVars_t) Elem_t {
 				QuoteNamedControlOnlySpanView(layoutPhone, `dentalMax`, vars, 4, `quote-phone-no-label`),
 				),
 			),
+			QuotePhoneSelectedPlansBox(vars),
 		)
 }
 

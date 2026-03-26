@@ -19,6 +19,14 @@ body {
 	margin: 0 0 0.75rem;
 }
 
+.quote-form-desktop {
+	position: sticky;
+	top: 0.25rem;
+	z-index: 30;
+	background: #fbfaf7;
+	padding-bottom: 0.35rem;
+}
+
 .quote-desk-workbench {
 	width: 50.75rem;
 	border: 0.0625rem solid #d6cfbb;
@@ -203,7 +211,7 @@ body {
 
 .quote-plan-table-row {
 	display: grid;
-	grid-template-columns: 4.1875rem 4.1875rem 4.1875rem 15.9375rem 5.75rem 8.125rem 5.625rem 7.1875rem 6.5625rem 6.25rem 4.1875rem;
+	grid-template-columns: 2.125rem 4.1875rem 4.1875rem 4.1875rem 15.9375rem 5.75rem 8.125rem 5.625rem 7.1875rem 6.5625rem 6.25rem 4.1875rem;
 	border-top: 0.0625rem solid #ece3c6;
 	align-items: center;
 }
@@ -263,6 +271,33 @@ body {
 	white-space: nowrap;
 }
 
+.quote-plan-action-head,
+.quote-plan-action-cell {
+	padding-left: 0.15rem;
+	padding-right: 0.15rem;
+	text-align: center;
+}
+
+.quote-plan-pick-btn.quote-plan-desk-btn {
+	height: 1.05rem;
+	min-width: 1.05rem;
+	padding: 0;
+	border: 0.0625rem solid #b7b7b7;
+	border-radius: 0.24rem;
+	background: #fff;
+	font-size: 0.72rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.quote-plan-desk-btn.quote-plan-pick-add {
+	border-color: #93b3d6;
+}
+
+.quote-plan-desk-btn.quote-plan-pick-del {
+	border-color: #cfa4a4;
+}
+
 .quote-plan-money-head-right {
 	text-align: right;
 	padding-right: 0.6rem;
@@ -305,6 +340,34 @@ body {
 
 .quote-plan-table-head .quote-plan-name-cell {
 	background: #f7bf1d !important;
+}
+
+.quote-desk-selected {
+	margin-top: 0.5rem;
+	width: max-content;
+}
+
+.quote-plan-table-selected {
+	border-color: #b8cce7;
+	background: #f5faff;
+}
+
+.quote-plan-table-selected .quote-plan-table-head .quote-plan-cell {
+	background: #d7e8fb;
+}
+
+.quote-plan-table-selected .quote-plan-name-cell {
+	background: #e8f2fd !important;
+}
+
+.quote-plan-table-selected .quote-plan-table-head .quote-plan-name-cell {
+	background: #c8def7 !important;
+}
+
+.quote-desk-selected-empty {
+	padding: 0.35rem 0.55rem;
+	font-size: 0.78rem;
+	color: #607288;
 }
 
 .quote-filter-box {
