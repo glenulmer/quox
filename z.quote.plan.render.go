@@ -413,7 +413,7 @@ func QuotePlanDesktopView(data QuotePlans_t) Elem_t {
 	var rows []Elem_t
 	rows = append(rows, QuotePlanDesktopHead(categs, data.showVision, Str(`Plans (` , len(data.plans), `)`), data.sortBy, true))
 	for _, x := range data.plans { rows = append(rows, QuotePlanDesktopRow(x, categs, data.showVision)) }
-	return Div().Class(`quote-plan-table`).Wrap(rows)
+	return Div().Class(`quote-plan-table`, `quote-plan-table-main`).Wrap(rows)
 }
 
 func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
@@ -427,28 +427,16 @@ func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
 		selectedRows = append(selectedRows, QuotePlanDesktopSelectedRow(x.item, x.row, categs, showVision))
 	}
 
-	title := QuoteSelectedTitle(len(selectedRows))
-	headerLabels := []string{`Total`, `Ded`, `NC`, title}
-	for _, categ := range categs {
-		headerLabels = append(headerLabels, categ.name)
-	}
-	if showVision {
-		headerLabels = append(headerLabels, `Vision`)
-	}
-	headerLabels = append(headerLabels, `Comm`)
-	headerPlain := Div(strings.Join(headerLabels, ` | `))
-
 	var rows []Elem_t
+	rows = append(rows, QuotePlanDesktopHead(categs, showVision, QuoteSelectedTitle(len(selectedRows)), ``, false))
 	rows = append(rows, selectedRows...)
 
 	out := Div().Id(`QuoteDeskSelected`).Class(`quote-desk-selected`).Wrap(
-		headerPlain,
-		Div().Class(`quote-plan-table`).Wrap(rows),
+		Div().Class(`quote-plan-table`, `quote-plan-table-selected`).Wrap(rows),
 	)
 	if len(selectedRows) == 0 {
 		out = Div().Id(`QuoteDeskSelected`).Class(`quote-desk-selected`).Wrap(
-			headerPlain,
-			Div().Class(`quote-plan-table`).Wrap(rows),
+			Div().Class(`quote-plan-table`, `quote-plan-table-selected`).Wrap(rows),
 			Div(`No plans selected.`).Class(`quote-desk-selected-empty`),
 		)
 	}

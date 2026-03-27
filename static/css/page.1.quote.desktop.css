@@ -205,18 +205,32 @@ body {
 }
 
 .quote-plan-table {
-	border: 0.0625rem solid #ddd4bc;
+	border: 0.0625rem solid var(--quote-table-border);
 	background: #fff;
+}
+
+.quote-plan-table-main {
+	--quote-table-border: #ddd4bc;
+	--quote-table-row-border: #ece3c6;
 	--quote-table-body-bg: #fffef8;
 	--quote-table-head-bg: #fccc38;
 	--quote-table-name-bg: #f6efd8;
 	--quote-table-name-head-bg: #f7bf1d;
 }
 
+.quote-plan-table-selected {
+	--quote-table-border: #bfd2ea;
+	--quote-table-row-border: #d9e5f4;
+	--quote-table-body-bg: #f8fbff;
+	--quote-table-head-bg: #b7d1ef;
+	--quote-table-name-bg: #e2ebf7;
+	--quote-table-name-head-bg: #a4bfdc;
+}
+
 .quote-plan-table-row {
 	display: grid;
 	grid-template-columns: 2.125rem 4.1875rem 4.1875rem 4.1875rem 15.9375rem 5.75rem 8.125rem 5.625rem 7.1875rem 6.5625rem 6.25rem 4.1875rem;
-	border-top: 0.0625rem solid #ece3c6;
+	border-top: 0.0625rem solid var(--quote-table-row-border);
 	align-items: center;
 }
 
@@ -225,7 +239,7 @@ body {
 }
 
 .quote-plan-table-head {
-	background: #fccc38;
+	background: var(--quote-table-head-bg);
 	font-weight: 700;
 }
 
