@@ -16,7 +16,7 @@
 ## C) Interaction Rule
 
 1. Keep feedback technical and concrete.
-2. Do not label the user with moral/political identity terms.
+2. Cut the bullshit, get to the point, don't polish it up.
 
 ## D) Quality Check
 
@@ -32,3 +32,7 @@
 
 Before any completion claim, run `./scripts/check-all.sh`.
 `run-dev.sh` refuses to start if guardrails fail.
+
+After any Go code recompilation (CSS-only edits excluded), start and keep two persistent dev terminals running:
+- `./scripts/run-dev.sh -watch -port 3333 -layout desktop`
+- `./scripts/run-dev.sh -watch -port 4444 -layout phone`

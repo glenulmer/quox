@@ -9,7 +9,8 @@
 	let timer = 0;
 	let pendingOpenSelected = false;
 	let phoneStickyOn = false;
-	let stickyFrame = 0;
+
+	const phoneStickyGapPx = 0;
 
 	const captureFoldStates = () => {
 		for (const id of foldIds) {
@@ -60,14 +61,34 @@
 		}
 		info.classList.remove('quote-phone-sticky-card');
 		selected.classList.remove('quote-phone-sticky-card', 'quote-phone-sticky-second');
+		selected.style.top = '';
+		const plans = document.getElementById('QuotePlans');
+		if (plans instanceof HTMLElement) {
+			plans.style.paddingTop = '';
+		}
+	};
+
+	const syncPhoneStickyLayout = (info, selected, plans) => {
+		if (!phoneStickyOn) return;
+		const top = Number.parseFloat(window.getComputedStyle(info).top || '0') || 0;
+		const selectedTop = top + info.getBoundingClientRect().height + phoneStickyGapPx;
+		selected.style.top = `${selectedTop}px`;
+		const selectedRect = selected.getBoundingClientRect();
+		const stackBottom = selectedRect.top + selectedRect.height;
+		plans.style.paddingTop = `${Math.max(0, Math.ceil(stackBottom + phoneStickyGapPx))}px`;
 	};
 
 	const syncPhoneSticky = () => {
 		const info = document.getElementById('QuoteInfoCard');
 		const selected = document.getElementById('QuoteSelectedCard');
 		const anchor = document.getElementById('QuotePhoneStickyAnchor');
-		if (!(info instanceof HTMLDetailsElement) || !(selected instanceof HTMLDetailsElement) || !(anchor instanceof HTMLElement)) {
+		const plans = document.getElementById('QuotePlans');
+		if (!(info instanceof HTMLDetailsElement) || !(selected instanceof HTMLDetailsElement) || !(anchor instanceof HTMLElement) || !(plans instanceof HTMLElement)) {
 			phoneStickyOn = false;
+			return;
+		}
+		if (window.scrollY <= 0) {
+			if (phoneStickyOn) setPhoneSticky(info, selected, false);
 			return;
 		}
 
@@ -75,12 +96,13 @@
 		if (!phoneStickyOn) {
 			if (top <= 0) {
 				setPhoneSticky(info, selected, true, true);
+				syncPhoneStickyLayout(info, selected, plans);
 			}
 			return;
 		}
 
 		// Hysteresis keeps sticky state stable during tiny back/forth scroll moves.
-		if (top > 8) {
+		if (top >= 8) {
 			setPhoneSticky(info, selected, false);
 			return;
 		}
@@ -89,14 +111,11 @@
 		if (!info.classList.contains('quote-phone-sticky-card') || !selected.classList.contains('quote-phone-sticky-card')) {
 			setPhoneSticky(info, selected, true, false);
 		}
+		syncPhoneStickyLayout(info, selected, plans);
 	};
 
 	const scheduleStickySync = () => {
-		if (stickyFrame !== 0) return;
-		stickyFrame = window.requestAnimationFrame(() => {
-			stickyFrame = 0;
-			syncPhoneSticky();
-		});
+		syncPhoneSticky();
 	};
 
 	const controlValue = (el) => {
@@ -197,12 +216,22 @@
 		if (!(el instanceof HTMLDetailsElement)) return;
 		if (!foldIds.includes(el.id)) return;
 		foldState.set(el.id, el.open);
+		scheduleStickySync();
+	};
+
+	const onFoldSummaryClick = (ev) => {
+		const el = ev.target;
+		if (!(el instanceof HTMLElement)) return;
+		if (!el.closest('#QuoteInfoCard > summary, #QuoteSelectedCard > summary')) return;
+		scheduleStickySync();
+		window.setTimeout(scheduleStickySync, 0);
 	};
 
 	document.addEventListener('change', onControlChange);
 	document.addEventListener('input', onControlChange);
 	document.addEventListener('click', onButtonClick);
 	document.addEventListener('toggle', onFoldToggle, true);
+	document.addEventListener('click', onFoldSummaryClick, true);
 	window.addEventListener('scroll', scheduleStickySync, { passive: true });
 	window.addEventListener('resize', scheduleStickySync);
 	scheduleStickySync();

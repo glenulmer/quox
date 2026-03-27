@@ -207,6 +207,10 @@ body {
 .quote-plan-table {
 	border: 0.0625rem solid #ddd4bc;
 	background: #fff;
+	--quote-table-body-bg: #fffef8;
+	--quote-table-head-bg: #fccc38;
+	--quote-table-name-bg: #f6efd8;
+	--quote-table-name-head-bg: #f7bf1d;
 }
 
 .quote-plan-table-row {
@@ -239,9 +243,9 @@ body {
 
 .quote-plan-head-plan .quote-plan-sort-input {
 	margin-left: auto;
-	height: 1.2rem;
-	padding: 0.02rem 0.24rem;
-	font-size: 0.72rem;
+	height: 1.05rem;
+	padding: 0 0.2rem;
+	font-size: 0.68rem;
 }
 
 .quote-plan-cell {
@@ -252,11 +256,11 @@ body {
 }
 
 .quote-plan-table-row .quote-plan-cell {
-	background: #fffef8;
+	background: var(--quote-table-body-bg);
 }
 
 .quote-plan-table-head .quote-plan-cell {
-	background: #fccc38;
+	background: var(--quote-table-head-bg);
 }
 
 .quote-plan-cell-pick {
@@ -335,33 +339,16 @@ body {
 	font-weight: 700;
 	color: #2f2f2f;
 	text-align: left;
-	background: #f6efd8 !important;
+	background: var(--quote-table-name-bg);
 }
 
 .quote-plan-table-head .quote-plan-name-cell {
-	background: #f7bf1d !important;
+	background: var(--quote-table-name-head-bg);
 }
 
 .quote-desk-selected {
 	margin-top: 0.5rem;
 	width: max-content;
-}
-
-.quote-plan-table-selected {
-	border-color: #b8cce7;
-	background: #f5faff;
-}
-
-.quote-plan-table-selected .quote-plan-table-head .quote-plan-cell {
-	background: #d7e8fb;
-}
-
-.quote-plan-table-selected .quote-plan-name-cell {
-	background: #e8f2fd !important;
-}
-
-.quote-plan-table-selected .quote-plan-table-head .quote-plan-name-cell {
-	background: #c8def7 !important;
 }
 
 .quote-desk-selected-empty {

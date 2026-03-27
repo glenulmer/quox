@@ -268,7 +268,7 @@ func QuotePlanDesktopHead(categs []Categ_t, showVision bool, title, sortBy strin
 	cols = append(cols,
 		Div(``).Class(`quote-plan-cell`, `quote-plan-action-head`),
 		Div(`Total`).Class(`quote-plan-cell`, `quote-plan-total-cell`),
-		Div(`Ded`).Class(`quote-plan-cell`),
+		Div(`Ded`).Class(`quote-plan-cell`, `quote-plan-money-head-right`),
 		Div(`NC`).Class(`quote-plan-cell`, `quote-plan-money-head-right`),
 	)
 
@@ -367,7 +367,7 @@ func QuotePlanDesktopRow(x QuotePlan_t, categs []Categ_t, showVision bool) Elem_
 			QuotePlanActionButton(QuoteSelectedAddControlName(x.planId), Str(x.planId), `🛒`, `quote-plan-pick-add`),
 		),
 		Div(PriceTextWholeEuro(x.price, true)).Class(`quote-plan-cell`, `quote-plan-total-cell`),
-		Div(PriceTextWholeEuro(x.deduct, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`),
+		Div(PriceTextWholeEuro(x.deduct, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`),
 		Div(PriceTextWholeEuro(x.noClaims, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`),
 		Div(x.label).Class(`quote-plan-cell`, `quote-plan-name-cell`),
 	)
@@ -391,7 +391,7 @@ func QuotePlanDesktopSelectedRow(item QuoteSelectedItem_t, row QuotePlan_t, cate
 			QuotePlanActionButton(QuoteSelectedDelControlName(item.itemId), Str(item.itemId), `🗑`, `quote-plan-pick-del`),
 		),
 		Div(PriceTextWholeEuro(row.price, true)).Class(`quote-plan-cell`, `quote-plan-total-cell`),
-		Div(PriceTextWholeEuro(row.deduct, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`),
+		Div(PriceTextWholeEuro(row.deduct, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`),
 		Div(PriceTextWholeEuro(row.noClaims, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`),
 		Div(row.label).Class(`quote-plan-cell`, `quote-plan-name-cell`),
 	)
@@ -428,16 +428,27 @@ func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
 	}
 
 	title := QuoteSelectedTitle(len(selectedRows))
+	headerLabels := []string{`Total`, `Ded`, `NC`, title}
+	for _, categ := range categs {
+		headerLabels = append(headerLabels, categ.name)
+	}
+	if showVision {
+		headerLabels = append(headerLabels, `Vision`)
+	}
+	headerLabels = append(headerLabels, `Comm`)
+	headerPlain := Div(strings.Join(headerLabels, ` | `))
+
 	var rows []Elem_t
-	rows = append(rows, QuotePlanDesktopHead(categs, showVision, title, ``, false))
 	rows = append(rows, selectedRows...)
 
 	out := Div().Id(`QuoteDeskSelected`).Class(`quote-desk-selected`).Wrap(
-		Div().Class(`quote-plan-table`, `quote-plan-table-selected`).Wrap(rows),
+		headerPlain,
+		Div().Class(`quote-plan-table`).Wrap(rows),
 	)
 	if len(selectedRows) == 0 {
 		out = Div().Id(`QuoteDeskSelected`).Class(`quote-desk-selected`).Wrap(
-			Div().Class(`quote-plan-table`, `quote-plan-table-selected`).Wrap(rows),
+			headerPlain,
+			Div().Class(`quote-plan-table`).Wrap(rows),
 			Div(`No plans selected.`).Class(`quote-desk-selected-empty`),
 		)
 	}
