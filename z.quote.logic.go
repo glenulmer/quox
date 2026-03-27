@@ -71,7 +71,7 @@ func QuoteDefaultSelectFirst(sp string, args ...any) func(QuoteDefaults_t) strin
 		return QuoteChoiceFirst(sp, args...)
 	}
 }
-I aske
+
 func QuoteControlDefs() []QuoteControl_t {
 	adult := true
 	max := true
