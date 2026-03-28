@@ -5,12 +5,15 @@ import (
 	"sort"
 	"strings"
 
+	. "pm/lib/dec2"
 	. "pm/lib/output"
 )
 
 const editQDepMaxCount = 5
 const editQPreSeqKey = `editq-pre-seq`
 const editQDepSeqKey = `editq-dep-seq`
+const editQPrimeModePct = `pct`
+const editQPrimeModeEur = `eur`
 
 type EditQCond_t struct {
 	condId int
@@ -23,6 +26,19 @@ type EditQDep_t struct {
 	birth string
 	vision bool
 	conds []EditQCond_t
+}
+
+type EditQPrimeCharge_t struct {
+	itemId int
+	plan string
+	planPrice EuroCent_t
+	categId CategId_t
+	level string
+	base EuroCent_t
+	mode string
+	amount string
+	note string
+	applied EuroCent_t
 }
 
 func EditQPreKey(condId int) string { return Str(`editq-pre-`, condId) }
@@ -95,6 +111,130 @@ func EditQDepPreDelControl(name string) (depId, condId int, ok bool) {
 	n, err := fmt.Sscanf(name, `editq-dep-pre-del-%d-%d`, &depId, &condId)
 	if err != nil || n != 2 || depId <= 0 || condId <= 0 { return 0, 0, false }
 	return depId, condId, true
+}
+
+func EditQPrimeModeKey(itemId int, categId CategId_t) string {
+	return Str(`editq-prime-`, itemId, `-`, categId, `-mode`)
+}
+
+func EditQPrimeAmountKey(itemId int, categId CategId_t) string {
+	return Str(`editq-prime-`, itemId, `-`, categId, `-amount`)
+}
+
+func EditQPrimeNoteKey(itemId int, categId CategId_t) string {
+	return Str(`editq-prime-`, itemId, `-`, categId, `-note`)
+}
+
+func EditQPrimeModeControl(name string) (itemId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `editq-prime-%d-%d-mode`, &itemId, &cat)
+	if err != nil || n != 2 || itemId <= 0 || cat < 0 { return 0, 0, false }
+	return itemId, CategId_t(cat), true
+}
+
+func EditQPrimeAmountControl(name string) (itemId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `editq-prime-%d-%d-amount`, &itemId, &cat)
+	if err != nil || n != 2 || itemId <= 0 || cat < 0 { return 0, 0, false }
+	return itemId, CategId_t(cat), true
+}
+
+func EditQPrimeNoteControl(name string) (itemId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `editq-prime-%d-%d-note`, &itemId, &cat)
+	if err != nil || n != 2 || itemId <= 0 || cat < 0 { return 0, 0, false }
+	return itemId, CategId_t(cat), true
+}
+
+func EditQPrimeMode(v string) string {
+	if Lower(Trim(v)) == editQPrimeModeEur { return editQPrimeModeEur }
+	return editQPrimeModePct
+}
+
+func EditQParseDecimal100(v string) (int64, bool) {
+	s := Trim(v)
+	s = strings.ReplaceAll(s, `%`, ``)
+	s = strings.ReplaceAll(s, `€`, ``)
+	s = strings.ReplaceAll(s, `eur`, ``)
+	s = strings.ReplaceAll(s, ` `, ``)
+	s = strings.ReplaceAll(s, `.`, `,`)
+	if s == `` { return 0, false }
+	parts := Split(s, `,`)
+	if len(parts) > 2 { return 0, false }
+	onlyDigits := func(in string) string {
+		var out []byte
+		for i := 0; i < len(in); i++ {
+			if in[i] >= '0' && in[i] <= '9' { out = append(out, in[i]) }
+		}
+		return string(out)
+	}
+	whole := onlyDigits(parts[0])
+	if whole == `` { whole = `0` }
+	frac := ``
+	if len(parts) == 2 { frac = onlyDigits(parts[1]) }
+	if len(frac) > 2 { frac = frac[:2] }
+	for len(frac) < 2 { frac += `0` }
+	return int64(Atoi(whole)*100 + Atoi(frac)), true
+}
+
+func EditQPrimeAppliedAmount(mode, amount string, base EuroCent_t) EuroCent_t {
+	n, ok := EditQParseDecimal100(amount)
+	if !ok || n <= 0 { return 0 }
+	if EditQPrimeMode(mode) == editQPrimeModeEur {
+		return EuroCent_t(n)
+	}
+	// n is percent*100, apply to base euro-cent amount.
+	return EuroCent_t((int64(base) * n) / 10000)
+}
+
+func EditQPrimeCharges(vars QuoteVars_t) []EditQPrimeCharge_t {
+	state := QuoteStateFromVars(vars)
+	selected := QuoteSelectedRows(state)
+	var out []EditQPrimeCharge_t
+	for _, x := range selected {
+		if x.row.planOk && x.row.planBase+x.row.planSurcharge > 0 {
+			modeKey := EditQPrimeModeKey(x.item.itemId, 0)
+			mode := EditQPrimeMode(vars[modeKey])
+			amount := vars[EditQPrimeAmountKey(x.item.itemId, 0)]
+			applied := EditQPrimeAppliedAmount(mode, amount, x.row.planBase)
+			out = append(out, EditQPrimeCharge_t{
+				itemId: x.item.itemId,
+				plan: x.row.label,
+				planPrice: x.row.price,
+				categId: 0,
+				level: `Plan`,
+				base: x.row.planBase,
+				mode: mode,
+				amount: amount,
+				note: vars[EditQPrimeNoteKey(x.item.itemId, 0)],
+				applied: applied,
+			})
+		}
+
+		for _, addon := range x.row.addons {
+			if !addon.priceOk { continue }
+			if addon.base+addon.surcharge <= 0 { continue }
+			modeKey := EditQPrimeModeKey(x.item.itemId, addon.categId)
+			mode := EditQPrimeMode(vars[modeKey])
+			amount := vars[EditQPrimeAmountKey(x.item.itemId, addon.categId)]
+			applied := EditQPrimeAppliedAmount(mode, amount, addon.base)
+			level := QuoteAddonPickText(addon)
+			if level == `` { level = addon.categ }
+			out = append(out, EditQPrimeCharge_t{
+				itemId: x.item.itemId,
+				plan: x.row.label,
+				planPrice: x.row.price,
+				categId: addon.categId,
+				level: level,
+				base: addon.base,
+				mode: mode,
+				amount: amount,
+				note: vars[EditQPrimeNoteKey(x.item.itemId, addon.categId)],
+				applied: applied,
+			})
+		}
+	}
+	return out
 }
 
 func EditQCurrentYear() int {
@@ -194,6 +334,19 @@ func EditQApply(state *State_t, name, value string) bool {
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
 
 	if name == `custName` {
+		state.quote[name] = value
+		return true
+	}
+
+	if itemId, categId, ok := EditQPrimeModeControl(name); ok {
+		state.quote[EditQPrimeModeKey(itemId, categId)] = EditQPrimeMode(value)
+		return true
+	}
+	if _, _, ok := EditQPrimeAmountControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+	if _, _, ok := EditQPrimeNoteControl(name); ok {
 		state.quote[name] = value
 		return true
 	}

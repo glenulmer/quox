@@ -1,5 +1,5 @@
 (() => {
-	const selector = '#EditQForm input[name], #EditQForm textarea[name], #EditQForm button[name]';
+	const selector = '#EditQForm input[name], #EditQForm textarea[name], #EditQForm select[name], #EditQForm button[name]';
 	const lastSent = new Map();
 	const debounceMs = 240;
 	let seq = 0;

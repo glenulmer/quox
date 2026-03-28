@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 
+	. "pm/lib/dec2"
 	. "pm/lib/htmlHelper"
+	. "pm/lib/output"
 )
 
 func EditQGrowInput(name, value string) Elem_t {
@@ -40,16 +42,80 @@ func EditQConditionRow(name, value, delName string) Elem_t {
 	)
 }
 
-func EditQRootConditionsView(vars QuoteVars_t) Elem_t {
-	conditions := EditQPreConditions(vars)
-	var rows []Elem_t
-	for _, x := range conditions {
-		rows = append(rows, EditQConditionRow(EditQPreKey(x.condId), x.text, EditQPreDelControlName(x.condId)))
+func EditQPrimeChargeModeView(name, mode string) Elem_t {
+	return Select(
+		Option().KV(`value`, editQPrimeModePct).Text(`%`),
+		Option().KV(`value`, editQPrimeModeEur).Text(`€`),
+	).Name(name).Choose(EditQPrimeMode(mode)).Class(`editq-prime-mode`)
+}
+
+func EditQPrimeChargeRowView(x EditQPrimeCharge_t) Elem_t {
+	return Div().Class(`editq-prime-row`).Wrap(
+		Div(x.level).Class(`editq-prime-categ`),
+		Div().Class(`editq-prime-inputs`).Wrap(
+			EditQPrimeChargeModeView(EditQPrimeModeKey(x.itemId, x.categId), x.mode),
+			QuoteInputText(EditQPrimeAmountKey(x.itemId, x.categId), x.amount, `Amount`).Class(`editq-prime-amount`, `editq-prime-amount-input`),
+			QuoteInputText(EditQPrimeNoteKey(x.itemId, x.categId), x.note, `Optional note`).Class(`editq-prime-note`),
+		),
+	)
+}
+
+func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
+	charges := EditQPrimeCharges(vars)
+	appliedByItem := make(map[int]EuroCent_t)
+	planByItem := make(map[int]EuroCent_t)
+	for _, x := range charges {
+		appliedByItem[x.itemId] += x.applied
+		if _, ok := planByItem[x.itemId]; !ok { planByItem[x.itemId] = x.planPrice }
 	}
-	rows = append(rows, EditQAddButton(EditQPreAddControlName(), `Pre-existing`))
-	return Div().Class(`editq-section`, `editq-preexisting`).Wrap(
-		Div(`Pre-existing Conditions`).Class(`editq-section-title`),
-		Div().Class(`editq-condition-list`).Wrap(rows),
+
+	var rows []Elem_t
+	prevItemId := 0
+	hasPlan := false
+	for _, x := range charges {
+		if x.itemId != prevItemId {
+			if hasPlan {
+				base := planByItem[prevItemId]
+				prex := appliedByItem[prevItemId]
+				prexText := prex.OutEuro()
+				if prex == 0 { prexText = `0,00 €` }
+				rows = append(rows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
+					Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+					Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
+						Div().Class(`editq-prime-summary-spacer`),
+						Div(prexText).Class(`editq-prime-summary-prex`),
+						Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+					),
+				))
+			}
+			rows = append(rows, Div().Class(`editq-prime-plan`).Wrap(
+				Span(x.plan).Class(`editq-prime-plan-name`),
+			))
+			prevItemId = x.itemId
+			hasPlan = true
+		}
+		rows = append(rows, EditQPrimeChargeRowView(x))
+	}
+	if hasPlan {
+		base := planByItem[prevItemId]
+		prex := appliedByItem[prevItemId]
+		prexText := prex.OutEuro()
+		if prex == 0 { prexText = `0,00 €` }
+		rows = append(rows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
+			Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+			Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
+				Div().Class(`editq-prime-summary-spacer`),
+				Div(prexText).Class(`editq-prime-summary-prex`),
+				Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+			),
+		))
+	}
+	if len(rows) == 0 {
+		rows = append(rows, Div(`No payable selected plan categories yet.`).Class(`editq-prime-empty`))
+	}
+	return Div().Class(`editq-section`, `editq-prime-charges`).Wrap(
+		Div(`Pre-existing charges`).Class(`editq-section-title`),
+		Div().Class(`editq-prime-list`).Wrap(rows),
 	)
 }
 

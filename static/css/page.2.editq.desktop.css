@@ -80,10 +80,121 @@ body {
 	margin-bottom: 0.5rem;
 }
 
+.editq-prime-charges {
+	padding-right: 1rem;
+}
+
 .editq-condition-list,
 .editq-dependent-list {
 	display: grid;
 	gap: 0.45rem;
+}
+
+.editq-prime-list {
+	display: grid;
+	gap: 0.28rem;
+}
+
+.editq-prime-row {
+	display: grid;
+	grid-template-columns: 6.8rem minmax(0, 1fr);
+	gap: 0.45rem;
+	align-items: center;
+}
+
+.editq-prime-plan {
+	margin-top: 0.45rem;
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #2e4359;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding-right: 0.28rem;
+}
+
+.editq-prime-categ {
+	font-size: 0.75rem;
+	font-weight: 400;
+}
+
+.editq-prime-inputs {
+	display: grid;
+	grid-template-columns: 3.2rem 6.1rem minmax(0, 1fr);
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.editq-prime-mode,
+.editq-prime-amount,
+.editq-prime-note {
+	width: 100%;
+	min-width: 0;
+}
+
+.editq-prime-inputs :is(input[type="text"], select) {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 0.34rem 0.4rem;
+	border: 0.0625rem solid #b6c7d8;
+	border-radius: 0.32rem;
+	background: #fff;
+	font-size: 0.75rem;
+}
+
+.editq-prime-empty {
+	font-size: 0.8rem;
+	color: #5e7287;
+}
+
+.editq-prime-amount-input {
+	text-align: right;
+}
+
+.editq-prime-plan-total {
+	color: #1e6996;
+}
+
+.editq-prime-plan-charges {
+	color: #1e6996;
+}
+
+.editq-prime-plan-sum {
+	color: #165581;
+	font-weight: 700;
+}
+
+.editq-prime-plan-op {
+	color: #4f6479;
+}
+
+.editq-prime-summary {
+	padding: 0.1rem 0;
+}
+
+.editq-prime-summary-base {
+	color: #1f1f1f;
+	font-size: 0.75rem;
+	font-style: italic;
+}
+
+.editq-prime-summary-prex {
+	color: #1e6996;
+	font-size: 0.75rem;
+	font-style: italic;
+	text-align: right;
+	padding-right: 0.4rem;
+	box-sizing: border-box;
+}
+
+.editq-prime-summary-sum {
+	text-align: left;
+	color: #1f1f1f;
+	font-weight: 700;
+	font-size: 0.75rem;
+	font-style: italic;
 }
 
 .editq-condition-row {
