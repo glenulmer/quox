@@ -14,8 +14,12 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(SessionMiddleware)
-	r.Get(`/`, App.Auth(Page1Quote))
+	r.Get(`/`, App.Auth(Page2EditQ))
+	r.Get(`/quote`, App.Auth(Page1Quote))
 	r.Post(`/quote-info-change`, App.Auth(Page1QuoteChange))
+	r.Get(`/quote-edit`, App.Auth(Page2EditQ))
+	r.Post(`/quote-edit`, App.Auth(Page2EditQEntry))
+	r.Post(`/quote-edit-change`, App.Auth(Page2EditQChange))
 	r.Get(`/signin`, SignInHandler)
 	r.Post(`/signin`, SignInHandler)
 	r.Get(`/signout`, SignOutHandler)

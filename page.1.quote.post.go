@@ -39,5 +39,5 @@ func Page1QuoteChange(w http.ResponseWriter, req *http.Request) {
 
 	QuoteApplyForm(&state, req)
 	SetState(req, state)
-	http.Redirect(w, req, `/`, http.StatusSeeOther)
+	http.Redirect(w, req, `/quote`, http.StatusSeeOther)
 }

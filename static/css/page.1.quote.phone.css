@@ -91,6 +91,33 @@ details[open] > .quote-phone-fold-title::before {
 	padding-left: 1.15rem;
 }
 
+.quote-phone-selected-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.quote-edit-quote-btn {
+	height: 1.1rem;
+	padding: 0 0.48rem;
+	border: 0.0625rem solid #8ca8c9;
+	border-radius: 0.3rem;
+	background: #f3f8ff;
+	color: #1f3e63;
+	font-family: inherit;
+	font-size: 0.72rem;
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.quote-phone-selected-edit-btn {
+	position: relative;
+	z-index: 1;
+}
+
 .quote-phone-sticky-anchor {
 	height: 0;
 	margin: 0;

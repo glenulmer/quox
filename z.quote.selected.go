@@ -22,10 +22,9 @@ type QuoteSelectedRow_t struct {
 }
 
 func QuoteSelectedTitle(count int) string {
-	if count >= quoteSelectedMaxCount {
-		return Str(`Selected Plans (` , quoteSelectedMaxCount, ` - full)`)
-	}
-	return Str(`Selected Plans (` , count, `)`)
+	if count < 0 { count = 0 }
+	if count > quoteSelectedMaxCount { count = quoteSelectedMaxCount }
+	return Str(`Selected Plans (` , count, ` / `, quoteSelectedMaxCount, `)`)
 }
 
 func QuoteSelectedPlanKey(itemId int) string {

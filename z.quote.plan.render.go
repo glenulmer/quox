@@ -220,6 +220,16 @@ func QuoteSortSelectView(sortBy string) Elem_t {
 	).Name(`sortBy`).Choose(mode).Class(`quote-plan-sort-input`)
 }
 
+func QuoteEditQuoteButton(class ...string) Elem_t {
+	return Elem(`button`).
+		Type(`submit`).
+		KV(`formaction`, `/quote-edit`).
+		KV(`formmethod`, `post`).
+		Class(`quote-edit-quote-btn`).
+		Class(class...).
+		Text(`Edit Quote`)
+}
+
 func QuotePlanDesktopCategWidth(categ Categ_t) int {
 	name := Lower(Trim(categ.name))
 	switch {
@@ -263,7 +273,7 @@ func QuotePlanDesktopGridStyle(categs []Categ_t, showVision bool) string {
 	return x
 }
 
-func QuotePlanDesktopHead(categs []Categ_t, showVision bool, title, sortBy string, showSort bool) Elem_t {
+func QuotePlanDesktopHead(categs []Categ_t, showVision bool, title, sortBy string, showSort, showAction bool, action Elem_t) Elem_t {
 	var cols []Elem_t
 	cols = append(cols,
 		Div(``).Class(`quote-plan-cell`, `quote-plan-action-head`),
@@ -272,19 +282,13 @@ func QuotePlanDesktopHead(categs []Categ_t, showVision bool, title, sortBy strin
 		Div(`NC`).Class(`quote-plan-cell`, `quote-plan-money-head-right`),
 	)
 
+	var headParts []Elem_t
+	headParts = append(headParts, Span(title).Class(`quote-plan-head-plan-title`))
+	if showSort { headParts = append(headParts, QuoteSortSelectView(sortBy)) }
+	if showAction { headParts = append(headParts, action) }
 	head := Div().Class(`quote-plan-cell`, `quote-plan-name-cell`).Wrap(
-		Div().Class(`quote-plan-head-plan`).Wrap(
-			Span(title).Class(`quote-plan-head-plan-title`),
-		),
+		Div().Class(`quote-plan-head-plan`).Wrap(headParts),
 	)
-	if showSort {
-		head = Div().Class(`quote-plan-cell`, `quote-plan-name-cell`).Wrap(
-			Div().Class(`quote-plan-head-plan`).Wrap(
-				Span(title).Class(`quote-plan-head-plan-title`),
-				QuoteSortSelectView(sortBy),
-			),
-		)
-	}
 	cols = append(cols, head)
 
 	for _, categ := range categs {
@@ -411,7 +415,7 @@ func QuotePlanDesktopSelectedRow(item QuoteSelectedItem_t, row QuotePlan_t, cate
 func QuotePlanDesktopView(data QuotePlans_t) Elem_t {
 	categs := QuotePlanDesktopCategs()
 	var rows []Elem_t
-	rows = append(rows, QuotePlanDesktopHead(categs, data.showVision, Str(`Plans (` , len(data.plans), `)`), data.sortBy, true))
+	rows = append(rows, QuotePlanDesktopHead(categs, data.showVision, Str(`Plans (` , len(data.plans), `)`), data.sortBy, true, false, Div()))
 	for _, x := range data.plans { rows = append(rows, QuotePlanDesktopRow(x, categs, data.showVision)) }
 	return Div().Class(`quote-plan-table`, `quote-plan-table-main`).Wrap(rows)
 }
@@ -427,8 +431,9 @@ func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
 		selectedRows = append(selectedRows, QuotePlanDesktopSelectedRow(x.item, x.row, categs, showVision))
 	}
 
+	showEdit := len(selectedRows) > 0
 	var rows []Elem_t
-	rows = append(rows, QuotePlanDesktopHead(categs, showVision, QuoteSelectedTitle(len(selectedRows)), ``, false))
+	rows = append(rows, QuotePlanDesktopHead(categs, showVision, QuoteSelectedTitle(len(selectedRows)), ``, false, showEdit, QuoteEditQuoteButton(`quote-desk-selected-edit-btn`)))
 	rows = append(rows, selectedRows...)
 
 	out := Div().Id(`QuoteDeskSelected`).Class(`quote-desk-selected`).Wrap(
@@ -453,10 +458,13 @@ func QuotePhoneSelectedPlansBox(vars QuoteVars_t) Elem_t {
 	if len(cards) == 0 {
 		cards = append(cards, Div(`No plans selected.`).Class(`quote-selected-empty`))
 	}
+	var titleBar []Elem_t
+	titleBar = append(titleBar, Span(QuoteSelectedTitle(len(selectedRowsData))))
+	if len(selectedRowsData) > 0 {
+		titleBar = append(titleBar, QuoteEditQuoteButton(`quote-phone-selected-edit-btn`))
+	}
 	return Elem(`details`).Id(`QuoteSelectedCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-selected-fold`, `quote-phone-selected-card`).Wrap(
-		Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`).Wrap(
-			Span(QuoteSelectedTitle(len(selectedRowsData))),
-		),
+		Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`, `quote-phone-selected-title`).Wrap(titleBar),
 		Div().Class(`quote-phone-selected-list`).Wrap(cards),
 	)
 }

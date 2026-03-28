@@ -262,6 +262,25 @@ body {
 	font-size: 0.68rem;
 }
 
+.quote-edit-quote-btn {
+	height: 1.05rem;
+	padding: 0 0.42rem;
+	border: 0.0625rem solid #7e9ec4;
+	border-radius: 0.24rem;
+	background: #f2f7fe;
+	color: #1f3e63;
+	font-family: inherit;
+	font-size: 0.68rem;
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.quote-desk-selected-edit-btn {
+	margin-left: auto;
+}
+
 .quote-plan-cell {
 	padding: 0.38rem 0.45rem;
 	font-size: 0.78rem;

@@ -1,0 +1,270 @@
+package main
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+
+	. "pm/lib/output"
+)
+
+const editQDepMaxCount = 5
+const editQPreSeqKey = `editq-pre-seq`
+const editQDepSeqKey = `editq-dep-seq`
+
+type EditQCond_t struct {
+	condId int
+	text string
+}
+
+type EditQDep_t struct {
+	depId int
+	name string
+	birth string
+	vision bool
+	conds []EditQCond_t
+}
+
+func EditQPreKey(condId int) string { return Str(`editq-pre-`, condId) }
+
+func EditQPreControl(name string) (condId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-pre-%d`, &condId)
+	if err != nil || n != 1 || condId <= 0 { return 0, false }
+	return condId, true
+}
+
+func EditQPreAddControlName() string { return `editq-pre-add` }
+func EditQPreAddControl(name string) bool { return name == EditQPreAddControlName() }
+
+func EditQPreDelControlName(condId int) string { return Str(`editq-pre-del-`, condId) }
+func EditQPreDelControl(name string) (condId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-pre-del-%d`, &condId)
+	if err != nil || n != 1 || condId <= 0 { return 0, false }
+	return condId, true
+}
+
+func EditQDepNameKey(depId int) string { return Str(`editq-dep-`, depId, `-name`) }
+func EditQDepBirthKey(depId int) string { return Str(`editq-dep-`, depId, `-birth`) }
+func EditQDepVisionKey(depId int) string { return Str(`editq-dep-`, depId, `-vision`) }
+func EditQDepCondSeqKey(depId int) string { return Str(`editq-dep-`, depId, `-cond-seq`) }
+func EditQDepCondKey(depId, condId int) string { return Str(`editq-dep-`, depId, `-cond-`, condId) }
+
+func EditQDepNameControl(name string) (depId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-%d-name`, &depId)
+	if err != nil || n != 1 || depId <= 0 { return 0, false }
+	return depId, true
+}
+
+func EditQDepBirthControl(name string) (depId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-%d-birth`, &depId)
+	if err != nil || n != 1 || depId <= 0 { return 0, false }
+	return depId, true
+}
+
+func EditQDepVisionControl(name string) (depId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-%d-vision`, &depId)
+	if err != nil || n != 1 || depId <= 0 { return 0, false }
+	return depId, true
+}
+
+func EditQDepCondControl(name string) (depId, condId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-%d-cond-%d`, &depId, &condId)
+	if err != nil || n != 2 || depId <= 0 || condId <= 0 { return 0, 0, false }
+	return depId, condId, true
+}
+
+func EditQDepAddControlName() string { return `editq-dep-add` }
+func EditQDepAddControl(name string) bool { return name == EditQDepAddControlName() }
+
+func EditQDepDelControlName(depId int) string { return Str(`editq-dep-del-`, depId) }
+func EditQDepDelControl(name string) (depId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-del-%d`, &depId)
+	if err != nil || n != 1 || depId <= 0 { return 0, false }
+	return depId, true
+}
+
+func EditQDepPreAddControlName(depId int) string { return Str(`editq-dep-pre-add-`, depId) }
+func EditQDepPreAddControl(name string) (depId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-pre-add-%d`, &depId)
+	if err != nil || n != 1 || depId <= 0 { return 0, false }
+	return depId, true
+}
+
+func EditQDepPreDelControlName(depId, condId int) string { return Str(`editq-dep-pre-del-`, depId, `-`, condId) }
+func EditQDepPreDelControl(name string) (depId, condId int, ok bool) {
+	n, err := fmt.Sscanf(name, `editq-dep-pre-del-%d-%d`, &depId, &condId)
+	if err != nil || n != 2 || depId <= 0 || condId <= 0 { return 0, 0, false }
+	return depId, condId, true
+}
+
+func EditQCurrentYear() int {
+	year := 0
+	row := App.DB.CallRow(`klec_current_year_query`).Scan(&year)
+	if !row.HasError() && year > 0 { return year }
+	today := CurrentDBDate()
+	if today.Year() > 0 { return today.Year() }
+	return 2026
+}
+
+func EditQDefaultDependentBirth() string {
+	return fmt.Sprintf(`%04d-06-15`, EditQCurrentYear()-4)
+}
+
+func EditQPreConditions(vars QuoteVars_t) []EditQCond_t {
+	var out []EditQCond_t
+	for key, value := range vars {
+		condId, ok := EditQPreControl(key)
+		if !ok { continue }
+		out = append(out, EditQCond_t{ condId:condId, text:value })
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].condId < out[j].condId })
+	return out
+}
+
+func EditQBirthSortKey(v string) string {
+	v = Trim(v)
+	if len(v) != len(`2006-01-02`) { return `9999-99-99` }
+	if v[4] != '-' || v[7] != '-' { return `9999-99-99` }
+	return v
+}
+
+func EditQDependents(vars QuoteVars_t, sortForGet bool) []EditQDep_t {
+	all := make(map[int]EditQDep_t)
+	for key, value := range vars {
+		if depId, ok := EditQDepNameControl(key); ok {
+			x := all[depId]
+			x.depId = depId
+			x.name = value
+			all[depId] = x
+			continue
+		}
+		if depId, ok := EditQDepBirthControl(key); ok {
+			x := all[depId]
+			x.depId = depId
+			x.birth = value
+			all[depId] = x
+			continue
+		}
+		if depId, ok := EditQDepVisionControl(key); ok {
+			x := all[depId]
+			x.depId = depId
+			x.vision = QuoteVarBool(value)
+			all[depId] = x
+			continue
+		}
+		depId, condId, ok := EditQDepCondControl(key)
+		if !ok { continue }
+		x := all[depId]
+		x.depId = depId
+		x.conds = append(x.conds, EditQCond_t{ condId:condId, text:value })
+		all[depId] = x
+	}
+
+	var out []EditQDep_t
+	for _, x := range all {
+		if x.birth == `` { x.birth = EditQDefaultDependentBirth() }
+		sort.Slice(x.conds, func(i, j int) bool { return x.conds[i].condId < x.conds[j].condId })
+		out = append(out, x)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].depId != out[j].depId { return out[i].depId < out[j].depId }
+		return false
+	})
+	if !sortForGet { return out }
+
+	sort.Slice(out, func(i, j int) bool {
+		bi, bj := EditQBirthSortKey(out[i].birth), EditQBirthSortKey(out[j].birth)
+		if bi != bj { return bi < bj }
+		ni, nj := Lower(Trim(out[i].name)), Lower(Trim(out[j].name))
+		if ni != nj { return ni < nj }
+		return out[i].depId < out[j].depId
+	})
+	return out
+}
+
+func EditQDeleteDependent(vars QuoteVars_t, depId int) {
+	prefix := Str(`editq-dep-`, depId, `-`)
+	for key := range vars {
+		if strings.HasPrefix(key, prefix) { delete(vars, key) }
+	}
+}
+
+func EditQApply(state *State_t, name, value string) bool {
+	if name == `` { return false }
+	if state.quote == nil { state.quote = QuoteDefaultVars() }
+
+	if name == `custName` {
+		state.quote[name] = value
+		return true
+	}
+
+	if EditQPreAddControl(name) {
+		next := StateInt(*state, editQPreSeqKey) + 1
+		state.quote[editQPreSeqKey] = Str(next)
+		state.quote[EditQPreKey(next)] = ``
+		return true
+	}
+	if condId, ok := EditQPreDelControl(name); ok {
+		delete(state.quote, EditQPreKey(condId))
+		return true
+	}
+	if _, ok := EditQPreControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+
+	if EditQDepAddControl(name) {
+		deps := EditQDependents(state.quote, false)
+		if len(deps) >= editQDepMaxCount { return true }
+		next := StateInt(*state, editQDepSeqKey) + 1
+		state.quote[editQDepSeqKey] = Str(next)
+		state.quote[EditQDepNameKey(next)] = ``
+		state.quote[EditQDepBirthKey(next)] = EditQDefaultDependentBirth()
+		state.quote[EditQDepVisionKey(next)] = ``
+		state.quote[EditQDepCondSeqKey(next)] = `0`
+		return true
+	}
+	if depId, ok := EditQDepDelControl(name); ok {
+		EditQDeleteDependent(state.quote, depId)
+		return true
+	}
+
+	if depId, ok := EditQDepPreAddControl(name); ok {
+		seqKey := EditQDepCondSeqKey(depId)
+		next := Atoi(state.quote[seqKey]) + 1
+		state.quote[seqKey] = Str(next)
+		state.quote[EditQDepCondKey(depId, next)] = ``
+		return true
+	}
+	if depId, condId, ok := EditQDepPreDelControl(name); ok {
+		delete(state.quote, EditQDepCondKey(depId, condId))
+		return true
+	}
+
+	if _, ok := EditQDepNameControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+	if _, ok := EditQDepBirthControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+	if _, ok := EditQDepVisionControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+	if _, _, ok := EditQDepCondControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+
+	return false
+}
+
+func EditQEnsureFirstPlanSelected(state *State_t) {
+	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	if len(QuoteSelectedItems(state.quote)) > 0 { return }
+	plans := QuotePlans(*state).plans
+	if len(plans) == 0 { return }
+	QuoteSelectedAdd(state, int(plans[0].planId))
+}

@@ -1,0 +1,196 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: #eef2f7;
+	color: #1a2633;
+	font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.editq-page {
+	max-width: 74rem;
+	margin: 0 auto;
+	padding: 0.85rem 1rem 1.2rem;
+}
+
+.editq-body {
+	display: grid;
+	gap: 0.85rem;
+}
+
+.editq-header,
+.editq-section,
+.editq-dependent {
+	border: 0.0625rem solid #c7d4e0;
+	border-radius: 0.58rem;
+	background: #fbfdff;
+}
+
+.editq-header {
+	padding: 0.72rem;
+	display: grid;
+	gap: 0.6rem;
+}
+
+.editq-header-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.7rem;
+}
+
+.editq-title {
+	font-size: 1.08rem;
+	font-weight: 700;
+}
+
+.editq-back-link {
+	color: #235991;
+	font-size: 0.83rem;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.editq-cust-preview {
+	font-size: 0.8rem;
+	color: #324860;
+}
+
+.editq-cust-empty {
+	color: #5f7286;
+}
+
+.editq-main {
+	display: grid;
+	grid-template-columns: 1fr 1.12fr;
+	gap: 0.8rem;
+	align-items: start;
+}
+
+.editq-section {
+	padding: 0.7rem;
+}
+
+.editq-section-title {
+	font-size: 0.88rem;
+	font-weight: 700;
+	margin-bottom: 0.5rem;
+}
+
+.editq-condition-list,
+.editq-dependent-list {
+	display: grid;
+	gap: 0.45rem;
+}
+
+.editq-condition-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 0.45rem;
+	align-items: start;
+}
+
+.editq-condition-text,
+.editq-condition-del {
+	min-width: 0;
+}
+
+.editq-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.26rem;
+}
+
+.editq-label {
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #37506b;
+}
+
+.editq-field :is(input[type="text"], input[type="date"]),
+.editq-grow-input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.4rem 0.48rem;
+	border: 0.0625rem solid #b6c7d8;
+	border-radius: 0.34rem;
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	font-size: 0.82rem;
+}
+
+.editq-grow-input {
+	min-height: 2.125rem;
+	resize: none;
+	overflow: hidden;
+	white-space: pre-wrap;
+}
+
+.editq-add-btn,
+.editq-del-btn {
+	height: 2.125rem;
+	padding: 0 0.6rem;
+	border: 0.0625rem solid #9cb2c9;
+	border-radius: 0.34rem;
+	background: #f0f6fe;
+	color: #1f456d;
+	font-family: inherit;
+	font-size: 0.78rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.editq-del-btn {
+	min-width: 2.125rem;
+	padding: 0;
+}
+
+.editq-dependent {
+	padding: 0.62rem;
+	display: grid;
+	gap: 0.55rem;
+}
+
+.editq-dependent-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.45rem;
+}
+
+.editq-dependent-title {
+	font-size: 0.82rem;
+	font-weight: 700;
+}
+
+.editq-dependent-fields {
+	display: grid;
+	grid-template-columns: 1fr 9.4rem 6.2rem;
+	gap: 0.5rem;
+	align-items: end;
+}
+
+.editq-check {
+	display: flex;
+	align-items: center;
+	gap: 0.32rem;
+	height: 2.125rem;
+}
+
+.editq-check input[type="checkbox"] {
+	width: 0.95rem;
+	height: 0.95rem;
+	margin: 0;
+}
+
+.editq-check-text {
+	font-size: 0.8rem;
+}
+
+.editq-add-dependent {
+	margin-top: 0.1rem;
+}
