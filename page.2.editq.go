@@ -24,7 +24,7 @@ func EditQFormView(vars QuoteVars_t, sortForGet bool) Elem_t {
 		Id(`EditQForm`).
 		Class(`editq-form`).
 		KV(`method`, `post`).
-		KV(`action`, `/quote-edit-change`).
+		KV(`action`, `/quote-review-change`).
 		Wrap(EditQBodyView(vars, sortForGet))
 }
 

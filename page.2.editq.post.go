@@ -19,7 +19,7 @@ func Page2EditQEntry(w http.ResponseWriter, req *http.Request) {
 	EditQEnsureFirstPlanSelected(&state)
 	EditQEnsureDefaultDependent(&state)
 	SetState(req, state)
-	http.Redirect(w, req, `/quote-edit`, http.StatusSeeOther)
+	http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
 }
 
 func Page2EditQChange(w http.ResponseWriter, req *http.Request) {
@@ -33,5 +33,5 @@ func Page2EditQChange(w http.ResponseWriter, req *http.Request) {
 	}
 
 	SetState(req, state)
-	http.Redirect(w, req, `/quote-edit`, http.StatusSeeOther)
+	http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
 }

@@ -223,7 +223,7 @@ func QuoteSortSelectView(sortBy string) Elem_t {
 func QuoteEditQuoteButton(class ...string) Elem_t {
 	return Elem(`button`).
 		Type(`submit`).
-		KV(`formaction`, `/quote-edit`).
+		KV(`formaction`, `/quote-review`).
 		KV(`formmethod`, `post`).
 		Class(`quote-edit-quote-btn`).
 		Class(class...).
