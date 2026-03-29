@@ -227,7 +227,7 @@ func QuoteEditQuoteButton(class ...string) Elem_t {
 		KV(`formmethod`, `post`).
 		Class(`quote-edit-quote-btn`).
 		Class(class...).
-		Text(`Edit Quote`)
+		Text(`Quote Review`)
 }
 
 func QuotePlanDesktopCategWidth(categ Categ_t) int {

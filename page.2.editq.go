@@ -38,6 +38,7 @@ func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	state.quote = QuoteVars(state)
 	EditQEnsureFirstPlanSelected(&state)
+	EditQEnsureDefaultDependent(&state)
 	SetState(req, state)
 
 	head := Head().

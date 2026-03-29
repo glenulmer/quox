@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	. "pm/lib/dec2"
 	. "pm/lib/htmlHelper"
 	. "pm/lib/output"
@@ -49,13 +47,13 @@ func EditQPrimeChargeModeView(name, mode string) Elem_t {
 	).Name(name).Choose(EditQPrimeMode(mode)).Class(`editq-prime-mode`)
 }
 
-func EditQPrimeChargeRowView(x EditQPrimeCharge_t) Elem_t {
+func EditQPrimeChargeRowView(x EditQPrimeCharge_t, modeKey, amountKey, noteKey string) Elem_t {
 	return Div().Class(`editq-prime-row`).Wrap(
 		Div(x.level).Class(`editq-prime-categ`),
 		Div().Class(`editq-prime-inputs`).Wrap(
-			EditQPrimeChargeModeView(EditQPrimeModeKey(x.itemId, x.categId), x.mode),
-			QuoteInputText(EditQPrimeAmountKey(x.itemId, x.categId), x.amount, `Amount`).Class(`editq-prime-amount`, `editq-prime-amount-input`),
-			QuoteInputText(EditQPrimeNoteKey(x.itemId, x.categId), x.note, `Optional note`).Class(`editq-prime-note`),
+			EditQPrimeChargeModeView(modeKey, x.mode),
+			QuoteInputText(amountKey, x.amount, `Amount`).Class(`editq-prime-amount`, `editq-prime-amount-input`),
+			QuoteInputText(noteKey, x.note, `Optional note`).Class(`editq-prime-note`),
 		),
 	)
 }
@@ -94,7 +92,7 @@ func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
 			prevItemId = x.itemId
 			hasPlan = true
 		}
-		rows = append(rows, EditQPrimeChargeRowView(x))
+		rows = append(rows, EditQPrimeChargeRowView(x, EditQPrimeModeKey(x.itemId, x.categId), EditQPrimeAmountKey(x.itemId, x.categId), EditQPrimeNoteKey(x.itemId, x.categId)))
 	}
 	if hasPlan {
 		base := planByItem[prevItemId]
@@ -114,38 +112,98 @@ func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
 		rows = append(rows, Div(`No payable selected plan categories yet.`).Class(`editq-prime-empty`))
 	}
 	return Div().Class(`editq-section`, `editq-prime-charges`).Wrap(
-		Div(`Pre-existing charges`).Class(`editq-section-title`),
+		Div(`Pre-existing conditions charges`).Class(`editq-section-title`),
 		Div().Class(`editq-prime-list`).Wrap(rows),
 	)
 }
 
-func EditQDependentView(dep EditQDep_t, order int) Elem_t {
-	var condRows []Elem_t
-	for _, x := range dep.conds {
-		condRows = append(condRows, EditQConditionRow(EditQDepCondKey(dep.depId, x.condId), x.text, EditQDepPreDelControlName(dep.depId, x.condId)))
+func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
+	charges := EditQDependentCharges(vars, dep)
+	appliedByItem := make(map[int]EuroCent_t)
+	planByItem := make(map[int]EuroCent_t)
+	for _, x := range charges {
+		appliedByItem[x.itemId] += x.applied
+		if _, ok := planByItem[x.itemId]; !ok { planByItem[x.itemId] = x.planPrice }
 	}
-	condRows = append(condRows, EditQAddButton(EditQDepPreAddControlName(dep.depId), `Pre-existing`, `editq-dependent-pre-btn`))
 
+	var depRows []Elem_t
+	prevItemId := 0
+	hasPlan := false
+	for _, x := range charges {
+		if x.itemId != prevItemId {
+			if hasPlan {
+				base := planByItem[prevItemId]
+				prex := appliedByItem[prevItemId]
+				prexText := prex.OutEuro()
+				if prex == 0 { prexText = `0,00 €` }
+				depRows = append(depRows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
+					Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+					Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
+						Div().Class(`editq-prime-summary-spacer`),
+						Div(prexText).Class(`editq-prime-summary-prex`),
+						Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+					),
+				))
+			}
+			ageText := ``
+			if x.planAge > 0 {
+				ageText = Str(`Effective age: `, x.planAge)
+				if x.planAgeMode == `exact` { ageText = Str(`Effective age (Exact): `, x.planAge) }
+				if x.planAgeMode == `year` { ageText = Str(`Effective age (Year): `, x.planAge) }
+			}
+			if ageText == `` {
+				depRows = append(depRows, Div().Class(`editq-prime-plan`).Wrap(
+					Span(x.plan).Class(`editq-prime-plan-name`),
+				))
+			} else {
+				depRows = append(depRows, Div().Class(`editq-prime-plan`).Wrap(
+					Div().Class(`editq-prime-plan-head`).Wrap(
+						Span(x.plan).Class(`editq-prime-plan-name`),
+					),
+					Div(ageText).Class(`editq-prime-plan-age`),
+				))
+			}
+			prevItemId = x.itemId
+			hasPlan = true
+		}
+		depRows = append(depRows, EditQPrimeChargeRowView(
+			x,
+			EditQDepChargeModeKey(dep.depId, x.itemId, x.categId),
+			EditQDepChargeAmountKey(dep.depId, x.itemId, x.categId),
+			EditQDepChargeNoteKey(dep.depId, x.itemId, x.categId),
+		))
+	}
+	if hasPlan {
+		base := planByItem[prevItemId]
+		prex := appliedByItem[prevItemId]
+		prexText := prex.OutEuro()
+		if prex == 0 { prexText = `0,00 €` }
+		depRows = append(depRows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
+			Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+			Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
+				Div().Class(`editq-prime-summary-spacer`),
+				Div(prexText).Class(`editq-prime-summary-prex`),
+				Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+			),
+		))
+	}
+	if len(depRows) == 0 {
+		depRows = append(depRows, Div(`No selected plan available.`).Class(`editq-prime-empty`))
+	}
 	return Div().Class(`editq-dependent`).Wrap(
-		Div().Class(`editq-dependent-head`).Wrap(
-			Div(fmt.Sprintf(`Dependent %d`, order+1)).Class(`editq-dependent-title`),
-			EditQDelButton(EditQDepDelControlName(dep.depId)),
-		),
-		Div().Class(`editq-dependent-fields`).Wrap(
-			Elem(`label`).Class(`editq-field`).Wrap(
-				Span(`Name`).Class(`editq-label`),
-				QuoteInputText(EditQDepNameKey(dep.depId), dep.name, `Dependent name`),
-			),
-			Elem(`label`).Class(`editq-field`).Wrap(
-				Span(`Birth date`).Class(`editq-label`),
-				QuoteInputDate(EditQDepBirthKey(dep.depId), dep.birth),
-			),
-			Elem(`label`).Class(`editq-check`).Wrap(
+		Div().Class(`editq-dependent-fields-row`).Wrap(
+			QuoteInputText(EditQDepNameKey(dep.depId), dep.name, `Dependent name`).Class(`editq-dep-name`),
+			QuoteInputDate(EditQDepBirthKey(dep.depId), dep.birth).Class(`editq-dep-birth`),
+			Elem(`label`).Class(`editq-check`, `editq-dep-vision`).KV(`title`, `Vision`).Wrap(
 				QuoteCheckbox(EditQDepVisionKey(dep.depId), dep.vision),
 				Span(`Vision`).Class(`editq-check-text`),
 			),
+			EditQDelButton(EditQDepDelControlName(dep.depId)).Class(`editq-dep-del`),
 		),
-		Div().Class(`editq-condition-list`, `editq-dependent-conditions`).Wrap(condRows),
+		Div().Class(`editq-prime-charges`, `editq-dependent-prex`).Wrap(
+			Div(`Pre-existing conditions charges`).Class(`editq-section-title`),
+			Div().Class(`editq-prime-list`).Wrap(depRows),
+		),
 	)
 }
 
@@ -153,10 +211,10 @@ func EditQDependentsView(vars QuoteVars_t, sortForGet bool) Elem_t {
 	deps := EditQDependents(vars, sortForGet)
 	var list []Elem_t
 	for i, dep := range deps {
-		list = append(list, EditQDependentView(dep, i))
+		list = append(list, EditQDependentView(vars, dep, i))
 	}
 	if len(deps) < editQDepMaxCount {
-		list = append(list, EditQAddButton(EditQDepAddControlName(), `Add Dependent`, `editq-add-dependent`))
+		list = append(list, EditQAddButton(EditQDepAddControlName(), `Add`, `editq-add-dependent`))
 	}
 	return Div().Class(`editq-section`, `editq-dependents`).Wrap(
 		Div(`Dependents`).Class(`editq-section-title`),
@@ -166,19 +224,14 @@ func EditQDependentsView(vars QuoteVars_t, sortForGet bool) Elem_t {
 
 func EditQHeaderView(vars QuoteVars_t) Elem_t {
 	custName := vars[`custName`]
-	preview := Div(`No customer name set.`).Class(`editq-cust-preview`, `editq-cust-empty`)
-	if custName != `` {
-		preview = Div(`Customer: `, custName).Class(`editq-cust-preview`)
-	}
 	return Div().Class(`editq-header`).Wrap(
 		Div().Class(`editq-header-top`).Wrap(
-			Div(`Edit Quote`).Class(`editq-title`),
-			Elem(`a`).KV(`href`, `/quote`).Class(`editq-back-link`).Text(`Back to Quote`),
+			Div(`Quote Review`).Class(`editq-title`),
+			Elem(`a`).KV(`href`, `/quote`).Class(`editq-back-link`).Text(`Back to Quote Info`),
 		),
-		preview,
 		Elem(`label`).Class(`editq-field`, `editq-customer-field`).Wrap(
-			Span(`Customer name`).Class(`editq-label`),
 			QuoteInputText(`custName`, custName, `Customer name`),
 		),
+		EditQPrimeChargesView(vars),
 	)
 }

@@ -32,6 +32,8 @@ type EditQPrimeCharge_t struct {
 	itemId int
 	plan string
 	planPrice EuroCent_t
+	planAge int
+	planAgeMode string
 	categId CategId_t
 	level string
 	base EuroCent_t
@@ -146,6 +148,39 @@ func EditQPrimeNoteControl(name string) (itemId int, categId CategId_t, ok bool)
 	return itemId, CategId_t(cat), true
 }
 
+func EditQDepChargeModeKey(depId, itemId int, categId CategId_t) string {
+	return Str(`editq-dep-`, depId, `-prex-`, itemId, `-`, categId, `-mode`)
+}
+
+func EditQDepChargeAmountKey(depId, itemId int, categId CategId_t) string {
+	return Str(`editq-dep-`, depId, `-prex-`, itemId, `-`, categId, `-amount`)
+}
+
+func EditQDepChargeNoteKey(depId, itemId int, categId CategId_t) string {
+	return Str(`editq-dep-`, depId, `-prex-`, itemId, `-`, categId, `-note`)
+}
+
+func EditQDepChargeModeControl(name string) (depId, itemId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `editq-dep-%d-prex-%d-%d-mode`, &depId, &itemId, &cat)
+	if err != nil || n != 3 || depId <= 0 || itemId <= 0 || cat < 0 { return 0, 0, 0, false }
+	return depId, itemId, CategId_t(cat), true
+}
+
+func EditQDepChargeAmountControl(name string) (depId, itemId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `editq-dep-%d-prex-%d-%d-amount`, &depId, &itemId, &cat)
+	if err != nil || n != 3 || depId <= 0 || itemId <= 0 || cat < 0 { return 0, 0, 0, false }
+	return depId, itemId, CategId_t(cat), true
+}
+
+func EditQDepChargeNoteControl(name string) (depId, itemId int, categId CategId_t, ok bool) {
+	var cat int
+	n, err := fmt.Sscanf(name, `editq-dep-%d-prex-%d-%d-note`, &depId, &itemId, &cat)
+	if err != nil || n != 3 || depId <= 0 || itemId <= 0 || cat < 0 { return 0, 0, 0, false }
+	return depId, itemId, CategId_t(cat), true
+}
+
 func EditQPrimeMode(v string) string {
 	if Lower(Trim(v)) == editQPrimeModeEur { return editQPrimeModeEur }
 	return editQPrimeModePct
@@ -235,6 +270,114 @@ func EditQPrimeCharges(vars QuoteVars_t) []EditQPrimeCharge_t {
 		}
 	}
 	return out
+}
+
+func EditQDependentCharges(vars QuoteVars_t, dep EditQDep_t) []EditQPrimeCharge_t {
+	work := QuoteStateFromVars(vars)
+	work.quote[`birth`] = dep.birth
+	if dep.vision {
+		work.quote[`vision`] = `1`
+	} else {
+		work.quote[`vision`] = ``
+	}
+	_, yearAge, exactAge := PlanAges(work)
+	selected := QuoteSelectedRows(work)
+
+	var out []EditQPrimeCharge_t
+	for _, x := range selected {
+		age := yearAge
+		ageMode := `year`
+		if EditQPlanUsesExactAge(x.row.planId) {
+			age = exactAge
+			ageMode = `exact`
+		}
+		if x.row.planOk && x.row.planBase+x.row.planSurcharge > 0 {
+			modeKey := EditQDepChargeModeKey(dep.depId, x.item.itemId, 0)
+			mode := EditQPrimeMode(vars[modeKey])
+			amount := vars[EditQDepChargeAmountKey(dep.depId, x.item.itemId, 0)]
+			applied := EditQPrimeAppliedAmount(mode, amount, x.row.planBase)
+			out = append(out, EditQPrimeCharge_t{
+				itemId: x.item.itemId,
+				plan: x.row.label,
+				planPrice: x.row.price,
+				planAge: age,
+				planAgeMode: ageMode,
+				categId: 0,
+				level: `Plan`,
+				base: x.row.planBase,
+				mode: mode,
+				amount: amount,
+				note: vars[EditQDepChargeNoteKey(dep.depId, x.item.itemId, 0)],
+				applied: applied,
+			})
+		}
+		for _, addon := range x.row.addons {
+			if !addon.priceOk { continue }
+			if addon.base+addon.surcharge <= 0 { continue }
+			modeKey := EditQDepChargeModeKey(dep.depId, x.item.itemId, addon.categId)
+			mode := EditQPrimeMode(vars[modeKey])
+			amount := vars[EditQDepChargeAmountKey(dep.depId, x.item.itemId, addon.categId)]
+			applied := EditQPrimeAppliedAmount(mode, amount, addon.base)
+			level := QuoteAddonPickText(addon)
+			if level == `` { level = addon.categ }
+			out = append(out, EditQPrimeCharge_t{
+				itemId: x.item.itemId,
+				plan: x.row.label,
+				planPrice: x.row.price,
+				planAge: age,
+				planAgeMode: ageMode,
+				categId: addon.categId,
+				level: level,
+				base: addon.base,
+				mode: mode,
+				amount: amount,
+				note: vars[EditQDepChargeNoteKey(dep.depId, x.item.itemId, addon.categId)],
+				applied: applied,
+			})
+		}
+	}
+	return out
+}
+
+func EditQPlanUsesExactAge(planId int) bool {
+	for id, plan := range App.lookup.plans.All() {
+		if id != planId { continue }
+		return plan.exactAge
+	}
+	return false
+}
+
+func EditQDependentAgeText(vars QuoteVars_t, dep EditQDep_t) string {
+	work := QuoteStateFromVars(vars)
+	work.quote[`birth`] = dep.birth
+	buyYear, yearAge, exactAge := PlanAges(work)
+	_ = buyYear
+
+	selected := QuoteSelectedRows(work)
+	if len(selected) == 0 {
+		if yearAge > 0 { return Str(`age `, yearAge) }
+		return ``
+	}
+
+	hasExact := false
+	hasYear := false
+	for _, x := range selected {
+		if EditQPlanUsesExactAge(x.row.planId) {
+			hasExact = true
+			continue
+		}
+		hasYear = true
+	}
+
+	if hasExact && hasYear {
+		if exactAge > 0 && yearAge > 0 { return Str(`age `, exactAge, `/`, yearAge) }
+	}
+	if hasExact {
+		if exactAge > 0 { return Str(`age `, exactAge) }
+		return ``
+	}
+	if yearAge > 0 { return Str(`age `, yearAge) }
+	return ``
 }
 
 func EditQCurrentYear() int {
@@ -329,6 +472,18 @@ func EditQDeleteDependent(vars QuoteVars_t, depId int) {
 	}
 }
 
+func EditQAddDependent(state *State_t) bool {
+	deps := EditQDependents(state.quote, false)
+	if len(deps) >= editQDepMaxCount { return false }
+	next := StateInt(*state, editQDepSeqKey) + 1
+	state.quote[editQDepSeqKey] = Str(next)
+	state.quote[EditQDepNameKey(next)] = ``
+	state.quote[EditQDepBirthKey(next)] = EditQDefaultDependentBirth()
+	state.quote[EditQDepVisionKey(next)] = ``
+	state.quote[EditQDepCondSeqKey(next)] = `0`
+	return true
+}
+
 func EditQApply(state *State_t, name, value string) bool {
 	if name == `` { return false }
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
@@ -350,6 +505,18 @@ func EditQApply(state *State_t, name, value string) bool {
 		state.quote[name] = value
 		return true
 	}
+	if depId, itemId, categId, ok := EditQDepChargeModeControl(name); ok {
+		state.quote[EditQDepChargeModeKey(depId, itemId, categId)] = EditQPrimeMode(value)
+		return true
+	}
+	if _, _, _, ok := EditQDepChargeAmountControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
+	if _, _, _, ok := EditQDepChargeNoteControl(name); ok {
+		state.quote[name] = value
+		return true
+	}
 
 	if EditQPreAddControl(name) {
 		next := StateInt(*state, editQPreSeqKey) + 1
@@ -367,18 +534,14 @@ func EditQApply(state *State_t, name, value string) bool {
 	}
 
 	if EditQDepAddControl(name) {
-		deps := EditQDependents(state.quote, false)
-		if len(deps) >= editQDepMaxCount { return true }
-		next := StateInt(*state, editQDepSeqKey) + 1
-		state.quote[editQDepSeqKey] = Str(next)
-		state.quote[EditQDepNameKey(next)] = ``
-		state.quote[EditQDepBirthKey(next)] = EditQDefaultDependentBirth()
-		state.quote[EditQDepVisionKey(next)] = ``
-		state.quote[EditQDepCondSeqKey(next)] = `0`
+		EditQAddDependent(state)
 		return true
 	}
 	if depId, ok := EditQDepDelControl(name); ok {
 		EditQDeleteDependent(state.quote, depId)
+		if len(EditQDependents(state.quote, false)) == 0 {
+			EditQAddDependent(state)
+		}
 		return true
 	}
 
@@ -420,4 +583,10 @@ func EditQEnsureFirstPlanSelected(state *State_t) {
 	plans := QuotePlans(*state).plans
 	if len(plans) == 0 { return }
 	QuoteSelectedAdd(state, int(plans[0].planId))
+}
+
+func EditQEnsureDefaultDependent(state *State_t) {
+	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	if len(EditQDependents(state.quote, false)) > 0 { return }
+	EditQAddDependent(state)
 }

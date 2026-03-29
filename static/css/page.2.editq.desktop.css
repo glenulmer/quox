@@ -114,6 +114,20 @@ body {
 	padding-right: 0.28rem;
 }
 
+.editq-prime-plan-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.34rem;
+}
+
+.editq-prime-plan-age {
+	margin-top: 0.12rem;
+	font-size: 0.7rem;
+	font-weight: 400;
+	color: #4d6278;
+}
+
 .editq-prime-categ {
 	font-size: 0.75rem;
 	font-weight: 400;
@@ -260,6 +274,13 @@ body {
 	padding: 0;
 }
 
+.editq-dependent-head .editq-del-btn {
+	height: 1.55rem;
+	min-width: 1.55rem;
+	font-size: 0.67rem;
+	border-radius: 0.28rem;
+}
+
 .editq-dependent {
 	padding: 0.62rem;
 	display: grid;
@@ -278,11 +299,25 @@ body {
 	font-weight: 700;
 }
 
-.editq-dependent-fields {
+.editq-dependent-fields-row {
 	display: grid;
-	grid-template-columns: 1fr 9.4rem 6.2rem;
+	grid-template-columns: minmax(0, 1fr) 8.8rem 3rem 1.55rem;
 	gap: 0.5rem;
-	align-items: end;
+	align-items: center;
+}
+
+.editq-dep-name,
+.editq-dep-birth {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 0.4rem 0.48rem;
+	border: 0.0625rem solid #b6c7d8;
+	border-radius: 0.34rem;
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	font-size: 0.82rem;
 }
 
 .editq-check {
@@ -290,6 +325,7 @@ body {
 	align-items: center;
 	gap: 0.32rem;
 	height: 2.125rem;
+	padding: 0 0.25rem;
 }
 
 .editq-check input[type="checkbox"] {
@@ -302,6 +338,39 @@ body {
 	font-size: 0.8rem;
 }
 
+.editq-dep-vision {
+	padding: 0;
+	gap: 0.16rem;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+}
+
+.editq-dep-vision input[type="checkbox"] {
+	width: 1rem;
+	height: 1rem;
+}
+
+.editq-dep-vision .editq-check-text {
+	font-size: 0.62rem;
+	text-align: center;
+}
+
+.editq-dep-del {
+	height: 1.55rem;
+	min-width: 1.55rem;
+	font-size: 0.67rem;
+	border-radius: 0.28rem;
+	align-self: center;
+	justify-self: center;
+}
+
+.editq-dependent-prex {
+	padding-right: 1rem;
+}
+
 .editq-add-dependent {
 	margin-top: 0.1rem;
+	width: 25%;
 }

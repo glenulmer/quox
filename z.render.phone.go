@@ -7,7 +7,7 @@ func QuotePhoneFormBodyView(vars QuoteVars_t) Elem_t {
 		Div().Id(`QuotePhoneStickyAnchor`).Class(`quote-phone-sticky-anchor`),
 		Elem(`details`).Id(`QuoteInfoCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
 			Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`).Wrap(
-				Span(`Quote Information`),
+				Span(`Quote Info`),
 			),
 			Div().Class(`quote-grid`, `quote-grid-phone`).Wrap(
 			QuoteNamedControlOnlySpanView(layoutPhone, `custName`, vars, 8, `quote-phone-no-label`),

@@ -17,6 +17,7 @@ func Page2EditQEntry(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	state.quote = QuoteVars(state)
 	EditQEnsureFirstPlanSelected(&state)
+	EditQEnsureDefaultDependent(&state)
 	SetState(req, state)
 	http.Redirect(w, req, `/quote-edit`, http.StatusSeeOther)
 }
