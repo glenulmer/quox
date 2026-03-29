@@ -11,7 +11,7 @@
 7. No detailed error plumbing
 
 ## B) Code style
- 1. Read CODING_STYLE.md before writing or modifying go code.
+ 1. Read ~/docs/CODING_STYLE.md before writing or modifying go code.
 
 ## C) Interaction Rule
 

@@ -2,8 +2,37 @@
 	const selector = '#EditQForm input[name], #EditQForm textarea[name], #EditQForm select[name], #EditQForm button[name]';
 	const lastSent = new Map();
 	const debounceMs = 240;
+	const foldIds = ['EditQPrexCard', 'EditQDependentsCard', 'EditQReviewCard'];
+	const foldDefaults = new Map([
+		['EditQPrexCard', false],
+		['EditQDependentsCard', false],
+		['EditQReviewCard', true],
+	]);
+	const foldState = new Map();
 	let seq = 0;
 	let timer = 0;
+
+	const captureFoldStates = () => {
+		for (const id of foldIds) {
+			const el = document.getElementById(id);
+			if (!(el instanceof HTMLDetailsElement)) continue;
+			foldState.set(id, el.open);
+		}
+	};
+
+	const applyFoldStates = () => {
+		for (const id of foldIds) {
+			const el = document.getElementById(id);
+			if (!(el instanceof HTMLDetailsElement)) continue;
+			if (foldState.has(id)) {
+				el.open = !!foldState.get(id);
+				continue;
+			}
+			if (foldDefaults.has(id)) {
+				el.open = !!foldDefaults.get(id);
+			}
+		}
+	};
 
 	const captureFocus = () => {
 		const active = document.activeElement;
@@ -55,6 +84,7 @@
 	const postChange = (name, value) => {
 		const call = ++seq;
 		const focus = captureFocus();
+		captureFoldStates();
 		const form = new FormData();
 		form.append('name', name);
 		form.append('value', value);
@@ -75,6 +105,7 @@
 					if (msg.method === 'innerHTML') target.innerHTML = msg.content;
 					if (msg.method === 'remove') target.remove();
 					}
+					applyFoldStates();
 					autosizeAll();
 					restoreFocus(focus);
 				})
@@ -126,8 +157,17 @@
 		sendIfChanged(name, controlValue(el), true);
 	};
 
+	const onFoldToggle = (ev) => {
+		const el = ev.target;
+		if (!(el instanceof HTMLDetailsElement)) return;
+		if (!foldIds.includes(el.id)) return;
+		foldState.set(el.id, el.open);
+	};
+
 	document.addEventListener('input', onChange);
 	document.addEventListener('change', onChange);
 	document.addEventListener('click', onClick);
+	document.addEventListener('toggle', onFoldToggle, true);
+	applyFoldStates();
 	autosizeAll();
 })();

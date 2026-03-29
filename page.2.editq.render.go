@@ -58,6 +58,22 @@ func EditQPrimeChargeRowView(x EditQPrimeCharge_t, modeKey, amountKey, noteKey s
 	)
 }
 
+func EditQEuroCentText(v EuroCent_t) string {
+	return Str(v.String(), ` €`)
+}
+
+func EditQPrimeTotal(vars QuoteVars_t) EuroCent_t {
+	charges := EditQPrimeCharges(vars)
+	var total EuroCent_t
+	for _, x := range charges { total += x.applied }
+	return total
+}
+
+func EditQPrimeTitleText(vars QuoteVars_t) string {
+	totalFlat := EuroFlatFromCent(EditQPrimeTotal(vars))
+	return Str(`Pre-existing conditions (`, totalFlat.OutEuro(), `)`)
+}
+
 func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
 	charges := EditQPrimeCharges(vars)
 	appliedByItem := make(map[int]EuroCent_t)
@@ -75,14 +91,12 @@ func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
 			if hasPlan {
 				base := planByItem[prevItemId]
 				prex := appliedByItem[prevItemId]
-				prexText := prex.OutEuro()
-				if prex == 0 { prexText = `0,00 €` }
 				rows = append(rows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-					Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+					Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
 					Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
 						Div().Class(`editq-prime-summary-spacer`),
-						Div(prexText).Class(`editq-prime-summary-prex`),
-						Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+						Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
+						Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
 					),
 				))
 			}
@@ -97,14 +111,12 @@ func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
 	if hasPlan {
 		base := planByItem[prevItemId]
 		prex := appliedByItem[prevItemId]
-		prexText := prex.OutEuro()
-		if prex == 0 { prexText = `0,00 €` }
 		rows = append(rows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-			Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+			Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
 			Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
 				Div().Class(`editq-prime-summary-spacer`),
-				Div(prexText).Class(`editq-prime-summary-prex`),
-				Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+				Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
+				Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
 			),
 		))
 	}
@@ -134,14 +146,12 @@ func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
 			if hasPlan {
 				base := planByItem[prevItemId]
 				prex := appliedByItem[prevItemId]
-				prexText := prex.OutEuro()
-				if prex == 0 { prexText = `0,00 €` }
 				depRows = append(depRows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-					Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+					Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
 					Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
 						Div().Class(`editq-prime-summary-spacer`),
-						Div(prexText).Class(`editq-prime-summary-prex`),
-						Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+						Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
+						Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
 					),
 				))
 			}
@@ -176,14 +186,12 @@ func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
 	if hasPlan {
 		base := planByItem[prevItemId]
 		prex := appliedByItem[prevItemId]
-		prexText := prex.OutEuro()
-		if prex == 0 { prexText = `0,00 €` }
 		depRows = append(depRows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-			Div(base.OutEuro()).Class(`editq-prime-summary-base`),
+			Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
 			Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
 				Div().Class(`editq-prime-summary-spacer`),
-				Div(prexText).Class(`editq-prime-summary-prex`),
-				Div(Str(`= `, (base+prex).OutEuro())).Class(`editq-prime-summary-sum`),
+				Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
+				Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
 			),
 		))
 	}
@@ -209,29 +217,60 @@ func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
 
 func EditQDependentsView(vars QuoteVars_t, sortForGet bool) Elem_t {
 	deps := EditQDependents(vars, sortForGet)
+	namedCount := 0
 	var list []Elem_t
 	for i, dep := range deps {
+		if Trim(dep.name) != `` { namedCount++ }
 		list = append(list, EditQDependentView(vars, dep, i))
 	}
 	if len(deps) < editQDepMaxCount {
 		list = append(list, EditQAddButton(EditQDepAddControlName(), `Add`, `editq-add-dependent`))
 	}
-	return Div().Class(`editq-section`, `editq-dependents`).Wrap(
-		Div(`Dependents`).Class(`editq-section-title`),
-		Div().Class(`editq-dependent-list`).Wrap(list),
+	return EditQTopCardView(
+		`EditQDependentsCard`,
+		Str(`Dependents (`, namedCount, `)`),
+		false,
+		Div().Class(`editq-section`, `editq-dependents`).Wrap(
+			Div().Class(`editq-dependent-list`).Wrap(list),
+		),
+	)
+}
+
+func EditQTopCardView(id, title string, open bool, body Elem_t, right ...Elem_t) Elem_t {
+	var titleRow []Elem_t
+	titleRow = append(titleRow, Span(title).Class(`editq-card-title-text`))
+	if len(right) > 0 {
+		titleRow = append(titleRow, Div().Class(`editq-card-title-right`).Wrap(right))
+	}
+	card := Elem(`details`).Id(id).Class(`editq-fold-card`)
+	if open { card = card.KV(`open`, `open`) }
+	return card.Wrap(
+		Elem(`summary`).Class(`editq-card-title`, `editq-fold-title`).Wrap(
+			Div().Class(`editq-card-title-row`).Wrap(titleRow),
+		),
+		Div().Class(`editq-card-body`).Wrap(body),
 	)
 }
 
 func EditQHeaderView(vars QuoteVars_t) Elem_t {
 	custName := vars[`custName`]
-	return Div().Class(`editq-header`).Wrap(
-		Div().Class(`editq-header-top`).Wrap(
-			Div(`Quote Review`).Class(`editq-title`),
-			Elem(`a`).KV(`href`, `/quote`).Class(`editq-back-link`).Text(`Back to Quote Info`),
+	return EditQTopCardView(`EditQPrexCard`, EditQPrimeTitleText(vars), false,
+		Div().Class(`editq-header`).Wrap(
+			Elem(`label`).Class(`editq-field`, `editq-customer-field`).Wrap(
+				QuoteInputText(`custName`, custName, `Customer name`),
+			),
+			EditQPrimeChargesView(vars),
 		),
-		Elem(`label`).Class(`editq-field`, `editq-customer-field`).Wrap(
-			QuoteInputText(`custName`, custName, `Customer name`),
-		),
-		EditQPrimeChargesView(vars),
+	)
+}
+
+func EditQQuoteReviewCardView() Elem_t {
+	backBtn := Elem(`a`).
+		KV(`href`, `/quote`).
+		Class(`editq-title-btn`).
+		Text(`Back to Quote Info`)
+	return EditQTopCardView(`EditQReviewCard`, `Quote Review`, true,
+		Div().Class(`editq-quote-review-empty`),
+		backBtn,
 	)
 }
