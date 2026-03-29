@@ -2,7 +2,7 @@
 	const selector = '#QuoteForm input[name], #QuoteForm select[name], #QuoteForm textarea[name], #QuotePlans select[name], #QuoteForm button[name], #QuotePlans button[name]';
 	const lastSent = new Map();
 	const debounceMs = 250;
-	const custNameDebounceMs = 450;
+	const clientNameDebounceMs = 450;
 	const foldIds = ['QuoteInfoCard', 'QuoteSelectedCard'];
 	const foldState = new Map();
 	let seq = 0;
@@ -184,8 +184,8 @@
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
 		const value = controlValue(el);
-		if (name === 'custName') {
-			schedule(name, value, custNameDebounceMs);
+		if (name === 'clientName') {
+			schedule(name, value, clientNameDebounceMs);
 			return;
 		}
 		if (el.tagName === 'INPUT' && el.getAttribute('type') !== 'checkbox') {

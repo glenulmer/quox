@@ -10,7 +10,7 @@ func QuotePhoneFormBodyView(vars QuoteVars_t) Elem_t {
 				Span(`Quote Info`),
 			),
 			Div().Class(`quote-grid`, `quote-grid-phone`).Wrap(
-			QuoteNamedControlOnlySpanView(layoutPhone, `custName`, vars, 8, `quote-phone-no-label`),
+			QuoteNamedControlOnlySpanView(layoutPhone, `clientName`, vars, 8, `quote-phone-no-label`),
 			QuoteNamedControlOnlySpanView(layoutPhone, `segment`, vars, 4, `quote-phone-no-label`),
 			QuoteNamedControlSpanView(layoutPhone, `birth`, vars, 4),
 			QuoteNamedControlSpanView(layoutPhone, `buy`, vars, 4),

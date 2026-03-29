@@ -76,7 +76,7 @@ func QuoteControlDefs() []QuoteControl_t {
 	adult := true
 	max := true
 	return []QuoteControl_t{
-		{ name:`custName`, label:`Customer name`, kind:quoteText, placeholder:`Customer name`, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:8, desktopSpan:6, defaultValue:QuoteDefaultStatic(``) },
+		{ name:`clientName`, label:`Client name`, kind:quoteText, placeholder:`Client name`, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:8, desktopSpan:6, defaultValue:QuoteDefaultStatic(``) },
 		{ name:`segment`, label:`Segment`, kind:quoteSelect, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:4, desktopSpan:6, choiceSP:`quo_segments_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_segments_chooser`) },
 
 		{ name:`birth`, label:`Birth date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.birth.Format(`yyyy-mm-dd`) } },

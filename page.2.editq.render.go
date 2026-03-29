@@ -252,25 +252,145 @@ func EditQTopCardView(id, title string, open bool, body Elem_t, right ...Elem_t)
 	)
 }
 
+func EditQReviewControlValue(vars QuoteVars_t, name string) string {
+	value := vars[name]
+	if value == `` { return `-` }
+	ctrl, ok := QuoteControlByName(name)
+	if !ok { return value }
+	if ctrl.kind == quoteCheckbox {
+		if QuoteVarBool(value) { return `Yes` }
+		return `No`
+	}
+	if ctrl.kind != quoteSelect { return value }
+	for _, x := range QuoteControlChoices(ctrl) {
+		if Str(x.id) == value { return x.label }
+	}
+	return value
+}
+
+func EditQReviewYear(value string) string {
+	value = Trim(value)
+	if len(value) < 4 { return `-` }
+	return value[:4]
+}
+
+func EditQReviewClientView(vars QuoteVars_t) Elem_t {
+	clientName := Trim(vars[`clientName`])
+	if clientName == `` { clientName = `No client name` }
+	return Div().Class(`editq-review-client`).Wrap(
+		Div(clientName).Class(`editq-review-client-name`),
+		Div().Class(`editq-review-client-grid`).Wrap(
+			Div(`Year Born`).Class(`editq-review-client-key`),
+			Div(EditQReviewYear(vars[`birth`])).Class(`editq-review-client-val`),
+			Div(`Year Bought`).Class(`editq-review-client-key`),
+			Div(EditQReviewYear(vars[`buy`])).Class(`editq-review-client-val`),
+			Div(`Sick Cover`).Class(`editq-review-client-key`),
+			Div(EditQReviewControlValue(vars, `sickCover`)).Class(`editq-review-client-val`),
+			Div(`Client Type`).Class(`editq-review-client-key`),
+			Div(EditQReviewControlValue(vars, `segment`)).Class(`editq-review-client-val`),
+			Div(`Vision`).Class(`editq-review-client-key`),
+			Div(EditQReviewControlValue(vars, `vision`)).Class(`editq-review-client-val`),
+		),
+	)
+}
+
+func EditQReviewPrexByItemCateg(vars QuoteVars_t) (map[int]EuroCent_t, map[string]EuroCent_t) {
+	byItem := make(map[int]EuroCent_t)
+	byItemCateg := make(map[string]EuroCent_t)
+	for _, x := range EditQPrimeCharges(vars) {
+		key := Str(x.itemId, `:`, x.categId)
+		byItem[x.itemId] += x.applied
+		byItemCateg[key] += x.applied
+	}
+	return byItem, byItemCateg
+}
+
+func EditQReviewPriceRow(label string, total, base, surch, prex EuroCent_t, class ...string) Elem_t {
+	return Div().Class(`editq-review-row`).Class(class...).Wrap(
+		Div(label).Class(`editq-review-col-label`),
+		Div(EditQEuroCentText(total)).Class(`editq-review-col-money`),
+		Div(EditQEuroCentText(base)).Class(`editq-review-col-money`),
+		Div(EditQEuroCentText(surch)).Class(`editq-review-col-money`),
+		Div(EditQEuroCentText(prex)).Class(`editq-review-col-money`, `editq-review-col-prex`),
+	)
+}
+
+func EditQReviewPlanView(vars QuoteVars_t, item QuoteSelectedItem_t, row QuotePlan_t, prexByItem map[int]EuroCent_t, prexByItemCateg map[string]EuroCent_t) Elem_t {
+	prexTotal := prexByItem[item.itemId]
+	prexPlan := prexByItemCateg[Str(item.itemId, `:`, 0)]
+	effectiveAge := `-`
+	ageLabel := `Age`
+	work := QuoteStateFromVars(vars)
+	_, yearAge, exactAge := PlanAges(work)
+	age := yearAge
+	if EditQPlanUsesExactAge(row.planId) {
+		age = exactAge
+		ageLabel = `Exact age`
+	}
+	if age > 0 { effectiveAge = Str(age) }
+	var rows []Elem_t
+	rows = append(rows, Div().Class(`editq-review-row`, `editq-review-row-head`).Wrap(
+		Div(`Item`).Class(`editq-review-col-label`),
+		Div(`Total`).Class(`editq-review-col-money`),
+		Div(`Base`).Class(`editq-review-col-money`),
+		Div(`Surch`).Class(`editq-review-col-money`),
+		Div(`Pre-ex`).Class(`editq-review-col-money`, `editq-review-col-prex`),
+	))
+	rows = append(rows, EditQReviewPriceRow(`Total`, row.base+row.surcharge+prexTotal, row.base, row.surcharge, prexTotal, `editq-review-row-total`))
+	rows = append(rows, EditQReviewPriceRow(`Plan`, row.planBase+row.planSurcharge+prexPlan, row.planBase, row.planSurcharge, prexPlan))
+	for _, addon := range row.addons {
+		if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` { continue }
+		label := QuoteAddonPickText(addon)
+		if label == `` { label = addon.categ }
+		prex := prexByItemCateg[Str(item.itemId, `:`, addon.categId)]
+		rows = append(rows, EditQReviewPriceRow(label, addon.base+addon.surcharge+prex, addon.base, addon.surcharge, prex))
+	}
+
+	return Div().Class(`editq-review-plan`).Wrap(
+		Div(row.label).Class(`editq-review-plan-title`),
+		Div().Class(`editq-review-plan-meta`).Wrap(
+			Span(Str(ageLabel, ` `, effectiveAge)),
+			Span(Str(`Ded `, PriceTextWholeEuro(row.deduct, true))),
+			Span(Str(`NC `, PriceTextWholeEuro(row.noClaims, true))),
+			Span(Str(`Comm `, PriceTextWholeEuro(row.commission, true))),
+		),
+		Div().Class(`editq-review-grid`).Wrap(rows),
+	)
+}
+
+func EditQQuoteReviewBody(vars QuoteVars_t) Elem_t {
+	state := QuoteStateFromVars(vars)
+	selected := QuoteSelectedRows(state)
+	prexByItem, prexByItemCateg := EditQReviewPrexByItemCateg(vars)
+
+	var plans []Elem_t
+	for _, x := range selected {
+		plans = append(plans, EditQReviewPlanView(vars, x.item, x.row, prexByItem, prexByItemCateg))
+	}
+	if len(plans) == 0 {
+		plans = append(plans, Div(`No plans selected.`).Class(`editq-review-empty`))
+	}
+	return Div().Class(`editq-review`).Wrap(
+		EditQReviewClientView(vars),
+		Div().Class(`editq-review-plans`).Wrap(plans),
+	)
+}
+
 func EditQHeaderView(vars QuoteVars_t) Elem_t {
-	custName := vars[`custName`]
 	return EditQTopCardView(`EditQPrexCard`, EditQPrimeTitleText(vars), false,
 		Div().Class(`editq-header`).Wrap(
-			Elem(`label`).Class(`editq-field`, `editq-customer-field`).Wrap(
-				QuoteInputText(`custName`, custName, `Customer name`),
-			),
 			EditQPrimeChargesView(vars),
 		),
 	)
 }
 
-func EditQQuoteReviewCardView() Elem_t {
+func EditQQuoteReviewCardView(vars QuoteVars_t) Elem_t {
 	backBtn := Elem(`a`).
 		KV(`href`, `/quote`).
 		Class(`editq-title-btn`).
 		Text(`Back to Quote Info`)
 	return EditQTopCardView(`EditQReviewCard`, `Quote Review`, true,
-		Div().Class(`editq-quote-review-empty`),
+		EditQQuoteReviewBody(vars),
 		backBtn,
 	)
 }

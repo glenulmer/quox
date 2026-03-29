@@ -7,7 +7,7 @@ func QuoteDesktopFormBodyView(vars QuoteVars_t) Elem_t {
 		Div().Class(`quote-desk-workbench`).Wrap(
 			Div().Class(`quote-desk-rows`).Wrap(
 				Div().Class(`quote-desk-row`, `quote-desk-row-top`).Wrap(
-					QuoteNamedControlOnlySpanView(layoutDesktop, `custName`, vars, 0, `quote-desk-no-label`, `quote-desk-name`),
+					QuoteNamedControlOnlySpanView(layoutDesktop, `clientName`, vars, 0, `quote-desk-no-label`, `quote-desk-name`),
 					QuoteNamedControlOnlySpanView(layoutDesktop, `segment`, vars, 0, `quote-desk-no-label`, `quote-desk-segment`),
 					Div().Class(`quote-desk-flags`).Wrap(
 						QuoteNamedControlSpanView(layoutDesktop, `vision`, vars, 1, `quote-desk-flag`),

@@ -488,7 +488,7 @@ func EditQApply(state *State_t, name, value string) bool {
 	if name == `` { return false }
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
 
-	if name == `custName` {
+	if name == `clientName` {
 		state.quote[name] = value
 		return true
 	}

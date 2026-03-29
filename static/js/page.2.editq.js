@@ -89,7 +89,7 @@
 		form.append('name', name);
 		form.append('value', value);
 
-		fetch('/quote-edit-change', {
+		fetch('/quote-review-change', {
 			method: 'POST',
 			body: form,
 			credentials: 'same-origin',

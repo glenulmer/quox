@@ -376,8 +376,121 @@ details[open] > .editq-fold-title::before {
 	align-items: center;
 }
 
-.editq-quote-review-empty {
-	min-height: 3.2rem;
+.editq-review {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.editq-review-client,
+.editq-review-plan {
+	border: 0.0625rem solid #d5deea;
+	border-radius: 0.4rem;
+	background: #fbfdff;
+	padding: 0.45rem 0.5rem;
+}
+
+.editq-review-client {
+	display: grid;
+	gap: 0.3rem;
+}
+
+.editq-review-client-name {
+	font-size: 0.82rem;
+	font-weight: 700;
+}
+
+.editq-review-client-grid {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	column-gap: 0.6rem;
+	row-gap: 0.16rem;
+}
+
+.editq-review-client-key {
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: #42596f;
+}
+
+.editq-review-client-val {
+	font-size: 0.72rem;
+}
+
+.editq-review-plans {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.editq-review-plan {
+	display: grid;
+	gap: 0.3rem;
+}
+
+.editq-review-plan-title {
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.editq-review-plan-meta {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 0.7rem;
+	font-size: 0.7rem;
+	color: #4a6078;
+	white-space: nowrap;
+}
+
+.editq-review-plan-meta > span {
+	white-space: nowrap;
+}
+
+.editq-review-grid {
+	display: grid;
+	gap: 0;
+}
+
+.editq-review-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem 5.5rem 5.5rem;
+	column-gap: 0.35rem;
+	align-items: baseline;
+	padding: 0.12rem 0;
+	border-top: 0.0625rem solid #e6ecf3;
+}
+
+.editq-review-row:first-child {
+	border-top: 0;
+}
+
+.editq-review-row-head {
+	font-size: 0.67rem;
+	font-weight: 700;
+	color: #445d78;
+}
+
+.editq-review-row-total {
+	font-weight: 700;
+	color: #2f4f69;
+}
+
+.editq-review-col-label {
+	font-size: 0.72rem;
+	min-width: 0;
+}
+
+.editq-review-col-money {
+	font-size: 0.72rem;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.editq-review-col-prex {
+	color: #1e6996;
+}
+
+.editq-review-empty {
+	font-size: 0.78rem;
+	color: #5a7088;
 }
 
 .editq-dep-name,
