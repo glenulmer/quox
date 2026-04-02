@@ -33,6 +33,6 @@
 Before any completion claim, run `./scripts/check-all.sh`.
 `run-dev.sh` refuses to start if guardrails fail.
 
-After any Go code recompilation (CSS-only edits excluded), start and keep two persistent dev terminals running:
+After any Go code recompilation (not only SQL and/or CSS), start and keep two persistent dev terminals running:
 - `./scripts/run-dev.sh -watch -port 3333 -layout desktop`
 - `./scripts/run-dev.sh -watch -port 4444 -layout phone`
