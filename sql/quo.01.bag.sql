@@ -112,6 +112,8 @@ end
 ###
 delimiter ;
 
+update priorcov set descrip='No prior cover' where priorcov=0;
+
 delimiter ###
 create or replace procedure quo_priorcov_chooser()
 begin
