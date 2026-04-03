@@ -185,7 +185,7 @@ details[open] > .quote-phone-fold-title::before {
 	font-family: inherit;
 }
 
-.quote-phone-right :is(input[type="number"], select) {
+.quote-phone-right :is(input[type="number"], input[data-sick-cover="1"], select) {
 	text-align: right;
 }
 
@@ -195,6 +195,155 @@ details[open] > .quote-phone-fold-title::before {
 
 .quote-phone-no-label :is(input[type="text"], input[type="date"], input[type="number"], select) {
 	margin-top: 0;
+}
+
+.qbuy {
+	position: relative;
+}
+
+.qbuy-trigger-wrap {
+	position: relative;
+}
+
+.qbuy-trigger {
+	padding-right: 1.35rem;
+	cursor: pointer;
+}
+
+.qbuy-trigger[readonly] {
+	user-select: none;
+	caret-color: transparent;
+}
+
+.qbuy-arrow {
+	position: absolute;
+	right: 0.5rem;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 0.68rem;
+	line-height: 1;
+	color: #4e6079;
+	pointer-events: none;
+}
+
+.qbuy-popup {
+	display: none;
+	position: fixed;
+	z-index: 200;
+	padding: 0.45rem;
+	border: 0.0625rem solid #9cb6d4;
+	border-radius: 0.5rem;
+	background: #fff;
+	box-shadow: 0 0.25rem 0.8rem rgba(16, 29, 46, 0.2);
+}
+
+.qbuy-popup.is-open {
+	display: block;
+}
+
+.qbuy-popup-head {
+	display: grid;
+	grid-template-columns: 1.6rem 1fr 1.6rem;
+	align-items: center;
+	column-gap: 0.25rem;
+	margin-bottom: 0.35rem;
+}
+
+.qbuy-head-title {
+	text-align: center;
+	font-size: 0.86rem;
+	font-weight: 700;
+	color: #324a67;
+}
+
+.qbuy-head-mid {
+	display: grid;
+	grid-template-columns: 1fr 3rem;
+	column-gap: 0.25rem;
+}
+
+.qbuy-nav,
+.qbuy-month,
+.qbuy-year {
+	box-sizing: border-box;
+	border: 0.0625rem solid #9cb6d4;
+	border-radius: 0.35rem;
+	background: #fff;
+	font: inherit;
+	color: inherit;
+}
+
+.qbuy-nav {
+	height: 1.45rem;
+	padding: 0;
+	cursor: pointer;
+}
+
+.qbuy-nav:disabled {
+	cursor: default;
+	opacity: 0.45;
+}
+
+.qbuy-month,
+.qbuy-year {
+	height: 1.45rem;
+	padding: 0 0.3rem;
+	font-size: 0.86rem;
+}
+
+.qbuy-year {
+	text-align: center;
+}
+
+.qbuy-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 0.14rem;
+}
+
+.qbuy-dow {
+	text-align: center;
+	font-size: 0.68rem;
+	font-weight: 700;
+	color: #5e6f86;
+	padding: 0.1rem 0;
+}
+
+.qbuy-blank {
+	height: 1.55rem;
+}
+
+.qbuy-day {
+	height: 1.55rem;
+	padding: 0;
+	border: 0;
+	border-radius: 0.35rem;
+	background: transparent;
+	font: inherit;
+	font-size: 0.84rem;
+	color: inherit;
+	cursor: pointer;
+}
+
+.qbuy-day:hover {
+	background: #edf4fc;
+}
+
+.qbuy-day.is-today {
+	outline: 0.0625rem solid #8ea9c7;
+}
+
+.qbuy-day.is-selected {
+	background: #2e415d;
+	color: #fff;
+}
+
+.qbuy-day.is-disabled,
+.qbuy-day:disabled {
+	cursor: default;
+	opacity: 0.35;
+	background: transparent;
+	outline: 0;
 }
 
 .quote-spacer {

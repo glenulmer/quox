@@ -1,5 +1,6 @@
 (() => {
 	const selector = '#QuoteForm input[name], #QuoteForm select[name], #QuoteForm textarea[name], #QuotePlans select[name], #QuoteForm button[name], #QuotePlans button[name]';
+	const sickCoverSelector = '#QuoteForm input[name="sickCover"][data-sick-cover="1"]';
 	const lastSent = new Map();
 	const debounceMs = 250;
 	const clientNameDebounceMs = 450;
@@ -118,6 +119,22 @@
 		syncPhoneSticky();
 	};
 
+	const formatWhole = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+	const sickCoverValue = (el) => {
+		let v = Number.parseInt((el.value || '').replace(/\D+/g, ''), 10);
+		if (!Number.isFinite(v) || v < 0) v = 0;
+		const max = Number.parseInt(el.getAttribute('data-max') || '0', 10);
+		if (Number.isFinite(max) && max > 0 && v > max) v = max;
+		return v;
+	};
+	const sickCoverText = (n, euro = true) => euro ? `${formatWhole(n)} €` : formatWhole(n);
+	const initSickCover = (root = document) => {
+		for (const el of root.querySelectorAll(sickCoverSelector)) {
+			if (!(el instanceof HTMLInputElement)) continue;
+			el.value = sickCoverText(sickCoverValue(el), true);
+		}
+	};
+
 	const controlValue = (el) => {
 		if (el instanceof HTMLButtonElement) return el.value || '1';
 		return el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value;
@@ -164,6 +181,7 @@
 					}
 				}
 				applyFoldStates();
+				initSickCover();
 				syncPhoneSticky();
 			})
 			.catch(() => {});
@@ -183,6 +201,17 @@
 
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
+		if (name === 'sickCover') {
+			if (!(el instanceof HTMLInputElement)) return;
+			if (ev.type === 'input') {
+				el.value = (el.value || '').replace(/[^\d.]/g, '');
+				return;
+			}
+			const v = sickCoverValue(el);
+			el.value = sickCoverText(v, true);
+			sendIfChanged(name, String(v));
+			return;
+		}
 		const value = controlValue(el);
 		if (name === 'clientName') {
 			schedule(name, value, clientNameDebounceMs);
@@ -227,12 +256,29 @@
 		window.setTimeout(scheduleStickySync, 0);
 	};
 
+	const onSickCoverFocus = (ev) => {
+		const el = ev.target;
+		if (!(el instanceof HTMLInputElement)) return;
+		if (!el.matches(sickCoverSelector)) return;
+		el.value = sickCoverText(sickCoverValue(el), false);
+	};
+
+	const onSickCoverBlur = (ev) => {
+		const el = ev.target;
+		if (!(el instanceof HTMLInputElement)) return;
+		if (!el.matches(sickCoverSelector)) return;
+		el.value = sickCoverText(sickCoverValue(el), true);
+	};
+
 	document.addEventListener('change', onControlChange);
 	document.addEventListener('input', onControlChange);
+	document.addEventListener('focusin', onSickCoverFocus, true);
+	document.addEventListener('focusout', onSickCoverBlur, true);
 	document.addEventListener('click', onButtonClick);
 	document.addEventListener('toggle', onFoldToggle, true);
 	document.addEventListener('click', onFoldSummaryClick, true);
 	window.addEventListener('scroll', scheduleStickySync, { passive: true });
 	window.addEventListener('resize', scheduleStickySync);
+	initSickCover();
 	scheduleStickySync();
 })();

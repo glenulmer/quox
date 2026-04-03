@@ -27,6 +27,7 @@ func Page1Quote(w0 http.ResponseWriter, req *http.Request) {
 
 	head := Head().
 		CSS(QuoteCSSPath()).
+		JSTail(Str(`/static/js/page.1.quote.buy.js?v=`, App.staticVersion)).
 		JSTail(Str(`/static/js/page.1.quote.js?v=`, App.staticVersion)).
 		Title(`Quo2`).
 		End()

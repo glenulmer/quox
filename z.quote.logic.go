@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	. "pm/lib/date"
 	. "pm/lib/output"
@@ -58,6 +59,100 @@ func QuoteDefaults() QuoteDefaults_t {
 	}
 }
 
+func QuoteDateAddMonths(in CalDate_t, months int) CalDate_t {
+	if !Valid(in) { return 0 }
+	t := time.Date(in.Year(), time.Month(in.Month()), in.Day(), 0, 0, 0, 0, time.UTC).AddDate(0, months, 0)
+	return DateFromYMD(t.Year(), int(t.Month()), t.Day())
+}
+
+func QuoteHasFutureLookupYear(today CalDate_t) bool {
+	if !Valid(today) { return false }
+	for year, _ := range App.lookup.years.All() {
+		if year > today.Year() { return true }
+	}
+	return false
+}
+
+func QuoteBuyMaxDate(today CalDate_t) CalDate_t {
+	if !Valid(today) { return 0 }
+	if QuoteHasFutureLookupYear(today) { return QuoteDateAddMonths(today, 6) }
+	return DateFromYMD(today.Year(), 12, 31)
+}
+
+func QuoteParseBuyDate(value string) CalDate_t {
+	value = Trim(value)
+	if value == `` { return 0 }
+	if out := Parse(`yyyymmdd`, value); Valid(out) { return out }
+	return Parse(`yyyy-mm-dd`, value)
+}
+
+func QuoteParseBirthDate(value string) CalDate_t {
+	value = Trim(value)
+	if value == `` { return 0 }
+	if out := Parse(`yyyymmdd`, value); Valid(out) { return out }
+	return Parse(`yyyy-mm-dd`, value)
+}
+
+func QuoteBuyBounds() (minDate, maxDate, defaultDate CalDate_t) {
+	today := CurrentDBDate()
+	if !Valid(today) { return 0, 0, 0 }
+	minDate = today
+	maxDate = QuoteBuyMaxDate(today)
+	defaultDate = today.Days(40).ToWorkDay()
+	if Valid(maxDate) && int(defaultDate) > int(maxDate) { defaultDate = maxDate }
+	if int(defaultDate) < int(minDate) { defaultDate = minDate }
+	return minDate, maxDate, defaultDate
+}
+
+func QuoteNormalizeBuyValue(value string) string {
+	minDate, maxDate, defaultDate := QuoteBuyBounds()
+	buyDate := QuoteParseBuyDate(value)
+	if !Valid(buyDate) { buyDate = defaultDate }
+	if Valid(minDate) && int(buyDate) < int(minDate) { buyDate = minDate }
+	if Valid(maxDate) && int(buyDate) > int(maxDate) { buyDate = maxDate }
+	if !Valid(buyDate) { return `` }
+	return buyDate.Format(`yyyymmdd`)
+}
+
+func QuoteBirthBounds() (minDate, maxDate, defaultDate CalDate_t) {
+	today := CurrentDBDate()
+	if !Valid(today) { return 0, 0, 0 }
+	minDate = QuoteDateAddMonths(today, -12*75)
+	maxDate = today.Days(-1)
+	defaultDate = DateFromYMD(today.Year()-32, 6, 15)
+	if Valid(minDate) && int(defaultDate) < int(minDate) { defaultDate = minDate }
+	if Valid(maxDate) && int(defaultDate) > int(maxDate) { defaultDate = maxDate }
+	return minDate, maxDate, defaultDate
+}
+
+func QuoteNormalizeBirthValue(value string) string {
+	minDate, maxDate, defaultDate := QuoteBirthBounds()
+	birthDate := QuoteParseBirthDate(value)
+	if !Valid(birthDate) { birthDate = defaultDate }
+	if Valid(minDate) && int(birthDate) < int(minDate) { birthDate = minDate }
+	if Valid(maxDate) && int(birthDate) > int(maxDate) { birthDate = maxDate }
+	if !Valid(birthDate) { return `` }
+	return birthDate.Format(`yyyymmdd`)
+}
+
+func QuoteSickCoverMaxByBuyValue(buyValue string) int {
+	year := CurrentDBDate().Year()
+	buyDate := QuoteParseBuyDate(buyValue)
+	if Valid(buyDate) { year = buyDate.Year() }
+	if x, ok := App.lookup.years.byId[year]; ok {
+		return int(x.maxCover())
+	}
+	return 150000
+}
+
+func QuoteNormalizeSickCoverValue(value, buyValue string) string {
+	v := OnlyDigits(value)
+	if v < 0 { v = 0 }
+	max := QuoteSickCoverMaxByBuyValue(buyValue)
+	if max > 0 && v > max { v = max }
+	return Str(v)
+}
+
 func QuoteChoiceArgs(args ...any) func() []any {
 	return func() []any { return args }
 }
@@ -79,8 +174,8 @@ func QuoteControlDefs() []QuoteControl_t {
 		{ name:`clientName`, label:`Client name`, kind:quoteText, placeholder:`Client name`, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:8, desktopSpan:6, defaultValue:QuoteDefaultStatic(``) },
 		{ name:`segment`, label:`Segment`, kind:quoteSelect, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:4, desktopSpan:6, choiceSP:`quo_segments_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_segments_chooser`) },
 
-		{ name:`birth`, label:`Birth date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.birth.Format(`yyyy-mm-dd`) } },
-		{ name:`buy`, label:`Buy date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.buy.Format(`yyyy-mm-dd`) } },
+		{ name:`birth`, label:`Birth date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.birth.Format(`yyyymmdd`) } },
+		{ name:`buy`, label:`Buy date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.buy.Format(`yyyymmdd`) } },
 		{ name:`sickCover`, label:`Sick cover`, kind:quoteNumber, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, min:0, max:150000, step:1000, defaultValue:QuoteDefaultStatic(`75000`) },
 
 		{ name:`priorCov`, label:`Prior cover`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_priorcov_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_priorcov_chooser`) },
@@ -188,14 +283,33 @@ func QuoteSortMode(v string) string {
 func QuoteApply(state *State_t, name, value string) {
 	if !QuoteAllowsField(name) { return }
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	switch name {
+	case `sickCover`:
+		value = QuoteNormalizeSickCoverValue(value, state.quote[`buy`])
+	case `birth`:
+		value = QuoteNormalizeBirthValue(value)
+	case `buy`:
+		value = QuoteNormalizeBuyValue(value)
+	}
 	state.quote[name] = value
+	if name == `buy` { state.quote[`sickCover`] = QuoteNormalizeSickCoverValue(state.quote[`sickCover`], value) }
 }
 
 func QuoteApplyForm(state *State_t, req *http.Request) {
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
 	for _, x := range QuoteControlDefs() {
-		state.quote[x.name] = req.FormValue(x.name)
+		value := req.FormValue(x.name)
+		switch x.name {
+		case `birth`:
+			value = QuoteNormalizeBirthValue(value)
+		case `buy`:
+			value = QuoteNormalizeBuyValue(value)
+		case `sickCover`:
+			value = QuoteNormalizeSickCoverValue(value, state.quote[`buy`])
+		}
+		state.quote[x.name] = value
 	}
+	state.quote[`sickCover`] = QuoteNormalizeSickCoverValue(state.quote[`sickCover`], state.quote[`buy`])
 }
 
 func CurrentDBDate() CalDate_t {
@@ -248,6 +362,8 @@ func StateIntAny(state State_t, keys ...string) (int, bool) {
 }
 
 func StateDate(state State_t, key string) CalDate_t {
+	if key == `birth` { return QuoteParseBirthDate(StateValue(state, key)) }
+	if key == `buy` { return QuoteParseBuyDate(StateValue(state, key)) }
 	return Parse(`yyyy-mm-dd`, StateValue(state, key))
 }
 

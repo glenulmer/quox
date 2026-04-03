@@ -1,6 +1,7 @@
 package main
 
 import (
+	. "pm/lib/date"
 	. "pm/lib/htmlHelper"
 	. "pm/lib/output"
 )
@@ -47,6 +48,51 @@ func QuoteInputDate(name, value string) Elem_t {
 		KV(`ondrop`, `return false`)
 }
 
+func QuoteInputBuy(name, value string) Elem_t {
+	minDate, maxDate, defaultDate := QuoteBuyBounds()
+	buyDate := QuoteParseBuyDate(value)
+	if !Valid(buyDate) { buyDate = defaultDate }
+	if Valid(minDate) && int(buyDate) < int(minDate) { buyDate = minDate }
+	if Valid(maxDate) && int(buyDate) > int(maxDate) { buyDate = maxDate }
+	return QuoteInputPopupDate(name, buyDate, minDate, maxDate)
+}
+
+func QuoteInputBirth(name, value string) Elem_t {
+	minDate, maxDate, defaultDate := QuoteBirthBounds()
+	birthDate := QuoteParseBirthDate(value)
+	if !Valid(birthDate) { birthDate = defaultDate }
+	if Valid(minDate) && int(birthDate) < int(minDate) { birthDate = minDate }
+	if Valid(maxDate) && int(birthDate) > int(maxDate) { birthDate = maxDate }
+	return QuoteInputPopupDate(name, birthDate, minDate, maxDate)
+}
+
+func QuoteInputPopupDate(name string, date, minDate, maxDate CalDate_t) Elem_t {
+	valueYMD := date.Format(`yyyymmdd`)
+	valueText := date.Format(`dd.mm.yyyy`)
+	hidden := Elem(`input`).
+		Type(`hidden`).
+		Name(name).
+		Value(valueYMD).
+		KV(`data-buy-hidden`, `1`)
+	if Valid(minDate) { hidden = hidden.KV(`data-min`, minDate.Format(`yyyymmdd`)) }
+	if Valid(maxDate) { hidden = hidden.KV(`data-max`, maxDate.Format(`yyyymmdd`)) }
+
+	return Div().Class(`qbuy`).KV(`data-buy`, `1`).Wrap(
+		hidden,
+		Div().Class(`qbuy-trigger-wrap`).Wrap(
+			Elem(`input`).
+				Type(`text`).
+				Class(`qbuy-trigger`).
+				Value(valueText).
+				KV(`readonly`).
+				KV(`inputmode`, `none`).
+				KV(`autocomplete`, `off`).
+				KV(`data-buy-trigger`, `1`),
+			Span(`▼`).Class(`qbuy-arrow`),
+		),
+	)
+}
+
 func QuoteInputNumber(name, value string, min, max, step int) Elem_t {
 	in := Elem(`input`).Type(`number`).Name(name).Value(value)
 	if min != 0 || max != 0 || step != 0 {
@@ -55,14 +101,31 @@ func QuoteInputNumber(name, value string, min, max, step int) Elem_t {
 	return in
 }
 
+func QuoteInputSickCover(name, value, buyValue string) Elem_t {
+	value = QuoteNormalizeSickCoverValue(value, buyValue)
+	max := QuoteSickCoverMaxByBuyValue(buyValue)
+	return Elem(`input`).
+		Type(`text`).
+		Name(name).
+		Value(value).
+		KV(`inputmode`, `numeric`).
+		KV(`autocomplete`, `off`).
+		KV(`data-sick-cover`, `1`).
+		KV(`data-min`, 0).
+		KV(`data-max`, max)
+}
+
 func QuoteControlInput(x QuoteControl_t, vars QuoteVars_t) Elem_t {
 	value := vars[x.name]
 	switch x.kind {
 	case quoteText:
 		return QuoteInputText(x.name, value, x.placeholder)
 	case quoteDate:
+		if x.name == `birth` { return QuoteInputBirth(x.name, value) }
+		if x.name == `buy` { return QuoteInputBuy(x.name, value) }
 		return QuoteInputDate(x.name, value)
 	case quoteNumber:
+		if x.name == `sickCover` { return QuoteInputSickCover(x.name, value, vars[`buy`]) }
 		return QuoteInputNumber(x.name, value, x.min, x.max, x.step)
 	case quoteSelect:
 		return QuoteSelect(x.name, value, QuoteControlChoices(x))
