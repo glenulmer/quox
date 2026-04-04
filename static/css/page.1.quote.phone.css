@@ -249,12 +249,14 @@ details[open] > .quote-phone-fold-title::before {
 	margin-bottom: 0.35rem;
 }
 
+/* dead selector:
 .qbuy-head-title {
 	text-align: center;
 	font-size: 0.86rem;
 	font-weight: 700;
 	color: #324a67;
 }
+*/
 
 .qbuy-head-mid {
 	display: grid;
@@ -473,11 +475,13 @@ details[open] > .quote-phone-fold-title::before {
 	gap: 0.28rem;
 }
 
+/* dead selector:
 .quote-plan-sort-label {
 	font-size: 0.72rem;
 	font-weight: 700;
 	color: #43536b;
 }
+*/
 
 .quote-plan-sort-input {
 	height: 1.28rem;
@@ -593,6 +597,7 @@ details[open] > .quote-phone-fold-title::before {
 	white-space: nowrap;
 }
 
+/* dead selector:
 .quote-plan-sums {
 	margin-top: 0.2rem;
 	display: grid;
@@ -600,6 +605,7 @@ details[open] > .quote-phone-fold-title::before {
 	font-size: 0.8rem;
 	color: #4f6275;
 }
+*/
 
 .quote-plan-addon-list {
 	margin-top: 0.25rem;

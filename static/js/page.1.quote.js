@@ -43,21 +43,11 @@
 		}
 	};
 
-	const setPhoneSticky = (info, selected, on, collapse = true) => {
+	const setPhoneSticky = (info, selected, on) => {
 		phoneStickyOn = on;
 		if (on) {
 			info.classList.add('quote-phone-sticky-card');
 			selected.classList.add('quote-phone-sticky-card', 'quote-phone-sticky-second');
-			if (collapse) {
-				if (info.open) {
-					info.open = false;
-					foldState.set('QuoteInfoCard', false);
-				}
-				if (selected.open) {
-					selected.open = false;
-					foldState.set('QuoteSelectedCard', false);
-				}
-			}
 			return;
 		}
 		info.classList.remove('quote-phone-sticky-card');
@@ -96,7 +86,7 @@
 		const top = anchor.getBoundingClientRect().top;
 		if (!phoneStickyOn) {
 			if (top <= 0) {
-				setPhoneSticky(info, selected, true, true);
+				setPhoneSticky(info, selected, true);
 				syncPhoneStickyLayout(info, selected, plans);
 			}
 			return;
@@ -110,7 +100,7 @@
 
 		// After outerHTML rewrites, state may still be sticky but classes are gone on new nodes.
 		if (!info.classList.contains('quote-phone-sticky-card') || !selected.classList.contains('quote-phone-sticky-card')) {
-			setPhoneSticky(info, selected, true, false);
+			setPhoneSticky(info, selected, true);
 		}
 		syncPhoneStickyLayout(info, selected, plans);
 	};
@@ -232,6 +222,9 @@
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
 		ev.preventDefault();
+		if (el.closest('#QuoteInfoCard > summary, #QuoteSelectedCard > summary')) {
+			ev.stopPropagation();
+		}
 		if (name.startsWith('seladd-')) {
 			pendingOpenSelected = true;
 			foldState.set('QuoteSelectedCard', true);

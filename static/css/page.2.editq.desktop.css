@@ -123,21 +123,27 @@ details[open] > .editq-fold-title::before {
 	gap: 0.6rem;
 }
 
+/* dead selector:
 .editq-cust-preview {
 	font-size: 0.8rem;
 	color: #324860;
 }
+*/
 
+/* dead selector:
 .editq-cust-empty {
 	color: #5f7286;
 }
+*/
 
+/* dead selector:
 .editq-main {
 	display: grid;
 	grid-template-columns: 1fr 1.12fr;
 	gap: 0.8rem;
 	align-items: start;
 }
+*/
 
 .editq-section {
 	padding: 0;
@@ -153,7 +159,7 @@ details[open] > .editq-fold-title::before {
 	padding-right: 1rem;
 }
 
-.editq-condition-list,
+/* dead selector was removed from this live block: .editq-condition-list */
 .editq-dependent-list {
 	display: grid;
 	gap: 0.45rem;
@@ -236,22 +242,30 @@ details[open] > .editq-fold-title::before {
 	text-align: right;
 }
 
+/* dead selector:
 .editq-prime-plan-total {
 	color: #1e6996;
 }
+*/
 
+/* dead selector:
 .editq-prime-plan-charges {
 	color: #1e6996;
 }
+*/
 
+/* dead selector:
 .editq-prime-plan-sum {
 	color: #165581;
 	font-weight: 700;
 }
+*/
 
+/* dead selector:
 .editq-prime-plan-op {
 	color: #4f6479;
 }
+*/
 
 .editq-prime-summary {
 	padding: 0.1rem 0;
@@ -292,19 +306,23 @@ details[open] > .editq-fold-title::before {
 	min-width: 0;
 }
 
+/* dead selector:
 .editq-field {
 	display: flex;
 	flex-direction: column;
 	gap: 0.26rem;
 }
+*/
 
+/* dead selector:
 .editq-label {
 	font-size: 0.75rem;
 	font-weight: 700;
 	color: #37506b;
 }
+*/
 
-.editq-field :is(input[type="text"], input[type="date"]),
+/* dead selector was removed from this live block: .editq-field :is(input[type="text"], input[type="date"]) */
 .editq-grow-input {
 	width: 100%;
 	box-sizing: border-box;
@@ -343,12 +361,14 @@ details[open] > .editq-fold-title::before {
 	padding: 0;
 }
 
+/* dead selector:
 .editq-dependent-head .editq-del-btn {
 	height: 1.55rem;
 	min-width: 1.55rem;
 	font-size: 0.67rem;
 	border-radius: 0.28rem;
 }
+*/
 
 .editq-dependent {
 	padding: 0.62rem;
@@ -357,17 +377,21 @@ details[open] > .editq-fold-title::before {
 	background: #fbfdff;
 }
 
+/* dead selector:
 .editq-dependent-head {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0.45rem;
 }
+*/
 
+/* dead selector:
 .editq-dependent-title {
 	font-size: 0.82rem;
 	font-weight: 700;
 }
+*/
 
 .editq-dependent-fields-row {
 	display: grid;

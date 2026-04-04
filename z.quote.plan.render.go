@@ -230,6 +230,18 @@ func QuoteEditQuoteButton(class ...string) Elem_t {
 		Text(`Quote Review`)
 }
 
+func QuoteResetControlName() string { return `quoteReset` }
+
+func QuoteResetButton(class ...string) Elem_t {
+	return Elem(`button`).
+		Type(`button`).
+		Name(QuoteResetControlName()).
+		Value(`1`).
+		Class(`quote-edit-quote-btn`).
+		Class(class...).
+		Text(`Reset`)
+}
+
 func QuotePlanDesktopCategWidth(categ Categ_t) int {
 	name := Lower(Trim(categ.name))
 	switch {

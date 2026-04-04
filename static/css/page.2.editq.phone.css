@@ -125,14 +125,18 @@ details[open] > .editq-fold-title::before {
 	gap: 0.48rem;
 }
 
+/* dead selector:
 .editq-cust-preview {
 	font-size: 0.77rem;
 	color: #36506a;
 }
+*/
 
+/* dead selector:
 .editq-cust-empty {
 	color: #607385;
 }
+*/
 
 .editq-section-title {
 	font-size: 0.85rem;
@@ -144,7 +148,7 @@ details[open] > .editq-fold-title::before {
 	padding-right: 0.9rem;
 }
 
-.editq-condition-list,
+/* dead selector was removed from this live block: .editq-condition-list */
 .editq-dependent-list {
 	display: grid;
 	gap: 0.42rem;
@@ -228,22 +232,30 @@ details[open] > .editq-fold-title::before {
 	text-align: right;
 }
 
+/* dead selector:
 .editq-prime-plan-total {
 	color: #1e6996;
 }
+*/
 
+/* dead selector:
 .editq-prime-plan-charges {
 	color: #1e6996;
 }
+*/
 
+/* dead selector:
 .editq-prime-plan-sum {
 	color: #165581;
 	font-weight: 700;
 }
+*/
 
+/* dead selector:
 .editq-prime-plan-op {
 	color: #4f6479;
 }
+*/
 
 .editq-prime-summary {
 	padding: 0.08rem 0;
@@ -279,19 +291,23 @@ details[open] > .editq-fold-title::before {
 	align-items: start;
 }
 
+/* dead selector:
 .editq-field {
 	display: flex;
 	flex-direction: column;
 	gap: 0.22rem;
 }
+*/
 
+/* dead selector:
 .editq-label {
 	font-size: 0.72rem;
 	font-weight: 700;
 	color: #38526d;
 }
+*/
 
-.editq-field :is(input[type="text"], input[type="date"]),
+/* dead selector was removed from this live block: .editq-field :is(input[type="text"], input[type="date"]) */
 .editq-grow-input {
 	width: 100%;
 	box-sizing: border-box;
@@ -341,12 +357,14 @@ details[open] > .editq-fold-title::before {
 	padding: 0;
 }
 
+/* dead selector:
 .editq-dependent-head .editq-del-btn {
 	height: 1.52rem;
 	min-width: 1.52rem;
 	font-size: 0.66rem;
 	border-radius: 0.3rem;
 }
+*/
 
 .editq-dependent {
 	padding: 0.55rem;
@@ -355,22 +373,28 @@ details[open] > .editq-fold-title::before {
 	background: #fcfdff;
 }
 
+/* dead selector:
 .editq-dependent-head {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
 	gap: 0.4rem;
 }
+*/
 
+/* dead selector:
 .editq-dependent-head-text {
 	display: grid;
 	gap: 0.08rem;
 }
+*/
 
+/* dead selector:
 .editq-dependent-title {
 	font-size: 0.81rem;
 	font-weight: 700;
 }
+*/
 
 .editq-dependent-fields-row {
 	display: flex;
