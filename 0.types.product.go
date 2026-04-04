@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "pm/lib/dec2"
+	. "quo2/lib/dec2"
 )
 
 type Provider_t struct {

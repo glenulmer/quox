@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	. "pm/lib/date"
-	. "pm/lib/output"
+	. "quo2/lib/date"
+	. "quo2/lib/output"
 )
 
 const catHospital, catDental = 3, 4

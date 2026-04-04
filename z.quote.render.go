@@ -1,9 +1,9 @@
 package main
 
 import (
-	. "pm/lib/date"
-	. "pm/lib/htmlHelper"
-	. "pm/lib/output"
+	. "quo2/lib/date"
+	. "quo2/lib/htmlHelper"
+	. "quo2/lib/output"
 )
 
 func QuoteVarBool(v string) bool {

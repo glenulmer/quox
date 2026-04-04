@@ -1,6 +1,6 @@
 package main
 
-import . "pm/lib/htmlHelper"
+import . "quo2/lib/htmlHelper"
 
 func QuoteDesktopFormBodyView(vars QuoteVars_t) Elem_t {
 	return Div().Id(`QuoteFormBody`).Wrap(

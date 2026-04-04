@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"github.com/go-chi/chi/v5"
 
-	. "pm/lib/output"
+	. "quo2/lib/output"
 )
 
 func main() {

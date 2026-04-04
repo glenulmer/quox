@@ -2,8 +2,8 @@ package main
 
 import "github.com/alexedwards/scs/v2"
 import "net/http"
-import . "pm/lib/wrapdb"
-import . "pm/lib/dec2"
+import . "quo2/lib/wrapdb"
+import . "quo2/lib/dec2"
 
 type YAP_t struct { year, age, productId int }
 func YAP(y, a, p int) YAP_t { return YAP_t{ y, a, p } }
@@ -26,6 +26,9 @@ type App_t struct {
 		prices		map[YAP_t]Price_t
 		planAddons	map[PlanCateg_t]CatChoice_t
 		planAddonChoices map[PlanCateg_t][]CatChoice_t
+
+		benSecs		IdMap_t[BenSec_t]
+		benSecItems	IdMap_t[BenSecItem_t]
 	}
 }
 

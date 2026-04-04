@@ -207,6 +207,31 @@ delimiter ;
 
 
 delimiter ###
+create or replace procedure quo_bensections_query()
+begin
+    select b.section, b.name
+      from benefit_sections b
+     order by b.section;
+end
+###
+delimiter ;
+
+
+delimiter ###
+create or replace procedure quo_bensecitems_query($sec int)
+begin
+    select b.benefit, b.label, b.slim
+      from benefits b
+     where (($sec = 0) or (section = $sec))
+     order by b.section, secsort;
+end
+###
+delimiter ;
+
+
+
+
+delimiter ###
 create or replace procedure quo_plan_categ_addons($plan int)
 begin
     with

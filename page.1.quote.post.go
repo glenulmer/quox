@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	. "pm/pkg.Global"
+	. "quo2/pkg.Global"
 )
 
 func RewriteQuotePage(w http.ResponseWriter, state State_t) {

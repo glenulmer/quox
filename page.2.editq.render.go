@@ -1,9 +1,9 @@
 package main
 
 import (
-	. "pm/lib/dec2"
-	. "pm/lib/htmlHelper"
-	. "pm/lib/output"
+	. "quo2/lib/dec2"
+	. "quo2/lib/htmlHelper"
+	. "quo2/lib/output"
 )
 
 func EditQGrowInput(name, value string) Elem_t {

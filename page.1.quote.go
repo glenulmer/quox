@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	. "pm/lib/htmlHelper"
-	. "pm/lib/output"
+	. "quo2/lib/htmlHelper"
+	. "quo2/lib/output"
 )
 
 func QuoteCSSPath() string {

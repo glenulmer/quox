@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	. "pm/lib/dec2"
-	. "pm/lib/output"
+	. "quo2/lib/dec2"
+	. "quo2/lib/output"
 )
 
 const editQDepMaxCount = 5

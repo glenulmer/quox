@@ -1,6 +1,6 @@
 package main
 
-import . "pm/lib/htmlHelper"
+import . "quo2/lib/htmlHelper"
 
 func EditQPhoneBodyView(vars QuoteVars_t, sortForGet bool) Elem_t {
 	return Div().Id(`EditQFormBody`).Class(`editq-body`, `editq-body-phone`).Wrap(

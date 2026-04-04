@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	. "pm/lib/dec2"
+	. "quo2/lib/dec2"
 )
 
 func (x YearVars_t)maxCover() EuroFlat_t { return x.cover * 2 }
@@ -15,6 +15,8 @@ func LoadStaticData() {
 	App.lookup.products = LoadProducts()
 	App.lookup.prices = LoadPrices()
 	App.lookup.planAddons, App.lookup.planAddonChoices = LoadPlanAddons()
+	App.lookup.benSecs = LoadBenSecs()
+	App.lookup.benSecItems = LoadBenSecItems()
 }
 
 type Categ_t struct {
@@ -174,6 +176,54 @@ func LoadPlanAddons() (map[PlanCateg_t]CatChoice_t, map[PlanCateg_t][]CatChoice_
 		choices[k] = append(choices[k], v)
 		if _, has := defaults[k]; !has { defaults[k] = v }
 	}
+	if rows.HasError() { panic(rows.Message()) }
 
 	return defaults, choices
+}
+
+type BenSec_t struct {
+	section int
+	label string
+}
+
+func LoadBenSecs() IdMap_t[BenSec_t] {
+	out := IdMap[BenSec_t]()
+
+	rows := App.DB.Call(`quo_bensections_query`)
+
+	if rows.HasError() { panic(rows.Message()) }
+	defer rows.Close()
+	for rows.Next() {
+		var x BenSec_t
+		rows.Scan(&x.section, &x.label)
+		if rows.HasError() { panic(rows.Message()) }
+		out.Add(x.section, x)
+	}
+	if rows.HasError() { panic(rows.Message()) }
+
+	return out
+}
+
+type BenSecItem_t struct {
+	benefit int
+	label string
+	isSlim bool
+}
+
+func LoadBenSecItems() IdMap_t[BenSecItem_t] {
+	out := IdMap[BenSecItem_t]()
+
+	rows := App.DB.Call(`quo_bensecitems_query`, 0)
+
+	if rows.HasError() { panic(rows.Message()) }
+	defer rows.Close()
+	for rows.Next() {
+		var x BenSecItem_t
+		rows.Scan(&x.benefit, &x.label, &x.isSlim)
+		if rows.HasError() { panic(rows.Message()) }
+		out.Add(x.benefit, x)
+	}
+	if rows.HasError() { panic(rows.Message()) }
+
+	return out
 }

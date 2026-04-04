@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	. "pm/lib/output"
+	. "quo2/lib/output"
 )
 
 const quoteSelectedSeqKey = `sel-seq`

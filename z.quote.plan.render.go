@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"strings"
-	. "pm/lib/htmlHelper"
-	. "pm/lib/dec2"
-	. "pm/lib/output"
+	. "quo2/lib/htmlHelper"
+	. "quo2/lib/dec2"
+	. "quo2/lib/output"
 )
 
 func QuotePlanAddonByTag(x QuotePlan_t, tag string) (QuotePlanAddon_t, bool) {
