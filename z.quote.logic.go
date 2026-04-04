@@ -240,6 +240,7 @@ func QuoteControlsByGroup(layout, group string) []QuoteControl_t {
 func QuoteVars(state State_t) QuoteVars_t {
 	out := QuoteDefaultVars()
 	for k, v := range state.quote { out[k] = v }
+	QuoteApplyForcedQuoteDefaults(out)
 	out[`sortBy`] = QuoteSortMode(out[`sortBy`])
 	return out
 }
@@ -271,6 +272,7 @@ func QuoteDefaultVars() QuoteVars_t {
 		out[x.name] = x.defaultValue(ctx)
 	}
 	out[`sortBy`] = sortByPrice
+	QuoteApplyForcedQuoteDefaults(out)
 	return out
 }
 

@@ -577,14 +577,6 @@ func EditQApply(state *State_t, name, value string) bool {
 	return false
 }
 
-func EditQEnsureFirstPlanSelected(state *State_t) {
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
-	if len(QuoteSelectedItems(state.quote)) > 0 { return }
-	plans := QuotePlans(*state).plans
-	if len(plans) == 0 { return }
-	QuoteSelectedAdd(state, int(plans[0].planId))
-}
-
 func EditQEnsureDefaultDependent(state *State_t) {
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
 	if len(EditQDependents(state.quote, false)) > 0 { return }
