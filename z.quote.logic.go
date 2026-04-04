@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"time"
 
 	. "pm/lib/date"
@@ -293,23 +292,6 @@ func QuoteApply(state *State_t, name, value string) {
 	}
 	state.quote[name] = value
 	if name == `buy` { state.quote[`sickCover`] = QuoteNormalizeSickCoverValue(state.quote[`sickCover`], value) }
-}
-
-func QuoteApplyForm(state *State_t, req *http.Request) {
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
-	for _, x := range QuoteControlDefs() {
-		value := req.FormValue(x.name)
-		switch x.name {
-		case `birth`:
-			value = QuoteNormalizeBirthValue(value)
-		case `buy`:
-			value = QuoteNormalizeBuyValue(value)
-		case `sickCover`:
-			value = QuoteNormalizeSickCoverValue(value, state.quote[`buy`])
-		}
-		state.quote[x.name] = value
-	}
-	state.quote[`sickCover`] = QuoteNormalizeSickCoverValue(state.quote[`sickCover`], state.quote[`buy`])
 }
 
 func CurrentDBDate() CalDate_t {
