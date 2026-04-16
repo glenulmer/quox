@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	. "quo2/lib/dec2"
+	. "quo2/lib/output"
 )
 
 func (x YearVars_t)maxCover() EuroFlat_t { return x.cover * 2 }
@@ -11,12 +12,23 @@ func LoadStaticData() {
 	App.lookup.years = LoadYearVarsIdMap()
 	App.lookup.categs = LoadCategIdMap()
 	App.lookup.levels = LoadLevelIdMap()
-	App.lookup.plans = LoadPlanDetailsIdMap()
 	App.lookup.products = LoadProducts()
 	App.lookup.prices = LoadPrices()
+
+	App.lookup.plans = LoadPlanDetailsIdMap()
 	App.lookup.planAddons, App.lookup.planAddonChoices = LoadPlanAddons()
+
 	App.lookup.benSecs = LoadBenSecs()
 	App.lookup.benSecItems = LoadBenSecItems()
+	App.lookup.bensByFamily = LoadBensByFamily()
+	App.lookup.bensByAddon = LoadBensByAddon()
+
+	//testBens()
+}
+
+func testBens() {
+	Log(App.lookup.bensByAddon[BenAddon(23, 3982)])
+	Log(App.lookup.bensByFamily[BenFamily(23, 4270)])
 }
 
 type Categ_t struct {
@@ -60,6 +72,7 @@ func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
 			&p.nc.promise, &p.nc.note,
 			&p.nc.adult.months, &p.nc.adult.flat, &p.nc.child.months, &p.nc.child.flat, 
 			&p.name, &p.provName, &p.exactAge, &p.segmask,
+			&p.topNote,
 		)
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(int(p.planId), p)
@@ -214,8 +227,8 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 	out := IdMap[BenSecItem_t]()
 
 	rows := App.DB.Call(`quo_bensecitems_query`, 0)
-
 	if rows.HasError() { panic(rows.Message()) }
+
 	defer rows.Close()
 	for rows.Next() {
 		var x BenSecItem_t
@@ -226,4 +239,49 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 	if rows.HasError() { panic(rows.Message()) }
 
 	return out
+}
+
+type BenFamily_t struct { benefit, family int }
+type BenAddon_t struct { benefit, addon int }
+func BenFamily(b, f int) BenFamily_t { return BenFamily_t{ benefit:b, family:f } }
+func BenAddon(b, a int) BenAddon_t { return BenAddon_t{ benefit:b, addon:a } }
+
+func LoadBensByFamily() map[BenFamily_t]string {
+	m := make(map[BenFamily_t]string)
+
+	rows := App.DB.Call(`quo_benefits_family_query`)
+	if rows.HasError() { panic(rows.Message()) }
+
+	defer rows.Close()
+	var x BenFamily_t
+	for rows.Next() {
+		var s string
+		rows.Scan(&x.benefit, &x.family, &s)
+		if rows.HasError() { panic(rows.Message()) }
+		m[x] = s
+	}
+	if rows.HasError() { panic(rows.Message()) }
+
+	//Log(m)
+	return m
+}
+
+func LoadBensByAddon() map[BenAddon_t]string {
+	m := make(map[BenAddon_t]string)
+
+	rows := App.DB.Call(`quo_benefits_addon_query`)
+	if rows.HasError() { panic(rows.Message()) }
+
+	defer rows.Close()
+	var x BenAddon_t
+	for rows.Next() {
+		var s string
+		rows.Scan(&x.benefit, &x.addon, &s)
+		if rows.HasError() { panic(rows.Message()) }
+		m[x] = s
+	}
+	if rows.HasError() { panic(rows.Message()) }
+
+	//Log(m)
+	return m
 }

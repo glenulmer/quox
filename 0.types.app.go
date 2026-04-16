@@ -21,14 +21,18 @@ type App_t struct {
 		years		IdMap_t[YearVars_t]
 		categs		IdMap_t[Categ_t]
 		levels 		IdMap_t[Level_t]
-		plans		IdMap_t[Plan_t]
 		products	map[ProductId_t]Product_t
 		prices		map[YAP_t]Price_t
+
+		plans		IdMap_t[Plan_t]
 		planAddons	map[PlanCateg_t]CatChoice_t
+		planNotes  	map[PlanId_t]string
 		planAddonChoices map[PlanCateg_t][]CatChoice_t
 
 		benSecs		IdMap_t[BenSec_t]
 		benSecItems	IdMap_t[BenSecItem_t]
+		bensByFamily map[BenFamily_t]string
+		bensByAddon  map[BenAddon_t]string
 	}
 }
 

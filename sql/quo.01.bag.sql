@@ -168,12 +168,14 @@ begin
          , pn.promise, pn.note 
          , pn.ad_months, pn.ad_flat, pn.ch_months, pn.ch_flat
          , a.name, c.name, c.exact_age, a.segmask
+         , ifnull(n.note,'') note
       from plans p
       join families f on p.family = f.family
       join products a on p.plan = a.product
       join providers c on a.provider = c.provider
       join plan_deductibles pd on pd.plan = p.plan
       join plan_noclaims pn on pn.plan = p.plan
+      left join plan_topnote n on n.plan = p.plan
      where !p.softdel and !a.softdel and !c.softdel
   order by c.name, f.name, pd.ad_value desc;
 end
@@ -201,29 +203,6 @@ begin
       join prices p on p.year = y.year
      where p.base > 0
      order by p.year, p.age, p.product;
-end
-###
-delimiter ;
-
-
-delimiter ###
-create or replace procedure quo_bensections_query()
-begin
-    select b.section, b.name
-      from benefit_sections b
-     order by b.section;
-end
-###
-delimiter ;
-
-
-delimiter ###
-create or replace procedure quo_bensecitems_query($sec int)
-begin
-    select b.benefit, b.label, b.slim
-      from benefits b
-     where (($sec = 0) or (section = $sec))
-     order by b.section, secsort;
 end
 ###
 delimiter ;
