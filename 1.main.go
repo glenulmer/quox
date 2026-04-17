@@ -25,6 +25,7 @@ func main() {
 	r.Get(`/quote-review`, App.Auth(Page2EditQ))
 	r.Post(`/quote-review`, App.Auth(Page2EditQEntry))
 	r.Post(`/quote-review-change`, App.Auth(Page2EditQChange))
+	r.Post(`/download-excel`, App.Auth(DownloadExcel))
 
 	r.Get(`/signin`, SignInHandler)
 	r.Post(`/signin`, SignInHandler)

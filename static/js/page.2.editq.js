@@ -153,6 +153,7 @@
 		if (!el.matches(selector)) return;
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
+		if (name === 'DownloadExcel') return;
 		ev.preventDefault();
 		sendIfChanged(name, controlValue(el), true);
 	};

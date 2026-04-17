@@ -14,12 +14,12 @@ func EditQCSSPath() string {
 	return Str(`/static/css/page.2.editq.phone.css?v=`, App.staticVersion)
 }
 
-func EditQBodyView(vars QuoteVars_t, sortForGet bool) Elem_t {
+func EditQBodyView(vars UIBagVars_t, sortForGet bool) Elem_t {
 	if App.layout == layoutDesktop { return EditQDesktopBodyView(vars, sortForGet) }
 	return EditQPhoneBodyView(vars, sortForGet)
 }
 
-func EditQFormView(vars QuoteVars_t, sortForGet bool) Elem_t {
+func EditQFormView(vars UIBagVars_t, sortForGet bool) Elem_t {
 	return Elem(`form`).
 		Id(`EditQForm`).
 		Class(`editq-form`).
@@ -28,7 +28,7 @@ func EditQFormView(vars QuoteVars_t, sortForGet bool) Elem_t {
 		Wrap(EditQBodyView(vars, sortForGet))
 }
 
-func EditQPageView(vars QuoteVars_t, sortForGet bool) Elem_t {
+func EditQPageView(vars UIBagVars_t, sortForGet bool) Elem_t {
 	return Elem(`main`).Class(`editq-page`).Wrap(
 		EditQFormView(vars, sortForGet),
 	)

@@ -23,6 +23,8 @@
 - You must achieve code clarity, simplicity, maintainability, and no needless duplication.
 - I will ask another AI to criticize your work for all factors.
 - Anticipate all criticisms, do not rush to a solution.
+- Minimal code changes.
+- After each function you add, (a) check for duplication and (b) assess bloat.
 
 ## E) Enforcement
 

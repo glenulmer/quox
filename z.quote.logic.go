@@ -237,7 +237,7 @@ func QuoteControlsByGroup(layout, group string) []QuoteControl_t {
 	return out
 }
 
-func QuoteVars(state State_t) QuoteVars_t {
+func QuoteVars(state State_t) UIBagVars_t {
 	out := QuoteDefaultVars()
 	for k, v := range state.quote { out[k] = v }
 	QuoteApplyForcedQuoteDefaults(out)
@@ -245,7 +245,7 @@ func QuoteVars(state State_t) QuoteVars_t {
 	return out
 }
 
-func QuoteFieldList(vars QuoteVars_t) []QuoteField_t {
+func QuoteFieldList(vars UIBagVars_t) []QuoteField_t {
 	var list []QuoteField_t
 	for _, x := range QuoteFieldDefs() {
 		x.value = vars[x.name]
@@ -261,9 +261,9 @@ func QuoteAllowsField(name string) bool {
 	return ok
 }
 
-func QuoteDefaultVars() QuoteVars_t {
+func QuoteDefaultVars() UIBagVars_t {
 	ctx := QuoteDefaults()
-	out := make(QuoteVars_t)
+	out := make(UIBagVars_t)
 	for _, x := range QuoteControlDefs() {
 		if x.defaultValue == nil {
 			out[x.name] = ``

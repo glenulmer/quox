@@ -15,7 +15,7 @@ func QuoteCSSPath() string {
 	return Str(`/static/css/page.1.quote.phone.css?v=`, App.staticVersion)
 }
 
-func QuotePageView(vars QuoteVars_t, plans QuotePlans_t) Elem_t {
+func QuotePageView(vars UIBagVars_t, plans QuotePlans_t) Elem_t {
 	if App.layout == layoutDesktop { return QuoteDesktopPageView(vars, plans) }
 	return QuotePhonePageView(vars, plans)
 }

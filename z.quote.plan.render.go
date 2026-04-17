@@ -432,7 +432,7 @@ func QuotePlanDesktopView(data QuotePlans_t) Elem_t {
 	return Div().Class(`quote-plan-table`, `quote-plan-table-main`).Wrap(rows)
 }
 
-func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
+func QuoteDesktopSelectedPlansBox(vars UIBagVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
 	selectedRowsData := QuoteSelectedRows(state)
 	showVision := StateBool(state, `vision`, `glasses`)
@@ -460,7 +460,7 @@ func QuoteDesktopSelectedPlansBox(vars QuoteVars_t) Elem_t {
 	return out
 }
 
-func QuotePhoneSelectedPlansBox(vars QuoteVars_t) Elem_t {
+func QuotePhoneSelectedPlansBox(vars UIBagVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
 	selectedRowsData := QuoteSelectedRows(state)
 	var cards []Elem_t

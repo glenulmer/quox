@@ -8,7 +8,7 @@ var forcedQuoteDefaults bool
 
 func SetForcedQuoteDefaults() { forcedQuoteDefaults = true }
 
-func QuoteApplyForcedQuoteDefaults(vars QuoteVars_t) {
+func QuoteApplyForcedQuoteDefaults(vars UIBagVars_t) {
 	if !forcedQuoteDefaults || vars == nil { return }
 
 	vars[`clientName`] = `Jill Jones`
@@ -55,7 +55,7 @@ func QuoteJaneBirthDate() string {
 	return birth[:5] + `07-15`
 }
 
-func QuoteDropKeysByPrefix(vars QuoteVars_t, prefix string) {
+func QuoteDropKeysByPrefix(vars UIBagVars_t, prefix string) {
 	for key := range vars {
 		if strings.HasPrefix(key, prefix) { delete(vars, key) }
 	}

@@ -9,11 +9,11 @@ type UserInfo_t struct {
 	greet, email string
 }
 
-type QuoteVars_t map[string]string
+type UIBagVars_t map[string]string
 
 type State_t struct {
 	user UserInfo_t
-	quote QuoteVars_t
+	quote UIBagVars_t
 }
 
 func InitState() State_t {

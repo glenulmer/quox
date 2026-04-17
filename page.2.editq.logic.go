@@ -222,7 +222,7 @@ func EditQPrimeAppliedAmount(mode, amount string, base EuroCent_t) EuroCent_t {
 	return EuroCent_t((int64(base) * n) / 10000)
 }
 
-func EditQPrimeCharges(vars QuoteVars_t) []EditQPrimeCharge_t {
+func EditQPrimeCharges(vars UIBagVars_t) []EditQPrimeCharge_t {
 	state := QuoteStateFromVars(vars)
 	selected := QuoteSelectedRows(state)
 	var out []EditQPrimeCharge_t
@@ -272,7 +272,7 @@ func EditQPrimeCharges(vars QuoteVars_t) []EditQPrimeCharge_t {
 	return out
 }
 
-func EditQDependentCharges(vars QuoteVars_t, dep EditQDep_t) []EditQPrimeCharge_t {
+func EditQDependentCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPrimeCharge_t {
 	work := QuoteStateFromVars(vars)
 	work.quote[`birth`] = dep.birth
 	if dep.vision {
@@ -347,7 +347,7 @@ func EditQPlanUsesExactAge(planId int) bool {
 	return false
 }
 
-func EditQDependentAgeText(vars QuoteVars_t, dep EditQDep_t) string {
+func EditQDependentAgeText(vars UIBagVars_t, dep EditQDep_t) string {
 	work := QuoteStateFromVars(vars)
 	work.quote[`birth`] = dep.birth
 	buyYear, yearAge, exactAge := PlanAges(work)
@@ -393,7 +393,7 @@ func EditQDefaultDependentBirth() string {
 	return fmt.Sprintf(`%04d-06-15`, EditQCurrentYear()-4)
 }
 
-func EditQPreConditions(vars QuoteVars_t) []EditQCond_t {
+func EditQPreConditions(vars UIBagVars_t) []EditQCond_t {
 	var out []EditQCond_t
 	for key, value := range vars {
 		condId, ok := EditQPreControl(key)
@@ -411,7 +411,7 @@ func EditQBirthSortKey(v string) string {
 	return v
 }
 
-func EditQDependents(vars QuoteVars_t, sortForGet bool) []EditQDep_t {
+func EditQDependents(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
 	all := make(map[int]EditQDep_t)
 	for key, value := range vars {
 		if depId, ok := EditQDepNameControl(key); ok {
@@ -465,7 +465,7 @@ func EditQDependents(vars QuoteVars_t, sortForGet bool) []EditQDep_t {
 	return out
 }
 
-func EditQDeleteDependent(vars QuoteVars_t, depId int) {
+func EditQDeleteDependent(vars UIBagVars_t, depId int) {
 	prefix := Str(`editq-dep-`, depId, `-`)
 	for key := range vars {
 		if strings.HasPrefix(key, prefix) { delete(vars, key) }

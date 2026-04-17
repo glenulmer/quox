@@ -69,7 +69,7 @@ func QuoteSelectedDelControl(name string) (itemId int, ok bool) {
 	return itemId, true
 }
 
-func QuoteSelectedItems(vars QuoteVars_t) []QuoteSelectedItem_t {
+func QuoteSelectedItems(vars UIBagVars_t) []QuoteSelectedItem_t {
 	all := make(map[int]QuoteSelectedItem_t)
 
 	for key, value := range vars {
@@ -103,14 +103,14 @@ func QuoteSelectedItems(vars QuoteVars_t) []QuoteSelectedItem_t {
 
 func QuoteCloneState(in State_t) State_t {
 	out := in
-	out.quote = make(QuoteVars_t, len(in.quote))
+	out.quote = make(UIBagVars_t, len(in.quote))
 	for k, v := range in.quote { out.quote[k] = v }
 	return out
 }
 
-func QuoteStateFromVars(vars QuoteVars_t) State_t {
+func QuoteStateFromVars(vars UIBagVars_t) State_t {
 	out := InitState()
-	out.quote = make(QuoteVars_t, len(vars))
+	out.quote = make(UIBagVars_t, len(vars))
 	for k, v := range vars { out.quote[k] = v }
 	return out
 }

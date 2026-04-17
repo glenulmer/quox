@@ -62,19 +62,19 @@ func EditQEuroCentText(v EuroCent_t) string {
 	return Str(v.String(), ` €`)
 }
 
-func EditQPrimeTotal(vars QuoteVars_t) EuroCent_t {
+func EditQPrimeTotal(vars UIBagVars_t) EuroCent_t {
 	charges := EditQPrimeCharges(vars)
 	var total EuroCent_t
 	for _, x := range charges { total += x.applied }
 	return total
 }
 
-func EditQPrimeTitleText(vars QuoteVars_t) string {
+func EditQPrimeTitleText(vars UIBagVars_t) string {
 	totalFlat := EuroFlatFromCent(EditQPrimeTotal(vars))
 	return Str(`Pre-existing conditions (`, totalFlat.OutEuro(), `)`)
 }
 
-func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
+func EditQPrimeChargesView(vars UIBagVars_t) Elem_t {
 	charges := EditQPrimeCharges(vars)
 	appliedByItem := make(map[int]EuroCent_t)
 	planByItem := make(map[int]EuroCent_t)
@@ -129,7 +129,7 @@ func EditQPrimeChargesView(vars QuoteVars_t) Elem_t {
 	)
 }
 
-func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
+func EditQDependentView(vars UIBagVars_t, dep EditQDep_t, order int) Elem_t {
 	charges := EditQDependentCharges(vars, dep)
 	appliedByItem := make(map[int]EuroCent_t)
 	planByItem := make(map[int]EuroCent_t)
@@ -215,7 +215,7 @@ func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
 	)
 }
 
-func EditQDependentsView(vars QuoteVars_t, sortForGet bool) Elem_t {
+func EditQDependentsView(vars UIBagVars_t, sortForGet bool) Elem_t {
 	deps := EditQDependents(vars, sortForGet)
 	namedCount := 0
 	var list []Elem_t
@@ -252,7 +252,7 @@ func EditQTopCardView(id, title string, open bool, body Elem_t, right ...Elem_t)
 	)
 }
 
-func EditQReviewControlValue(vars QuoteVars_t, name string) string {
+func EditQReviewControlValue(vars UIBagVars_t, name string) string {
 	value := vars[name]
 	if value == `` { return `-` }
 	ctrl, ok := QuoteControlByName(name)
@@ -274,7 +274,7 @@ func EditQReviewYear(value string) string {
 	return value[:4]
 }
 
-func EditQReviewClientView(vars QuoteVars_t) Elem_t {
+func EditQReviewClientView(vars UIBagVars_t) Elem_t {
 	clientName := Trim(vars[`clientName`])
 	if clientName == `` { clientName = `No client name` }
 	return Div().Class(`editq-review-client`).Wrap(
@@ -294,7 +294,7 @@ func EditQReviewClientView(vars QuoteVars_t) Elem_t {
 	)
 }
 
-func EditQReviewPrexByItemCateg(vars QuoteVars_t) (map[int]EuroCent_t, map[string]EuroCent_t) {
+func EditQReviewPrexByItemCateg(vars UIBagVars_t) (map[int]EuroCent_t, map[string]EuroCent_t) {
 	byItem := make(map[int]EuroCent_t)
 	byItemCateg := make(map[string]EuroCent_t)
 	for _, x := range EditQPrimeCharges(vars) {
@@ -315,7 +315,7 @@ func EditQReviewPriceRow(label string, total, base, surch, prex EuroCent_t, clas
 	)
 }
 
-func EditQReviewPlanView(vars QuoteVars_t, item QuoteSelectedItem_t, row QuotePlan_t, prexByItem map[int]EuroCent_t, prexByItemCateg map[string]EuroCent_t) Elem_t {
+func EditQReviewPlanView(vars UIBagVars_t, item QuoteSelectedItem_t, row QuotePlan_t, prexByItem map[int]EuroCent_t, prexByItemCateg map[string]EuroCent_t) Elem_t {
 	prexTotal := prexByItem[item.itemId]
 	prexPlan := prexByItemCateg[Str(item.itemId, `:`, 0)]
 	effectiveAge := `-`
@@ -363,12 +363,26 @@ func EditQReviewExportButtonsView() Elem_t {
 		Class(`editq-card-title-right`).
 		KV(`style`, `width: 100%; justify-content: center;`).
 		Wrap(
-			Elem(`button`).Type(`button`).Class(`editq-title-btn`).Text(`Get Excel`),
-			Elem(`button`).Type(`button`).Class(`editq-title-btn`).Text(`Get Slim`),
+			Elem(`button`).
+				Type(`submit`).
+				Name(`DownloadExcel`).
+				Value(`slim=false`).
+				KV(`formaction`, `/download-excel`).
+				KV(`formmethod`, `post`).
+				Class(`editq-title-btn`).
+				Text(`Get Excel`),
+			Elem(`button`).
+				Type(`submit`).
+				Name(`DownloadExcel`).
+				Value(`slim=true`).
+				KV(`formaction`, `/download-excel`).
+				KV(`formmethod`, `post`).
+				Class(`editq-title-btn`).
+				Text(`Get Slim`),
 		)
 }
 
-func EditQQuoteReviewBody(vars QuoteVars_t) Elem_t {
+func EditQQuoteReviewBody(vars UIBagVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
 	selected := QuoteSelectedRows(state)
 	prexByItem, prexByItemCateg := EditQReviewPrexByItemCateg(vars)
@@ -387,7 +401,7 @@ func EditQQuoteReviewBody(vars QuoteVars_t) Elem_t {
 	)
 }
 
-func EditQHeaderView(vars QuoteVars_t) Elem_t {
+func EditQHeaderView(vars UIBagVars_t) Elem_t {
 	return EditQTopCardView(`EditQPrexCard`, EditQPrimeTitleText(vars), false,
 		Div().Class(`editq-header`).Wrap(
 			EditQPrimeChargesView(vars),
@@ -395,7 +409,7 @@ func EditQHeaderView(vars QuoteVars_t) Elem_t {
 	)
 }
 
-func EditQQuoteReviewCardView(vars QuoteVars_t) Elem_t {
+func EditQQuoteReviewCardView(vars UIBagVars_t) Elem_t {
 	backBtn := Elem(`a`).
 		KV(`href`, `/quote`).
 		Class(`editq-title-btn`).
