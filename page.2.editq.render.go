@@ -216,7 +216,7 @@ func EditQDependentView(vars QuoteVars_t, dep EditQDep_t, order int) Elem_t {
 }
 
 func EditQDependentsView(vars QuoteVars_t, sortForGet bool) Elem_t {
-	deps := EditQDependents(vars, sortForGet)
+	deps := DependantsFromVars(vars, sortForGet)
 	namedCount := 0
 	var list []Elem_t
 	for i, dep := range deps {

@@ -11,7 +11,7 @@ type Provider_t struct {
 }
 
 type Family_t struct {
-	familyId   int
+	familyId   FamilyId_t
 	providerId int
 	name       string
 }
@@ -29,7 +29,7 @@ type Product_t struct {
 
 type Plan_t struct {
 	planId PlanId_t
-	familyId  int
+	familyId  FamilyId_t
 	hospital, dental int
 	priorcov, noexam, specref int
 	tempvisa, surcharge, shi bool
@@ -37,6 +37,7 @@ type Plan_t struct {
 	comonths Months_t // months of commission paid
 	ded Deductible_t
 	nc NoClaims_t
+	ncCategs []CategId_t
 	// excluding plan_noclaim_categs, since they seem to be one-off & sparse
 	// excluding plan_incentives, since we have no meaningful content
 	name, provName  string

@@ -23,6 +23,8 @@ func LoadStaticData() {
 	App.lookup.bensByFamily = LoadBensByFamily()
 	App.lookup.bensByAddon = LoadBensByAddon()
 
+	App.lookup.familyTips = LoadFamilyTips()
+
 	//testBens()
 }
 
@@ -39,6 +41,26 @@ type Categ_t struct {
 	display int
 }
 
+func LoadFamilyTips() map[FamilyId_t][]string {
+	out := make(map[FamilyId_t][]string)
+
+	rows := App.DB.Call(`quo_family_tips_query`)
+	if rows.HasError() { panic(rows.Message()) }
+
+	var family FamilyId_t
+	var tip string
+
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&family, &tip)
+		if rows.HasError() { panic(rows.Message()) }
+		ftips := out[family]
+		out[family] = append(ftips, tip)
+	}
+
+	return out
+}
+
 func LoadCategIdMap() IdMap_t[Categ_t] {
 	out := IdMap[Categ_t]()
 	rows := App.DB.Call(`quo_categs_query`)
@@ -51,6 +73,22 @@ func LoadCategIdMap() IdMap_t[Categ_t] {
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(int(x.categId), x)
 	}
+	return out
+}
+
+func PlanNCCategs(planId PlanId_t) []CategId_t {
+	var out []CategId_t
+
+	rows := App.DB.Call(`quo_plan_nccategs_query`, planId)
+	if rows.HasError() { panic(rows.Message()) }
+
+	var categ CategId_t
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&categ)
+		out = append(out, categ)
+	}
+
 	return out
 }
 
@@ -75,6 +113,7 @@ func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
 			&p.topNote,
 		)
 		if rows.HasError() { panic(rows.Message()) }
+		p.ncCategs = PlanNCCategs(p.planId)
 		out.Add(int(p.planId), p)
 	}
 	return out
@@ -148,6 +187,7 @@ type ProductId_t int
 type PlanId_t ProductId_t
 type AddonId_t ProductId_t
 type CategId_t int
+type FamilyId_t int
 
 func LoadProducts() map[ProductId_t]Product_t {
 	products := make(map[ProductId_t]Product_t)
