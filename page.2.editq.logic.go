@@ -411,7 +411,7 @@ func EditQBirthSortKey(v string) string {
 	return v
 }
 
-func DependantsFromVars(vars QuoteVars_t, sortForGet bool) []EditQDep_t {
+func EditQDependents(vars QuoteVars_t, sortForGet bool) []EditQDep_t {
 	all := make(map[int]EditQDep_t)
 	for key, value := range vars {
 		if depId, ok := EditQDepNameControl(key); ok {
@@ -473,7 +473,7 @@ func EditQDeleteDependent(vars QuoteVars_t, depId int) {
 }
 
 func EditQAddDependent(state *State_t) bool {
-	deps := DependantsFromVars(state.quote, false)
+	deps := EditQDependents(state.quote, false)
 	if len(deps) >= editQDepMaxCount { return false }
 	next := StateInt(*state, editQDepSeqKey) + 1
 	state.quote[editQDepSeqKey] = Str(next)
@@ -539,7 +539,7 @@ func EditQApply(state *State_t, name, value string) bool {
 	}
 	if depId, ok := EditQDepDelControl(name); ok {
 		EditQDeleteDependent(state.quote, depId)
-		if len(DependantsFromVars(state.quote, false)) == 0 {
+		if len(EditQDependents(state.quote, false)) == 0 {
 			EditQAddDependent(state)
 		}
 		return true
@@ -579,6 +579,6 @@ func EditQApply(state *State_t, name, value string) bool {
 
 func EditQEnsureDefaultDependent(state *State_t) {
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
-	if len(DependantsFromVars(state.quote, false)) > 0 { return }
+	if len(EditQDependents(state.quote, false)) > 0 { return }
 	EditQAddDependent(state)
 }
