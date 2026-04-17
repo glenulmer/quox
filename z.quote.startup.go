@@ -41,12 +41,10 @@ func QuoteApplyForcedQuoteDefaults(vars UIBagVars_t) {
 	vars[EditQDepNameKey(1)] = `Bob`
 	vars[EditQDepBirthKey(1)] = `1990-06-15`
 	vars[EditQDepVisionKey(1)] = ``
-	vars[EditQDepCondSeqKey(1)] = `0`
 
 	vars[EditQDepNameKey(2)] = `Jane`
 	vars[EditQDepBirthKey(2)] = QuoteJaneBirthDate()
 	vars[EditQDepVisionKey(2)] = `1`
-	vars[EditQDepCondSeqKey(2)] = `0`
 }
 
 func QuoteJaneBirthDate() string {

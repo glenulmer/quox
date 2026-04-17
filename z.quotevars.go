@@ -5,14 +5,31 @@ import (
 	. "quo2/lib/dec2"
 )
 
+type ChoiceId_t int
+
 type QuoteVars_t struct {
 	core CoreVars_t
-	choices []Choice_t
+	choices map[ChoiceId_t]PlanQuoteInfo_t
+	dependants []Dependant_t
 }
 
-type Choice_t struct {
+type PlanQuoteInfo_t struct {
 	plan PlanId_t
-	products map[CategId_t]ProductId_t
+	addons map[CategId_t]AddonId_t
+	preex []PreEx_t
+}
+
+type PreEx_t struct {
+	categ CategId_t
+	amount struct { percent Percent_t; euro EuroCent_t }
+	note string
+}
+
+type Dependant_t struct {
+	name string
+	birth CalDate_t
+	vision bool
+	preexByChoice map[ChoiceId_t][]PreEx_t
 }
 
 type CoreVars_t struct {
