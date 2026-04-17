@@ -6,14 +6,6 @@ import (
 	. "quo2/lib/output"
 )
 
-func EditQGrowInput(name, value string) Elem_t {
-	return Elem(`textarea`).
-		Name(name).
-		Class(`editq-grow-input`).
-		KV(`rows`, 1).
-		Text(value)
-}
-
 func EditQDelButton(name string) Elem_t {
 	return Elem(`button`).
 		Type(`button`).

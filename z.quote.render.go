@@ -156,10 +156,6 @@ func QuoteControlViewSpan(layout string, x QuoteControl_t, vars UIBagVars_t, spa
 	)
 }
 
-func QuoteControlView(layout string, x QuoteControl_t, vars UIBagVars_t) Elem_t {
-	return QuoteControlViewSpan(layout, x, vars, 0)
-}
-
 func QuoteControlLabelViewSpan(layout string, x QuoteControl_t, label string, vars UIBagVars_t, span int, class ...string) Elem_t {
 	x.label = label
 	return QuoteControlViewSpan(layout, x, vars, span, class...)

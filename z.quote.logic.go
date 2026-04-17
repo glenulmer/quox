@@ -196,14 +196,6 @@ func QuoteControlDefs() []QuoteControl_t {
 	}
 }
 
-func QuoteFieldDefs() []QuoteField_t {
-	var out []QuoteField_t
-	for _, x := range QuoteControlDefs() {
-		out = append(out, QuoteField_t{ name:x.name, label:x.label })
-	}
-	return out
-}
-
 func QuoteControlByName(name string) (QuoteControl_t, bool) {
 	for _, x := range QuoteControlDefs() {
 		if x.name == name { return x, true }
@@ -228,16 +220,7 @@ func QuoteControlSpan(x QuoteControl_t, layout string) int {
 	return x.phoneSpan
 }
 
-func QuoteControlsByGroup(layout, group string) []QuoteControl_t {
-	var out []QuoteControl_t
-	for _, x := range QuoteControlDefs() {
-		if QuoteControlGroup(x, layout) != group { continue }
-		out = append(out, x)
-	}
-	return out
-}
-
-func QuoteVars(state State_t) UIBagVars_t {
+func UIBagVars(state State_t) UIBagVars_t {
 	out := QuoteDefaultVars()
 	for k, v := range state.quote { out[k] = v }
 	QuoteApplyForcedQuoteDefaults(out)

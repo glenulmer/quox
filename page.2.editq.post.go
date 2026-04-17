@@ -8,14 +8,14 @@ import (
 )
 
 func RewriteEditQPage(w http.ResponseWriter, state State_t) {
-	vars := QuoteVars(state)
+	vars := UIBagVars(state)
 	body := EditQBodyView(vars, false)
 	SendResponse(w, RewriteHTML(OuterHTML, `EditQFormBody`, body))
 }
 
 func Page2EditQEntry(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
-	state.quote = QuoteVars(state)
+	state.quote = UIBagVars(state)
 	EditQEnsureDefaultDependent(&state)
 	SetState(req, state)
 	http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)

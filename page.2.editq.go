@@ -36,7 +36,7 @@ func EditQPageView(vars UIBagVars_t, sortForGet bool) Elem_t {
 
 func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
-	state.quote = QuoteVars(state)
+	state.quote = UIBagVars(state)
 	EditQEnsureDefaultDependent(&state)
 	SetState(req, state)
 

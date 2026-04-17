@@ -129,7 +129,7 @@ func Page1QuoteApplyQuery(state *State_t, req *http.Request) {
 
 func Page1Quote(w0 http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
-	state.quote = QuoteVars(state)
+	state.quote = UIBagVars(state)
 	Page1QuoteApplyQuery(&state, req)
 	SetState(req, state)
 	plans := QuotePlans(state)

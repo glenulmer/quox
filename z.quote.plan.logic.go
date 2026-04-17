@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	. "quo2/lib/date"
 	. "quo2/lib/dec2"
@@ -137,6 +138,171 @@ func PickAnyAddon(choices []CatChoice_t) AddonId_t {
 
 func IsHospDental(categId CategId_t) bool {
 	return int(categId) == catHospital || int(categId) == catDental
+}
+
+func QuotePreEx(x EditQPrimeCharge_t) PreEx_t {
+	out := PreEx_t{
+		categ: x.categId,
+		note: x.note,
+	}
+	n, ok := EditQParseDecimal100(x.amount)
+	if !ok || n <= 0 { return out }
+	if EditQPrimeMode(x.mode) == editQPrimeModeEur {
+		out.amount.euro = EuroCent_t(n)
+		return out
+	}
+	out.amount.percent = Percent_t(n)
+	return out
+}
+
+func QuoteVars(state *State_t) QuoteVars_t {
+	work := InitState()
+	if state != nil { work = *state }
+	vars := UIBagVars(work)
+
+	out := QuoteVars_t{
+		choices: make(map[ChoiceId_t]PlanQuoteInfo_t),
+	}
+
+	out.core.clientName = vars[`clientName`]
+	out.core.segment = Atoi(vars[`segment`])
+	out.core.birth = QuoteParseBirthDate(vars[`birth`])
+	out.core.buy = QuoteParseBuyDate(vars[`buy`])
+	out.core.sickCover = EuroFlat_t(Atoi(vars[`sickCover`]))
+	out.core.priorCov = Atoi(vars[`priorCov`])
+	out.core.exam = Atoi(vars[`exam`])
+	out.core.specref = Atoi(vars[`specref`])
+	out.core.vision = QuoteVarBool(vars[`vision`])
+	out.core.tempVisa = QuoteVarBool(vars[`tempVisa`])
+	out.core.noPVN = QuoteVarBool(vars[`noPVN`])
+	out.core.naturalMed = QuoteVarBool(vars[`naturalMed`])
+	out.core.deductible.min = EuroFlat_t(Atoi(vars[`deductibleMin`]))
+	out.core.deductible.max = EuroFlat_t(Atoi(vars[`deductibleMax`]))
+	out.core.hospital.min = LevelId_t(Atoi(vars[`hospitalMin`]))
+	out.core.hospital.max = LevelId_t(Atoi(vars[`hospitalMax`]))
+	out.core.dental.min = LevelId_t(Atoi(vars[`dentalMin`]))
+	out.core.dental.max = LevelId_t(Atoi(vars[`dentalMax`]))
+
+	selected := QuoteSelectedItems(vars)
+	for _, item := range selected {
+		choiceId := ChoiceId_t(item.itemId)
+		choice := PlanQuoteInfo_t{
+			plan: PlanId_t(item.planId),
+			addons: make(map[CategId_t]AddonId_t),
+		}
+		for categId, addon := range item.cats {
+			choice.addons[categId] = addon
+		}
+		out.choices[choiceId] = choice
+	}
+
+	for _, charge := range EditQPrimeCharges(vars) {
+		choiceId := ChoiceId_t(charge.itemId)
+		choice, ok := out.choices[choiceId]
+		if !ok {
+			choice = PlanQuoteInfo_t{
+				addons: make(map[CategId_t]AddonId_t),
+			}
+		}
+		choice.preex = append(choice.preex, QuotePreEx(charge))
+		out.choices[choiceId] = choice
+	}
+
+	deps := EditQDependents(vars, false)
+	for _, dep := range deps {
+		x := Dependant_t{
+			name: dep.name,
+			birth: QuoteParseBirthDate(dep.birth),
+			vision: dep.vision,
+			preexByChoice: make(map[ChoiceId_t][]PreEx_t),
+		}
+		for _, charge := range EditQDependentCharges(vars, dep) {
+			choiceId := ChoiceId_t(charge.itemId)
+			x.preexByChoice[choiceId] = append(x.preexByChoice[choiceId], QuotePreEx(charge))
+		}
+		out.dependants = append(out.dependants, x)
+	}
+
+	return out
+}
+
+func QuoteVarsLines(x QuoteVars_t) []string {
+	var out []string
+
+	out = append(out, Str(`core.clientName=`, x.core.clientName))
+	out = append(out, Str(`core.segment=`, x.core.segment))
+	out = append(out, Str(`core.birth=`, x.core.birth))
+	out = append(out, Str(`core.buy=`, x.core.buy))
+	out = append(out, Str(`core.sickCover=`, x.core.sickCover))
+	out = append(out, Str(`core.priorCov=`, x.core.priorCov))
+	out = append(out, Str(`core.exam=`, x.core.exam))
+	out = append(out, Str(`core.specref=`, x.core.specref))
+	out = append(out, Str(`core.vision=`, x.core.vision))
+	out = append(out, Str(`core.tempVisa=`, x.core.tempVisa))
+	out = append(out, Str(`core.noPVN=`, x.core.noPVN))
+	out = append(out, Str(`core.naturalMed=`, x.core.naturalMed))
+	out = append(out, Str(`core.deductible.min=`, x.core.deductible.min))
+	out = append(out, Str(`core.deductible.max=`, x.core.deductible.max))
+	out = append(out, Str(`core.hospital.min=`, x.core.hospital.min))
+	out = append(out, Str(`core.hospital.max=`, x.core.hospital.max))
+	out = append(out, Str(`core.dental.min=`, x.core.dental.min))
+	out = append(out, Str(`core.dental.max=`, x.core.dental.max))
+
+	var choiceIds []int
+	for choiceId := range x.choices { choiceIds = append(choiceIds, int(choiceId)) }
+	sort.Ints(choiceIds)
+	for _, n := range choiceIds {
+		choiceId := ChoiceId_t(n)
+		choice := x.choices[choiceId]
+		out = append(out, Str(`choices[`, choiceId, `].plan=`, choice.plan))
+
+		var catIds []int
+		for catId := range choice.addons { catIds = append(catIds, int(catId)) }
+		sort.Ints(catIds)
+		for _, cat := range catIds {
+			categId := CategId_t(cat)
+			out = append(out, Str(`choices[`, choiceId, `].addons[`, categId, `]=`, choice.addons[categId]))
+		}
+
+		for i, preex := range choice.preex {
+			out = append(out, Str(`choices[`, choiceId, `].preex[`, i, `].categ=`, preex.categ))
+			out = append(out, Str(`choices[`, choiceId, `].preex[`, i, `].amount.percent=`, preex.amount.percent))
+			out = append(out, Str(`choices[`, choiceId, `].preex[`, i, `].amount.euro=`, preex.amount.euro))
+			out = append(out, Str(`choices[`, choiceId, `].preex[`, i, `].note=`, preex.note))
+		}
+	}
+
+	for i, dep := range x.dependants {
+		out = append(out, Str(`dependants[`, i, `].name=`, dep.name))
+		out = append(out, Str(`dependants[`, i, `].birth=`, dep.birth))
+		out = append(out, Str(`dependants[`, i, `].vision=`, dep.vision))
+
+		var depChoiceIds []int
+		for choiceId := range dep.preexByChoice { depChoiceIds = append(depChoiceIds, int(choiceId)) }
+		sort.Ints(depChoiceIds)
+		for _, n := range depChoiceIds {
+			choiceId := ChoiceId_t(n)
+			list := dep.preexByChoice[choiceId]
+			for j, preex := range list {
+				out = append(out, Str(`dependants[`, i, `].preexByChoice[`, choiceId, `][`, j, `].categ=`, preex.categ))
+				out = append(out, Str(`dependants[`, i, `].preexByChoice[`, choiceId, `][`, j, `].amount.percent=`, preex.amount.percent))
+				out = append(out, Str(`dependants[`, i, `].preexByChoice[`, choiceId, `][`, j, `].amount.euro=`, preex.amount.euro))
+				out = append(out, Str(`dependants[`, i, `].preexByChoice[`, choiceId, `][`, j, `].note=`, preex.note))
+			}
+		}
+	}
+
+	return out
+}
+
+func QuoteVarsText(x QuoteVars_t) string {
+	lines := QuoteVarsLines(x)
+	var out strings.Builder
+	for _, line := range lines {
+		out.WriteString(line)
+		out.WriteByte('\n')
+	}
+	return out.String()
 }
 
 func PlanBundledLevel(plan Plan_t, categId CategId_t) int {
