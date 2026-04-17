@@ -358,6 +358,16 @@ func EditQReviewPlanView(vars QuoteVars_t, item QuoteSelectedItem_t, row QuotePl
 	)
 }
 
+func EditQReviewExportButtonsView() Elem_t {
+	return Div().
+		Class(`editq-card-title-right`).
+		KV(`style`, `width: 100%; justify-content: center;`).
+		Wrap(
+			Elem(`button`).Type(`button`).Class(`editq-title-btn`).Text(`Get Excel`),
+			Elem(`button`).Type(`button`).Class(`editq-title-btn`).Text(`Get Slim`),
+		)
+}
+
 func EditQQuoteReviewBody(vars QuoteVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
 	selected := QuoteSelectedRows(state)
@@ -371,6 +381,7 @@ func EditQQuoteReviewBody(vars QuoteVars_t) Elem_t {
 		plans = append(plans, Div(`No plans selected.`).Class(`editq-review-empty`))
 	}
 	return Div().Class(`editq-review`).Wrap(
+		EditQReviewExportButtonsView(),
 		EditQReviewClientView(vars),
 		Div().Class(`editq-review-plans`).Wrap(plans),
 	)
