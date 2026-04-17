@@ -190,20 +190,6 @@ func QuoteSpacer(span int, class ...string) Elem_t {
 	return Div().Class(classes...)
 }
 
-func QuoteControlViews(layout, group string, vars UIBagVars_t) []Elem_t {
-	var out []Elem_t
-	for _, x := range QuoteControlsByGroup(layout, group) {
-		out = append(out, QuoteControlView(layout, x, vars))
-	}
-	return out
-}
-
-func QuoteNamedControlView(layout, name string, vars UIBagVars_t) Elem_t {
-	x, ok := QuoteControlByName(name)
-	if !ok { return Div(`missing field: `, name) }
-	return QuoteControlView(layout, x, vars)
-}
-
 func QuoteNamedControlSpanView(layout, name string, vars UIBagVars_t, span int, class ...string) Elem_t {
 	x, ok := QuoteControlByName(name)
 	if !ok { return Div(`missing field: `, name) }

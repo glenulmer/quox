@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	. "quo2/lib/dec2"
-	. "quo2/lib/output"
 )
 
 func (x YearVars_t)maxCover() EuroFlat_t { return x.cover * 2 }
@@ -24,13 +23,6 @@ func LoadStaticData() {
 	App.lookup.bensByAddon = LoadBensByAddon()
 
 	App.lookup.familyTips = LoadFamilyTips()
-
-	//testBens()
-}
-
-func testBens() {
-	Log(App.lookup.bensByAddon[BenAddon(23, 3982)])
-	Log(App.lookup.bensByFamily[BenFamily(23, 4270)])
 }
 
 type Categ_t struct {

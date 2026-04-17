@@ -23,42 +23,6 @@ func QuotePlanAddonByCateg(x QuotePlan_t, categId CategId_t) (QuotePlanAddon_t, 
 	return QuotePlanAddon_t{}, false
 }
 
-func QuotePlanCellText(x QuotePlan_t, tag string) string {
-	addon, ok := QuotePlanAddonByTag(x, tag)
-	if !ok { return `` }
-	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
-		return ``
-	}
-	pick := QuoteAddonPickText(addon)
-	price := PriceText(addon.base+addon.surcharge, addon.priceOk)
-	switch {
-	case pick != `` && price != `-`:
-		return Str(pick, ` / `, price)
-	case pick != ``:
-		return pick
-	default:
-		return price
-	}
-}
-
-func QuotePlanCategCellText(x QuotePlan_t, categId CategId_t) string {
-	addon, ok := QuotePlanAddonByCateg(x, categId)
-	if !ok { return `` }
-	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
-		return ``
-	}
-	pick := QuoteAddonPickText(addon)
-	price := PriceText(addon.base+addon.surcharge, addon.priceOk)
-	switch {
-	case pick != `` && price != `-`:
-		return Str(pick, ` / `, price)
-	case pick != ``:
-		return pick
-	default:
-		return price
-	}
-}
-
 func QuoteAddonPickText(x QuotePlanAddon_t) string {
 	if x.label != `` && Lower(Trim(x.label)) != Lower(Trim(x.categ)) { return x.label }
 	if x.addon != 0 { return AddonName(CatChoice_t{ addon:x.addon, label:x.label }) }
@@ -338,15 +302,6 @@ func QuotePlanDesktopAddonPickNamedView(name string, addon QuotePlanAddon_t) Ele
 
 func QuotePlanDesktopCategCellView(x QuotePlan_t, categId CategId_t) Elem_t {
 	addon, ok := QuotePlanAddonByCateg(x, categId)
-	if !ok { return Div().Class(`quote-plan-cell-pick`) }
-	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
-		return Div().Class(`quote-plan-cell-pick`)
-	}
-	return QuotePlanDesktopAddonPickView(x.planId, addon)
-}
-
-func QuotePlanDesktopTagCellView(x QuotePlan_t, tag string) Elem_t {
-	addon, ok := QuotePlanAddonByTag(x, tag)
 	if !ok { return Div().Class(`quote-plan-cell-pick`) }
 	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
 		return Div().Class(`quote-plan-cell-pick`)

@@ -4,18 +4,6 @@ import (
 	. "quo2/lib/dec2"
 )
 
-type Provider_t struct {
-	providerId         int
-	name               string
-	exact_age, display bool
-}
-
-type Family_t struct {
-	familyId   FamilyId_t
-	providerId int
-	name       string
-}
-
 type SegBits_t int
 
 type Product_t struct {

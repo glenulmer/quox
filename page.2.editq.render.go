@@ -33,13 +33,6 @@ func EditQAddButton(name, label string, class ...string) Elem_t {
 		Text(label)
 }
 
-func EditQConditionRow(name, value, delName string) Elem_t {
-	return Div().Class(`editq-condition-row`).Wrap(
-		Div().Class(`editq-condition-text`).Wrap(EditQGrowInput(name, value)),
-		Div().Class(`editq-condition-del`).Wrap(EditQDelButton(delName)),
-	)
-}
-
 func EditQPrimeChargeModeView(name, mode string) Elem_t {
 	return Select(
 		Option().KV(`value`, editQPrimeModePct).Text(`%`),

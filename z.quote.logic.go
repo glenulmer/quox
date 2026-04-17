@@ -245,15 +245,6 @@ func QuoteVars(state State_t) UIBagVars_t {
 	return out
 }
 
-func QuoteFieldList(vars UIBagVars_t) []QuoteField_t {
-	var list []QuoteField_t
-	for _, x := range QuoteFieldDefs() {
-		x.value = vars[x.name]
-		list = append(list, x)
-	}
-	return list
-}
-
 func QuoteAllowsField(name string) bool {
 	if name == `sortBy` { return true }
 	if _, ok := QuoteControlByName(name); ok { return true }

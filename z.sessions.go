@@ -77,10 +77,6 @@ func SessionConfig(ctx context.Context) {
 	App.sessionManager.Put(ctx, sessionStateKey, InitState())
 }
 
-func SessionSet(key string, value any, r *http.Request) { App.sessionManager.Put(r.Context(), key, value) }
-
-func SessionGetInt(key string, r *http.Request) int { return App.sessionManager.GetInt(r.Context(), key) }
-
 func SetState(r *http.Request, state State_t) { App.sessionManager.Put(r.Context(), sessionStateKey, state) }
 
 func GetState(r *http.Request) State_t {
