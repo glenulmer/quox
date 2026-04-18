@@ -16,7 +16,7 @@
 
 1. Keep feedback technical and concrete.
 2. State conclusions and recent actions first. Details afterward.
-3. If I say "shutdown everything", that means kill all persistent terminals & processes & resources etc
+3. If I say "shutdown everything", that means kill all persistent terminals & resources that can be released
 
 ## D) Quality Check
 

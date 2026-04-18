@@ -184,7 +184,7 @@ func QuoteSortSelectView(sortBy string) Elem_t {
 	).Name(`sortBy`).Choose(mode).Class(`quote-plan-sort-input`)
 }
 
-func XYZQB(class ...string) Elem_t {
+func QuoteEditQuoteButton(class ...string) Elem_t {
 	return Elem(`button`).
 		Type(`submit`).
 		KV(`formaction`, `/quote-review`).
@@ -400,7 +400,7 @@ func QuoteDesktopSelectedPlansBox(vars UIBagVars_t) Elem_t {
 
 	showEdit := len(selectedRows) > 0
 	var rows []Elem_t
-	rows = append(rows, QuotePlanDesktopHead(categs, showVision, QuoteSelectedTitle(len(selectedRows)), ``, false, showEdit, XYZQB(`quote-desk-selected-edit-btn`)))
+	rows = append(rows, QuotePlanDesktopHead(categs, showVision, QuoteSelectedTitle(len(selectedRows)), ``, false, showEdit, QuoteEditQuoteButton(`quote-desk-selected-edit-btn`)))
 	rows = append(rows, selectedRows...)
 
 	out := Div().Id(`QuoteDeskSelected`).Class(`quote-desk-selected`).Wrap(
@@ -428,7 +428,7 @@ func QuotePhoneSelectedPlansBox(vars UIBagVars_t) Elem_t {
 	var titleBar []Elem_t
 	titleBar = append(titleBar, Span(QuoteSelectedTitle(len(selectedRowsData))))
 	if len(selectedRowsData) > 0 {
-		titleBar = append(titleBar, XYZQB(`quote-phone-selected-edit-btn`))
+		titleBar = append(titleBar, QuoteEditQuoteButton(`quote-phone-selected-edit-btn`))
 	}
 	return Elem(`details`).Id(`QuoteSelectedCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-selected-fold`, `quote-phone-selected-card`).Wrap(
 		Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`, `quote-phone-selected-title`).Wrap(titleBar),
