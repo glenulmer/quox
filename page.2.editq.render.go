@@ -114,7 +114,7 @@ func EditQPrimeChargesView(vars UIBagVars_t) Elem_t {
 	)
 }
 
-func EditQDependentView(vars UIBagVars_t, dep EditQDep_t, order int) Elem_t {
+func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 	charges := EditQDependentCharges(vars, dep)
 	appliedByItem := make(map[int]EuroCent_t)
 	planByItem := make(map[int]EuroCent_t)
@@ -204,9 +204,9 @@ func EditQDependentsView(vars UIBagVars_t, sortForGet bool) Elem_t {
 	deps := EditQDependents(vars, sortForGet)
 	namedCount := 0
 	var list []Elem_t
-	for i, dep := range deps {
+	for _, dep := range deps {
 		if Trim(dep.name) != `` { namedCount++ }
-		list = append(list, EditQDependentView(vars, dep, i))
+		list = append(list, EditQDependentView(vars, dep))
 	}
 	if len(deps) < editQDepMaxCount {
 		list = append(list, EditQAddButton(EditQDepAddControlName(), `Add`, `editq-add-dependent`))

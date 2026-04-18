@@ -77,7 +77,7 @@ func Bootstrap() {
 		port: port,
 		layout: layout,
 		Auth: auth,
-		sessionManager: NewSessionManager(),
+		sessionStore: NewSessionStore(),
 	}
 
 	LoadStaticData()

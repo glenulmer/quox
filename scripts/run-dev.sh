@@ -31,13 +31,18 @@ snapshot() {
 }
 
 pid=""
+bin="/tmp/quo2-dev-watch"
+if [ "${#args[@]}" -gt 0 ]; then
+	key="$(printf '%s\0' "${args[@]}" | sha1sum | cut -d' ' -f1)"
+	bin="/tmp/quo2-dev-watch-${key}"
+fi
 
 start_app() {
 	echo "[run-dev] starting app"
 	(
 		./scripts/check-guardrails.sh
-		env GOCACHE=/tmp/go-build go build -o /tmp/quo2-dev-watch .
-		exec /tmp/quo2-dev-watch "${args[@]}"
+		env GOCACHE=/tmp/go-build go build -o "$bin" .
+		exec "$bin" "${args[@]}"
 	) &
 	pid=$!
 	echo "[run-dev] app pid=$pid"

@@ -10,22 +10,14 @@ import (
 )
 
 const editQDepMaxCount = 5
-const editQPreSeqKey = `editq-pre-seq`
-const editQDepSeqKey = `editq-dep-seq`
 const editQPrimeModePct = `pct`
 const editQPrimeModeEur = `eur`
-
-type EditQCond_t struct {
-	condId int
-	text string
-}
 
 type EditQDep_t struct {
 	depId int
 	name string
 	birth string
 	vision bool
-	conds []EditQCond_t
 }
 
 type EditQPrimeCharge_t struct {
@@ -43,27 +35,9 @@ type EditQPrimeCharge_t struct {
 	applied EuroCent_t
 }
 
-func EditQPreKey(condId int) string { return Str(`editq-pre-`, condId) }
-
-func EditQPreControl(name string) (condId int, ok bool) {
-	n, err := fmt.Sscanf(name, `editq-pre-%d`, &condId)
-	if err != nil || n != 1 || condId <= 0 { return 0, false }
-	return condId, true
-}
-
-func EditQPreAddControlName() string { return `editq-pre-add` }
-func EditQPreAddControl(name string) bool { return name == EditQPreAddControlName() }
-
-func EditQPreDelControl(name string) (condId int, ok bool) {
-	n, err := fmt.Sscanf(name, `editq-pre-del-%d`, &condId)
-	if err != nil || n != 1 || condId <= 0 { return 0, false }
-	return condId, true
-}
-
 func EditQDepNameKey(depId int) string { return Str(`editq-dep-`, depId, `-name`) }
 func EditQDepBirthKey(depId int) string { return Str(`editq-dep-`, depId, `-birth`) }
 func EditQDepVisionKey(depId int) string { return Str(`editq-dep-`, depId, `-vision`) }
-func EditQDepCondKey(depId, condId int) string { return Str(`editq-dep-`, depId, `-cond-`, condId) }
 
 func EditQDepNameControl(name string) (depId int, ok bool) {
 	n, err := fmt.Sscanf(name, `editq-dep-%d-name`, &depId)
@@ -83,12 +57,6 @@ func EditQDepVisionControl(name string) (depId int, ok bool) {
 	return depId, true
 }
 
-func EditQDepCondControl(name string) (depId, condId int, ok bool) {
-	n, err := fmt.Sscanf(name, `editq-dep-%d-cond-%d`, &depId, &condId)
-	if err != nil || n != 2 || depId <= 0 || condId <= 0 { return 0, 0, false }
-	return depId, condId, true
-}
-
 func EditQDepAddControlName() string { return `editq-dep-add` }
 func EditQDepAddControl(name string) bool { return name == EditQDepAddControlName() }
 
@@ -97,18 +65,6 @@ func EditQDepDelControl(name string) (depId int, ok bool) {
 	n, err := fmt.Sscanf(name, `editq-dep-del-%d`, &depId)
 	if err != nil || n != 1 || depId <= 0 { return 0, false }
 	return depId, true
-}
-
-func EditQDepPreAddControl(name string) (depId int, ok bool) {
-	n, err := fmt.Sscanf(name, `editq-dep-pre-add-%d`, &depId)
-	if err != nil || n != 1 || depId <= 0 { return 0, false }
-	return depId, true
-}
-
-func EditQDepPreDelControl(name string) (depId, condId int, ok bool) {
-	n, err := fmt.Sscanf(name, `editq-dep-pre-del-%d-%d`, &depId, &condId)
-	if err != nil || n != 2 || depId <= 0 || condId <= 0 { return 0, 0, false }
-	return depId, condId, true
 }
 
 func EditQPrimeModeKey(itemId int, categId CategId_t) string {
@@ -387,18 +343,11 @@ func EditQDependents(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
 			all[depId] = x
 			continue
 		}
-		depId, condId, ok := EditQDepCondControl(key)
-		if !ok { continue }
-		x := all[depId]
-		x.depId = depId
-		x.conds = append(x.conds, EditQCond_t{ condId:condId, text:value })
-		all[depId] = x
 	}
 
 	var out []EditQDep_t
 	for _, x := range all {
 		if x.birth == `` { x.birth = EditQDefaultDependentBirth() }
-		sort.Slice(x.conds, func(i, j int) bool { return x.conds[i].condId < x.conds[j].condId })
 		out = append(out, x)
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -424,21 +373,13 @@ func EditQDeleteDependent(vars UIBagVars_t, depId int) {
 	}
 }
 
-func EditQNextDepCondId(vars UIBagVars_t, depId int) int {
-	next := 0
-	for key := range vars {
-		otherDepId, condId, ok := EditQDepCondControl(key)
-		if !ok || otherDepId != depId { continue }
-		if condId > next { next = condId }
-	}
-	return next + 1
-}
-
 func EditQAddDependent(state *State_t) bool {
 	deps := EditQDependents(state.quote, false)
 	if len(deps) >= editQDepMaxCount { return false }
-	next := StateInt(*state, editQDepSeqKey) + 1
-	state.quote[editQDepSeqKey] = Str(next)
+	next := 1
+	for _, dep := range deps {
+		if dep.depId >= next { next = dep.depId + 1 }
+	}
 	state.quote[EditQDepNameKey(next)] = ``
 	state.quote[EditQDepBirthKey(next)] = EditQDefaultDependentBirth()
 	state.quote[EditQDepVisionKey(next)] = ``
@@ -479,21 +420,6 @@ func EditQApply(state *State_t, name, value string) bool {
 		return true
 	}
 
-	if EditQPreAddControl(name) {
-		next := StateInt(*state, editQPreSeqKey) + 1
-		state.quote[editQPreSeqKey] = Str(next)
-		state.quote[EditQPreKey(next)] = ``
-		return true
-	}
-	if condId, ok := EditQPreDelControl(name); ok {
-		delete(state.quote, EditQPreKey(condId))
-		return true
-	}
-	if _, ok := EditQPreControl(name); ok {
-		state.quote[name] = value
-		return true
-	}
-
 	if EditQDepAddControl(name) {
 		EditQAddDependent(state)
 		return true
@@ -503,16 +429,6 @@ func EditQApply(state *State_t, name, value string) bool {
 		if len(EditQDependents(state.quote, false)) == 0 {
 			EditQAddDependent(state)
 		}
-		return true
-	}
-
-	if depId, ok := EditQDepPreAddControl(name); ok {
-		next := EditQNextDepCondId(state.quote, depId)
-		state.quote[EditQDepCondKey(depId, next)] = ``
-		return true
-	}
-	if depId, condId, ok := EditQDepPreDelControl(name); ok {
-		delete(state.quote, EditQDepCondKey(depId, condId))
 		return true
 	}
 
@@ -528,11 +444,6 @@ func EditQApply(state *State_t, name, value string) bool {
 		state.quote[name] = value
 		return true
 	}
-	if _, _, ok := EditQDepCondControl(name); ok {
-		state.quote[name] = value
-		return true
-	}
-
 	return false
 }
 

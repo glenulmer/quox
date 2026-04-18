@@ -1,6 +1,5 @@
 package main
 
-import "github.com/alexedwards/scs/v2"
 import "net/http"
 import . "quo2/lib/wrapdb"
 import . "quo2/lib/dec2"
@@ -16,7 +15,7 @@ type App_t struct {
 	layout        string
 	staticVersion string
 	Auth          func(http.HandlerFunc) http.HandlerFunc
-	sessionManager *scs.SessionManager
+	sessionStore *SessionStore_t
 	lookup struct {
 		years		IdMap_t[YearVars_t]
 		categs		IdMap_t[Categ_t]

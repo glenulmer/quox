@@ -8,6 +8,7 @@ import (
 type ChoiceId_t int
 
 type QuoteVars_t struct {
+	sortBy string
 	core CoreVars_t
 	choices map[ChoiceId_t]PlanQuoteInfo_t
 	dependants []Dependant_t
@@ -34,6 +35,7 @@ type Dependant_t struct {
 
 type CoreVars_t struct {
 	clientName string
+	email string
 	segment int
 	birth CalDate_t
 	buy CalDate_t

@@ -16,12 +16,13 @@
 
 1. Keep feedback technical and concrete.
 2. Cut the bullshit, get to the point, don't polish it up.
+3. If I say "shutdown everything", that means kill all persistent terminals & processes & resources etc
 
 ## D) Quality Check
 
 - Keep scope of changes as minimal as possible
 - Code must be human-readable and simple
-- 
+- If I ask for code analysis, stating generalized assumptions means you are wrong and unhelpful. Do analysis and report succinctly and with specifics.
 
 ## E) Enforcement
 
