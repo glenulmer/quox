@@ -139,14 +139,14 @@ func IsHospDental(categId CategId_t) bool {
 	return int(categId) == catHospital || int(categId) == catDental
 }
 
-func QuotePreEx(x EditQPrimeCharge_t) PreEx_t {
-	out := PreEx_t{
+func QuotePreex(x EditQPreexCharge_t) Preex_t {
+	out := Preex_t{
 		categ: x.categId,
 		note: x.note,
 	}
 	n, ok := EditQParseDecimal100(x.amount)
 	if !ok || n <= 0 { return out }
-	if EditQPrimeMode(x.mode) == editQPrimeModeEur {
+	if EditQPreexMode(x.mode) == editQPreexModeEur {
 		out.amount.euro = EuroCent_t(n)
 		return out
 	}
@@ -197,7 +197,7 @@ func QuoteVars(state *State_t) QuoteVars_t {
 		out.choices[choiceId] = choice
 	}
 
-	for _, charge := range EditQPrimeCharges(vars) {
+	for _, charge := range EditQPreexCharges(vars) {
 		choiceId := ChoiceId_t(charge.itemId)
 		choice, ok := out.choices[choiceId]
 		if !ok {
@@ -205,7 +205,7 @@ func QuoteVars(state *State_t) QuoteVars_t {
 				addons: make(map[CategId_t]AddonId_t),
 			}
 		}
-		choice.preex = append(choice.preex, QuotePreEx(charge))
+		choice.preex = append(choice.preex, QuotePreex(charge))
 		out.choices[choiceId] = choice
 	}
 
@@ -215,11 +215,11 @@ func QuoteVars(state *State_t) QuoteVars_t {
 			name: dep.name,
 			birth: QuoteParseBirthDate(dep.birth),
 			vision: dep.vision,
-			preexByChoice: make(map[ChoiceId_t][]PreEx_t),
+			preexByChoice: make(map[ChoiceId_t][]Preex_t),
 		}
 		for _, charge := range EditQDependentCharges(vars, dep) {
 			choiceId := ChoiceId_t(charge.itemId)
-			x.preexByChoice[choiceId] = append(x.preexByChoice[choiceId], QuotePreEx(charge))
+			x.preexByChoice[choiceId] = append(x.preexByChoice[choiceId], QuotePreex(charge))
 		}
 		out.dependants = append(out.dependants, x)
 	}
@@ -227,10 +227,10 @@ func QuoteVars(state *State_t) QuoteVars_t {
 	return out
 }
 
-func QuotePreExModeAmount(preex PreEx_t) (mode, amount string) {
-	if preex.amount.euro > 0 { return editQPrimeModeEur, preex.amount.euro.String() }
-	if preex.amount.percent > 0 { return editQPrimeModePct, EuroCent_t(preex.amount.percent).String() }
-	return editQPrimeModePct, ``
+func QuotePreexModeAmount(preex Preex_t) (mode, amount string) {
+	if preex.amount.euro > 0 { return editQPreexModeEur, preex.amount.euro.String() }
+	if preex.amount.percent > 0 { return editQPreexModePct, EuroCent_t(preex.amount.percent).String() }
+	return editQPreexModePct, ``
 }
 
 func UIBagVarsFromQuoteVars(x QuoteVars_t) UIBagVars_t {
@@ -276,10 +276,10 @@ func UIBagVarsFromQuoteVars(x QuoteVars_t) UIBagVars_t {
 		}
 
 		for _, preex := range choice.preex {
-			mode, amount := QuotePreExModeAmount(preex)
-			out[EditQPrimeModeKey(itemId, preex.categ)] = mode
-			out[EditQPrimeAmountKey(itemId, preex.categ)] = amount
-			out[EditQPrimeNoteKey(itemId, preex.categ)] = preex.note
+			mode, amount := QuotePreexModeAmount(preex)
+			out[EditQPreexModeKey(itemId, preex.categ)] = mode
+			out[EditQPreexAmountKey(itemId, preex.categ)] = amount
+			out[EditQPreexNoteKey(itemId, preex.categ)] = preex.note
 		}
 	}
 	out[quoteSelectedSeqKey] = Str(maxItemId)
@@ -296,7 +296,7 @@ func UIBagVarsFromQuoteVars(x QuoteVars_t) UIBagVars_t {
 		for _, itemId := range depChoiceIds {
 			if itemId <= 0 { continue }
 			for _, preex := range dep.preexByChoice[ChoiceId_t(itemId)] {
-				mode, amount := QuotePreExModeAmount(preex)
+				mode, amount := QuotePreexModeAmount(preex)
 				out[EditQDepChargeModeKey(depId, itemId, preex.categ)] = mode
 				out[EditQDepChargeAmountKey(depId, itemId, preex.categ)] = amount
 				out[EditQDepChargeNoteKey(depId, itemId, preex.categ)] = preex.note

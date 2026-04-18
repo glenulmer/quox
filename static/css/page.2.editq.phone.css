@@ -144,29 +144,29 @@ details[open] > .editq-fold-title::before {
 	margin-bottom: 0.45rem;
 }
 
-.editq-prime-charges {
+.editq-preex-charges {
 	padding-right: 0.9rem;
 }
 
-/* dead selector was removed from this live block: .editq-condition-list */
+/* dead selector was removed from this live block: .editq-preex-cond-list */
 .editq-dependent-list {
 	display: grid;
 	gap: 0.42rem;
 }
 
-.editq-prime-list {
+.editq-preex-list {
 	display: grid;
 	gap: 0.22rem;
 }
 
-.editq-prime-row {
+.editq-preex-row {
 	display: grid;
 	grid-template-columns: 4.8rem minmax(0, 1fr);
 	gap: 0.35rem;
 	align-items: center;
 }
 
-.editq-prime-plan {
+.editq-preex-plan {
 	margin-top: 0.35rem;
 	font-size: 0.72rem;
 	font-weight: 700;
@@ -175,11 +175,11 @@ details[open] > .editq-fold-title::before {
 	padding-right: 0;
 }
 
-.editq-prime-plan-head {
+.editq-preex-plan-head {
 	display: block;
 }
 
-.editq-prime-plan-age {
+.editq-preex-plan-age {
 	margin-top: 0.1rem;
 	font-size: 0.68rem;
 	font-weight: 400;
@@ -187,12 +187,12 @@ details[open] > .editq-fold-title::before {
 	text-align: left;
 }
 
-.editq-prime-categ {
+.editq-preex-categ {
 	font-size: 0.72rem;
 	font-weight: 400;
 }
 
-.editq-prime-inputs {
+.editq-preex-inputs {
 	display: grid;
 	grid-template-columns: 3.2rem 4.5rem minmax(0, 1fr);
 	gap: 0.38rem;
@@ -200,14 +200,14 @@ details[open] > .editq-fold-title::before {
 	min-width: 0;
 }
 
-.editq-prime-mode,
-.editq-prime-amount,
-.editq-prime-note {
+.editq-preex-mode,
+.editq-preex-amount,
+.editq-preex-note {
 	width: 100%;
 	min-width: 0;
 }
 
-.editq-prime-inputs :is(input[type="text"], select) {
+.editq-preex-inputs :is(input[type="text"], select) {
 	width: 100%;
 	min-width: 0;
 	box-sizing: border-box;
@@ -218,56 +218,56 @@ details[open] > .editq-fold-title::before {
 	font-size: 0.72rem;
 }
 
-.editq-prime-mode {
+.editq-preex-mode {
 	padding-left: 0.42rem;
 	padding-right: 1rem;
 }
 
-.editq-prime-empty {
+.editq-preex-empty {
 	font-size: 0.77rem;
 	color: #617587;
 }
 
-.editq-prime-amount-input {
+.editq-preex-amount-input {
 	text-align: right;
 }
 
 /* dead selector:
-.editq-prime-plan-total {
+.editq-preex-plan-total {
 	color: #1e6996;
 }
 */
 
 /* dead selector:
-.editq-prime-plan-charges {
+.editq-preex-plan-charges {
 	color: #1e6996;
 }
 */
 
 /* dead selector:
-.editq-prime-plan-sum {
+.editq-preex-plan-sum {
 	color: #165581;
 	font-weight: 700;
 }
 */
 
 /* dead selector:
-.editq-prime-plan-op {
+.editq-preex-plan-op {
 	color: #4f6479;
 }
 */
 
-.editq-prime-summary {
+.editq-preex-summary {
 	padding: 0.08rem 0;
 }
 
-.editq-prime-summary-base {
+.editq-preex-summary-base {
 	color: #1f1f1f;
 	font-size: 0.72rem;
 	font-style: italic;
 }
 
-.editq-prime-summary-prex {
+.editq-preex-summary-preex {
 	color: #1e6996;
 	font-size: 0.72rem;
 	font-style: italic;
@@ -276,7 +276,7 @@ details[open] > .editq-fold-title::before {
 	box-sizing: border-box;
 }
 
-.editq-prime-summary-sum {
+.editq-preex-summary-sum {
 	text-align: left;
 	color: #1f1f1f;
 	font-weight: 700;
@@ -284,7 +284,7 @@ details[open] > .editq-fold-title::before {
 	font-style: italic;
 }
 
-.editq-condition-row {
+.editq-preex-cond-row {
 	display: grid;
 	grid-template-columns: 1fr auto;
 	gap: 0.38rem;
@@ -529,7 +529,7 @@ details[open] > .editq-fold-title::before {
 	white-space: nowrap;
 }
 
-.editq-review-col-prex {
+.editq-review-col-preex {
 	color: #1e6996;
 }
 
@@ -594,7 +594,7 @@ details[open] > .editq-fold-title::before {
 	align-self: center;
 }
 
-.editq-dependent-prex {
+.editq-dependent-preex {
 	margin-top: 0.05rem;
 	padding-right: 0.9rem;
 }
@@ -607,6 +607,6 @@ details[open] > .editq-fold-title::before {
 	font-size: 0.82rem;
 }
 
-.editq-dependent-prex {
+.editq-dependent-preex {
 	padding-right: 0.9rem;
 }

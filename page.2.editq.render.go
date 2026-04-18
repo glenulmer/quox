@@ -25,20 +25,20 @@ func EditQAddButton(name, label string, class ...string) Elem_t {
 		Text(label)
 }
 
-func EditQPrimeChargeModeView(name, mode string) Elem_t {
+func EditQPreexChargeModeView(name, mode string) Elem_t {
 	return Select(
-		Option().KV(`value`, editQPrimeModePct).Text(`%`),
-		Option().KV(`value`, editQPrimeModeEur).Text(`€`),
-	).Name(name).Choose(EditQPrimeMode(mode)).Class(`editq-prime-mode`)
+		Option().KV(`value`, editQPreexModePct).Text(`%`),
+		Option().KV(`value`, editQPreexModeEur).Text(`€`),
+	).Name(name).Choose(EditQPreexMode(mode)).Class(`editq-preex-mode`)
 }
 
-func EditQPrimeChargeRowView(x EditQPrimeCharge_t, modeKey, amountKey, noteKey string) Elem_t {
-	return Div().Class(`editq-prime-row`).Wrap(
-		Div(x.level).Class(`editq-prime-categ`),
-		Div().Class(`editq-prime-inputs`).Wrap(
-			EditQPrimeChargeModeView(modeKey, x.mode),
-			QuoteInputText(amountKey, x.amount, `Amount`).Class(`editq-prime-amount`, `editq-prime-amount-input`),
-			QuoteInputText(noteKey, x.note, `Optional note`).Class(`editq-prime-note`),
+func EditQPreexChargeRowView(x EditQPreexCharge_t, modeKey, amountKey, noteKey string) Elem_t {
+	return Div().Class(`editq-preex-row`).Wrap(
+		Div(x.level).Class(`editq-preex-categ`),
+		Div().Class(`editq-preex-inputs`).Wrap(
+			EditQPreexChargeModeView(modeKey, x.mode),
+			QuoteInputText(amountKey, x.amount, `Amount`).Class(`editq-preex-amount`, `editq-preex-amount-input`),
+			QuoteInputText(noteKey, x.note, `Optional note`).Class(`editq-preex-note`),
 		),
 	)
 }
@@ -47,20 +47,20 @@ func EditQEuroCentText(v EuroCent_t) string {
 	return Str(v.String(), ` €`)
 }
 
-func EditQPrimeTotal(vars UIBagVars_t) EuroCent_t {
-	charges := EditQPrimeCharges(vars)
+func EditQPreexTotal(vars UIBagVars_t) EuroCent_t {
+	charges := EditQPreexCharges(vars)
 	var total EuroCent_t
 	for _, x := range charges { total += x.applied }
 	return total
 }
 
-func EditQPrimeTitleText(vars UIBagVars_t) string {
-	totalFlat := EuroFlatFromCent(EditQPrimeTotal(vars))
+func EditQPreexTitleText(vars UIBagVars_t) string {
+	totalFlat := EuroFlatFromCent(EditQPreexTotal(vars))
 	return Str(`Pre-existing conditions (`, totalFlat.OutEuro(), `)`)
 }
 
-func EditQPrimeChargesView(vars UIBagVars_t) Elem_t {
-	charges := EditQPrimeCharges(vars)
+func EditQPreexChargesView(vars UIBagVars_t) Elem_t {
+	charges := EditQPreexCharges(vars)
 	appliedByItem := make(map[int]EuroCent_t)
 	planByItem := make(map[int]EuroCent_t)
 	for _, x := range charges {
@@ -75,42 +75,42 @@ func EditQPrimeChargesView(vars UIBagVars_t) Elem_t {
 		if x.itemId != prevItemId {
 			if hasPlan {
 				base := planByItem[prevItemId]
-				prex := appliedByItem[prevItemId]
-				rows = append(rows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-					Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
-					Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
-						Div().Class(`editq-prime-summary-spacer`),
-						Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
-						Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
+				preex := appliedByItem[prevItemId]
+				rows = append(rows, Div().Class(`editq-preex-row`, `editq-preex-summary`).Wrap(
+					Div(EditQEuroCentText(base)).Class(`editq-preex-summary-base`),
+					Div().Class(`editq-preex-inputs`, `editq-preex-summary-inputs`).Wrap(
+						Div().Class(`editq-preex-summary-spacer`),
+						Div(EditQEuroCentText(preex)).Class(`editq-preex-summary-preex`),
+						Div(Str(`= `, EditQEuroCentText(base+preex))).Class(`editq-preex-summary-sum`),
 					),
 				))
 			}
-			rows = append(rows, Div().Class(`editq-prime-plan`).Wrap(
-				Span(x.plan).Class(`editq-prime-plan-name`),
+			rows = append(rows, Div().Class(`editq-preex-plan`).Wrap(
+				Span(x.plan).Class(`editq-preex-plan-name`),
 			))
 			prevItemId = x.itemId
 			hasPlan = true
 		}
-		rows = append(rows, EditQPrimeChargeRowView(x, EditQPrimeModeKey(x.itemId, x.categId), EditQPrimeAmountKey(x.itemId, x.categId), EditQPrimeNoteKey(x.itemId, x.categId)))
+		rows = append(rows, EditQPreexChargeRowView(x, EditQPreexModeKey(x.itemId, x.categId), EditQPreexAmountKey(x.itemId, x.categId), EditQPreexNoteKey(x.itemId, x.categId)))
 	}
 	if hasPlan {
 		base := planByItem[prevItemId]
-		prex := appliedByItem[prevItemId]
-		rows = append(rows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-			Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
-			Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
-				Div().Class(`editq-prime-summary-spacer`),
-				Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
-				Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
+		preex := appliedByItem[prevItemId]
+		rows = append(rows, Div().Class(`editq-preex-row`, `editq-preex-summary`).Wrap(
+			Div(EditQEuroCentText(base)).Class(`editq-preex-summary-base`),
+			Div().Class(`editq-preex-inputs`, `editq-preex-summary-inputs`).Wrap(
+				Div().Class(`editq-preex-summary-spacer`),
+				Div(EditQEuroCentText(preex)).Class(`editq-preex-summary-preex`),
+				Div(Str(`= `, EditQEuroCentText(base+preex))).Class(`editq-preex-summary-sum`),
 			),
 		))
 	}
 	if len(rows) == 0 {
-		rows = append(rows, Div(`No payable selected plan categories yet.`).Class(`editq-prime-empty`))
+		rows = append(rows, Div(`No payable selected plan categories yet.`).Class(`editq-preex-empty`))
 	}
-	return Div().Class(`editq-section`, `editq-prime-charges`).Wrap(
+	return Div().Class(`editq-section`, `editq-preex-charges`).Wrap(
 		Div(`Pre-existing conditions charges`).Class(`editq-section-title`),
-		Div().Class(`editq-prime-list`).Wrap(rows),
+		Div().Class(`editq-preex-list`).Wrap(rows),
 	)
 }
 
@@ -130,13 +130,13 @@ func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 		if x.itemId != prevItemId {
 			if hasPlan {
 				base := planByItem[prevItemId]
-				prex := appliedByItem[prevItemId]
-				depRows = append(depRows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-					Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
-					Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
-						Div().Class(`editq-prime-summary-spacer`),
-						Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
-						Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
+				preex := appliedByItem[prevItemId]
+				depRows = append(depRows, Div().Class(`editq-preex-row`, `editq-preex-summary`).Wrap(
+					Div(EditQEuroCentText(base)).Class(`editq-preex-summary-base`),
+					Div().Class(`editq-preex-inputs`, `editq-preex-summary-inputs`).Wrap(
+						Div().Class(`editq-preex-summary-spacer`),
+						Div(EditQEuroCentText(preex)).Class(`editq-preex-summary-preex`),
+						Div(Str(`= `, EditQEuroCentText(base+preex))).Class(`editq-preex-summary-sum`),
 					),
 				))
 			}
@@ -147,21 +147,21 @@ func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 				if x.planAgeMode == `year` { ageText = Str(`Effective age (Year): `, x.planAge) }
 			}
 			if ageText == `` {
-				depRows = append(depRows, Div().Class(`editq-prime-plan`).Wrap(
-					Span(x.plan).Class(`editq-prime-plan-name`),
+				depRows = append(depRows, Div().Class(`editq-preex-plan`).Wrap(
+					Span(x.plan).Class(`editq-preex-plan-name`),
 				))
 			} else {
-				depRows = append(depRows, Div().Class(`editq-prime-plan`).Wrap(
-					Div().Class(`editq-prime-plan-head`).Wrap(
-						Span(x.plan).Class(`editq-prime-plan-name`),
+				depRows = append(depRows, Div().Class(`editq-preex-plan`).Wrap(
+					Div().Class(`editq-preex-plan-head`).Wrap(
+						Span(x.plan).Class(`editq-preex-plan-name`),
 					),
-					Div(ageText).Class(`editq-prime-plan-age`),
+					Div(ageText).Class(`editq-preex-plan-age`),
 				))
 			}
 			prevItemId = x.itemId
 			hasPlan = true
 		}
-		depRows = append(depRows, EditQPrimeChargeRowView(
+		depRows = append(depRows, EditQPreexChargeRowView(
 			x,
 			EditQDepChargeModeKey(dep.depId, x.itemId, x.categId),
 			EditQDepChargeAmountKey(dep.depId, x.itemId, x.categId),
@@ -170,18 +170,18 @@ func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 	}
 	if hasPlan {
 		base := planByItem[prevItemId]
-		prex := appliedByItem[prevItemId]
-		depRows = append(depRows, Div().Class(`editq-prime-row`, `editq-prime-summary`).Wrap(
-			Div(EditQEuroCentText(base)).Class(`editq-prime-summary-base`),
-			Div().Class(`editq-prime-inputs`, `editq-prime-summary-inputs`).Wrap(
-				Div().Class(`editq-prime-summary-spacer`),
-				Div(EditQEuroCentText(prex)).Class(`editq-prime-summary-prex`),
-				Div(Str(`= `, EditQEuroCentText(base+prex))).Class(`editq-prime-summary-sum`),
+		preex := appliedByItem[prevItemId]
+		depRows = append(depRows, Div().Class(`editq-preex-row`, `editq-preex-summary`).Wrap(
+			Div(EditQEuroCentText(base)).Class(`editq-preex-summary-base`),
+			Div().Class(`editq-preex-inputs`, `editq-preex-summary-inputs`).Wrap(
+				Div().Class(`editq-preex-summary-spacer`),
+				Div(EditQEuroCentText(preex)).Class(`editq-preex-summary-preex`),
+				Div(Str(`= `, EditQEuroCentText(base+preex))).Class(`editq-preex-summary-sum`),
 			),
 		))
 	}
 	if len(depRows) == 0 {
-		depRows = append(depRows, Div(`No selected plan available.`).Class(`editq-prime-empty`))
+		depRows = append(depRows, Div(`No selected plan available.`).Class(`editq-preex-empty`))
 	}
 	return Div().Class(`editq-dependent`).Wrap(
 		Div().Class(`editq-dependent-fields-row`).Wrap(
@@ -193,9 +193,9 @@ func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 			),
 			EditQDelButton(EditQDepDelControlName(dep.depId)).Class(`editq-dep-del`),
 		),
-		Div().Class(`editq-prime-charges`, `editq-dependent-prex`).Wrap(
+		Div().Class(`editq-preex-charges`, `editq-dependent-preex`).Wrap(
 			Div(`Pre-existing conditions charges`).Class(`editq-section-title`),
-			Div().Class(`editq-prime-list`).Wrap(depRows),
+			Div().Class(`editq-preex-list`).Wrap(depRows),
 		),
 	)
 }
@@ -279,10 +279,10 @@ func EditQReviewClientView(vars UIBagVars_t) Elem_t {
 	)
 }
 
-func EditQReviewPrexByItemCateg(vars UIBagVars_t) (map[int]EuroCent_t, map[string]EuroCent_t) {
+func EditQReviewPreexByItemCateg(vars UIBagVars_t) (map[int]EuroCent_t, map[string]EuroCent_t) {
 	byItem := make(map[int]EuroCent_t)
 	byItemCateg := make(map[string]EuroCent_t)
-	for _, x := range EditQPrimeCharges(vars) {
+	for _, x := range EditQPreexCharges(vars) {
 		key := Str(x.itemId, `:`, x.categId)
 		byItem[x.itemId] += x.applied
 		byItemCateg[key] += x.applied
@@ -290,19 +290,19 @@ func EditQReviewPrexByItemCateg(vars UIBagVars_t) (map[int]EuroCent_t, map[strin
 	return byItem, byItemCateg
 }
 
-func EditQReviewPriceRow(label string, total, base, surch, prex EuroCent_t, class ...string) Elem_t {
+func EditQReviewPriceRow(label string, total, base, surch, preex EuroCent_t, class ...string) Elem_t {
 	return Div().Class(`editq-review-row`).Class(class...).Wrap(
 		Div(label).Class(`editq-review-col-label`),
 		Div(EditQEuroCentText(total)).Class(`editq-review-col-money`),
 		Div(EditQEuroCentText(base)).Class(`editq-review-col-money`),
 		Div(EditQEuroCentText(surch)).Class(`editq-review-col-money`),
-		Div(EditQEuroCentText(prex)).Class(`editq-review-col-money`, `editq-review-col-prex`),
+		Div(EditQEuroCentText(preex)).Class(`editq-review-col-money`, `editq-review-col-preex`),
 	)
 }
 
-func EditQReviewPlanView(vars UIBagVars_t, item QuoteSelectedItem_t, row QuotePlan_t, prexByItem map[int]EuroCent_t, prexByItemCateg map[string]EuroCent_t) Elem_t {
-	prexTotal := prexByItem[item.itemId]
-	prexPlan := prexByItemCateg[Str(item.itemId, `:`, 0)]
+func EditQReviewPlanView(vars UIBagVars_t, item QuoteSelectedItem_t, row QuotePlan_t, preexByItem map[int]EuroCent_t, preexByItemCateg map[string]EuroCent_t) Elem_t {
+	preexTotal := preexByItem[item.itemId]
+	preexPlan := preexByItemCateg[Str(item.itemId, `:`, 0)]
 	effectiveAge := `-`
 	ageLabel := `Age`
 	work := QuoteStateFromVars(vars)
@@ -319,16 +319,16 @@ func EditQReviewPlanView(vars UIBagVars_t, item QuoteSelectedItem_t, row QuotePl
 		Div(`Total`).Class(`editq-review-col-money`),
 		Div(`Base`).Class(`editq-review-col-money`),
 		Div(`Surch`).Class(`editq-review-col-money`),
-		Div(`Pre-ex`).Class(`editq-review-col-money`, `editq-review-col-prex`),
+		Div(`Pre-ex`).Class(`editq-review-col-money`, `editq-review-col-preex`),
 	))
-	rows = append(rows, EditQReviewPriceRow(`Total`, row.base+row.surcharge+prexTotal, row.base, row.surcharge, prexTotal, `editq-review-row-total`))
-	rows = append(rows, EditQReviewPriceRow(`Plan`, row.planBase+row.planSurcharge+prexPlan, row.planBase, row.planSurcharge, prexPlan))
+	rows = append(rows, EditQReviewPriceRow(`Total`, row.base+row.surcharge+preexTotal, row.base, row.surcharge, preexTotal, `editq-review-row-total`))
+	rows = append(rows, EditQReviewPriceRow(`Plan`, row.planBase+row.planSurcharge+preexPlan, row.planBase, row.planSurcharge, preexPlan))
 	for _, addon := range row.addons {
 		if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` { continue }
 		label := QuoteAddonPickText(addon)
 		if label == `` { label = addon.categ }
-		prex := prexByItemCateg[Str(item.itemId, `:`, addon.categId)]
-		rows = append(rows, EditQReviewPriceRow(label, addon.base+addon.surcharge+prex, addon.base, addon.surcharge, prex))
+		preex := preexByItemCateg[Str(item.itemId, `:`, addon.categId)]
+		rows = append(rows, EditQReviewPriceRow(label, addon.base+addon.surcharge+preex, addon.base, addon.surcharge, preex))
 	}
 
 	return Div().Class(`editq-review-plan`).Wrap(
@@ -370,11 +370,11 @@ func EditQReviewExportButtonsView() Elem_t {
 func EditQQuoteReviewBody(vars UIBagVars_t) Elem_t {
 	state := QuoteStateFromVars(vars)
 	selected := QuoteSelectedRows(state)
-	prexByItem, prexByItemCateg := EditQReviewPrexByItemCateg(vars)
+	preexByItem, preexByItemCateg := EditQReviewPreexByItemCateg(vars)
 
 	var plans []Elem_t
 	for _, x := range selected {
-		plans = append(plans, EditQReviewPlanView(vars, x.item, x.row, prexByItem, prexByItemCateg))
+		plans = append(plans, EditQReviewPlanView(vars, x.item, x.row, preexByItem, preexByItemCateg))
 	}
 	if len(plans) == 0 {
 		plans = append(plans, Div(`No plans selected.`).Class(`editq-review-empty`))
@@ -387,9 +387,9 @@ func EditQQuoteReviewBody(vars UIBagVars_t) Elem_t {
 }
 
 func EditQHeaderView(vars UIBagVars_t) Elem_t {
-	return EditQTopCardView(`EditQPrexCard`, EditQPrimeTitleText(vars), false,
+	return EditQTopCardView(`EditQPreexCard`, EditQPreexTitleText(vars), false,
 		Div().Class(`editq-header`).Wrap(
-			EditQPrimeChargesView(vars),
+			EditQPreexChargesView(vars),
 		),
 	)
 }

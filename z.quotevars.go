@@ -17,10 +17,10 @@ type QuoteVars_t struct {
 type PlanQuoteInfo_t struct {
 	plan PlanId_t
 	addons map[CategId_t]AddonId_t
-	preex []PreEx_t
+	preex []Preex_t
 }
 
-type PreEx_t struct {
+type Preex_t struct {
 	categ CategId_t
 	amount struct { percent Percent_t; euro EuroCent_t }
 	note string
@@ -30,7 +30,7 @@ type Dependant_t struct {
 	name string
 	birth CalDate_t
 	vision bool
-	preexByChoice map[ChoiceId_t][]PreEx_t
+	preexByChoice map[ChoiceId_t][]Preex_t
 }
 
 type CoreVars_t struct {

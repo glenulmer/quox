@@ -23,14 +23,14 @@ func QuoteApplyForcedQuoteDefaults(vars UIBagVars_t) {
 	QuoteSelectedAdd(&state, forcedPlanB)
 	QuoteSelectedAdd(&state, forcedPlanC)
 
-	QuoteDropKeysByPrefix(vars, `editq-prime-`)
+	QuoteDropKeysByPrefix(vars, `editq-preex-`)
 	QuoteDropKeysByPrefix(vars, `editq-dep-`)
 
 	selected := QuoteSelectedItems(vars)
 	for _, item := range selected {
-		vars[EditQPrimeModeKey(item.itemId, 0)] = editQPrimeModePct
-		vars[EditQPrimeAmountKey(item.itemId, 0)] = `15`
-		vars[EditQPrimeNoteKey(item.itemId, 0)] = `Diabetes`
+		vars[EditQPreexModeKey(item.itemId, 0)] = editQPreexModePct
+		vars[EditQPreexAmountKey(item.itemId, 0)] = `15`
+		vars[EditQPreexNoteKey(item.itemId, 0)] = `Diabetes`
 	}
 
 	vars[EditQDepNameKey(1)] = `Bob`
