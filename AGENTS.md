@@ -9,14 +9,15 @@
 5. Never run `gofmt`/`go fmt`/`goimports`/IDE auto-formatters, and never do style-only "idiomatic Go" rewrites.
 6. No detailed error plumbing
 
-## B) Code style
- 1. Read docs/CODING_STYLE.md before writing or modifying go code.
-
-## C) Interaction Rule
+## B) Interaction Rule
 
 1. Keep feedback technical and concrete.
 2. State conclusions and recent actions first. Details afterward.
 3. If I say "shutdown everything", that means kill all persistent terminals & resources that can be released
+4. Any path starting without ~ or / is always relative to the repository root
+
+## C) Code style
+ 1. Read docs/CODING_STYLE.md before writing or modifying go code.
 
 ## D) Quality Check
 
@@ -33,6 +34,6 @@
 Before any completion claim, run `./scripts/check-all.sh`.
 `run-dev.sh` refuses to start if guardrails fail.
 
-After any Go code recompilation (not only SQL and/or CSS), start and keep two persistent dev terminals running:
+After any Go code recompilation (not only SQL and/or CSS), start and keep two persistent & privileged dev terminals running:
 - `./scripts/run-dev.sh -watch -port 3333 -layout desktop`
 - `./scripts/run-dev.sh -watch -port 4444 -layout phone`
