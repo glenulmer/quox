@@ -65,7 +65,7 @@ func XlFileName(clientName string, slim bool) string {
 	name := SafeClientName(clientName)
 	slimPart := ``
 	if slim { slimPart = `.slim` }
-	return Str(name, ` initial overview`, slimPart, `.xlsx`)
+	return Str(name, ` overview`, slimPart, `.xlsx`)
 }
 
 func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
