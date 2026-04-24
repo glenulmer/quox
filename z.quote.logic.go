@@ -223,7 +223,6 @@ func QuoteControlSpan(x QuoteControl_t, layout string) int {
 func UIBagVars(state State_t) UIBagVars_t {
 	out := QuoteDefaultVars()
 	for k, v := range state.quote { out[k] = v }
-	QuoteApplyForcedQuoteDefaults(out)
 	out[`sortBy`] = QuoteSortMode(out[`sortBy`])
 	return out
 }
@@ -246,7 +245,6 @@ func QuoteDefaultVars() UIBagVars_t {
 		out[x.name] = x.defaultValue(ctx)
 	}
 	out[`sortBy`] = sortByPrice
-	QuoteApplyForcedQuoteDefaults(out)
 	return out
 }
 

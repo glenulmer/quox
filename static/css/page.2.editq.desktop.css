@@ -4,15 +4,32 @@ body {
 	padding: 0;
 }
 
+:root {
+	--editq-bg: #fbfaf7;
+	--editq-text: #474747;
+	--editq-card-border: #d6cfbb;
+	--editq-card-bg: #fffdf8;
+	--editq-card-head-bg: #fff4d5;
+	--editq-card-head-text: #2f2f2f;
+	--editq-line: #ece3c6;
+	--editq-input-border: #b7b7b7;
+	--editq-muted: #6e6e6e;
+	--editq-subtle: #5e5e5e;
+	--editq-btn-border: #b7b7b7;
+	--editq-btn-bg: #fff;
+	--editq-btn-text: #4f4f4f;
+	--editq-accent: #7b6732;
+}
+
 body {
-	background: #f3f4f6;
-	color: #1d2430;
+	background: var(--editq-bg);
+	color: var(--editq-text);
 	font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .editq-page {
-	max-width: 74rem;
-	margin: 0 auto;
+	max-width: 37rem;
+	margin: 0;
 	padding: 0 1rem 1.2rem;
 }
 
@@ -23,17 +40,17 @@ body {
 
 .editq-fold-card,
 .editq-dependent {
-	border: 0.0625rem solid #b9c3cf;
+	border: 0.0625rem solid var(--editq-card-border);
 	border-radius: 0.625rem;
-	background: #f8fcff;
+	background: var(--editq-card-bg);
 	overflow: hidden;
 }
 
 .editq-card-title {
 	margin: 0;
 	padding: 0.38rem 0.52rem;
-	background: #e6f2fc;
-	color: #0e1a2a;
+	background: var(--editq-card-head-bg);
+	color: var(--editq-card-head-text);
 	font-size: 1rem;
 	font-weight: 700;
 }
@@ -62,10 +79,10 @@ body {
 	align-items: center;
 	height: 1.1rem;
 	padding: 0 0.48rem;
-	border: 0.0625rem solid #8ca8c9;
+	border: 0.0625rem solid var(--editq-btn-border);
 	border-radius: 0.3rem;
-	background: #f3f8ff;
-	color: #1f3e63;
+	background: var(--editq-btn-bg);
+	color: var(--editq-btn-text);
 	text-decoration: none;
 	font-family: inherit;
 	font-size: 0.72rem;
@@ -98,7 +115,7 @@ body {
 	height: 0;
 	border-top: 0.28rem solid transparent;
 	border-bottom: 0.28rem solid transparent;
-	border-left: 0.42rem solid #43536b;
+	border-left: 0.42rem solid #7b6732;
 	transform: translateY(-50%);
 }
 
@@ -112,8 +129,8 @@ details[open] > .editq-fold-title::before {
 
 .editq-card-body {
 	padding: 0.62rem;
-	border-top: 0.0625rem solid #d6deea;
-	background: #fcfdff;
+	border-top: 0.0625rem solid var(--editq-line);
+	background: var(--editq-card-bg);
 	display: grid;
 	gap: 0.55rem;
 }
@@ -181,7 +198,7 @@ details[open] > .editq-fold-title::before {
 	margin-top: 0.45rem;
 	font-size: 0.75rem;
 	font-weight: 700;
-	color: #2e4359;
+	color: #4f4f4f;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -200,7 +217,7 @@ details[open] > .editq-fold-title::before {
 	margin-top: 0.12rem;
 	font-size: 0.7rem;
 	font-weight: 400;
-	color: #4d6278;
+	color: var(--editq-muted);
 }
 
 .editq-preex-categ {
@@ -227,7 +244,7 @@ details[open] > .editq-fold-title::before {
 	min-width: 0;
 	box-sizing: border-box;
 	padding: 0.34rem 0.4rem;
-	border: 0.0625rem solid #b6c7d8;
+	border: 0.0625rem solid var(--editq-input-border);
 	border-radius: 0.32rem;
 	background: #fff;
 	font-size: 0.75rem;
@@ -235,7 +252,7 @@ details[open] > .editq-fold-title::before {
 
 .editq-preex-empty {
 	font-size: 0.8rem;
-	color: #5e7287;
+	color: var(--editq-muted);
 }
 
 .editq-preex-amount-input {
@@ -278,7 +295,7 @@ details[open] > .editq-fold-title::before {
 }
 
 .editq-preex-summary-preex {
-	color: #1e6996;
+	color: var(--editq-accent);
 	font-size: 0.75rem;
 	font-style: italic;
 	text-align: right;
@@ -288,7 +305,7 @@ details[open] > .editq-fold-title::before {
 
 .editq-preex-summary-sum {
 	text-align: left;
-	color: #1f1f1f;
+	color: var(--editq-card-head-text);
 	font-weight: 700;
 	font-size: 0.75rem;
 	font-style: italic;
@@ -327,7 +344,7 @@ details[open] > .editq-fold-title::before {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 0.4rem 0.48rem;
-	border: 0.0625rem solid #b6c7d8;
+	border: 0.0625rem solid var(--editq-input-border);
 	border-radius: 0.34rem;
 	background: #fff;
 	color: inherit;
@@ -346,10 +363,10 @@ details[open] > .editq-fold-title::before {
 .editq-del-btn {
 	height: 2.125rem;
 	padding: 0 0.6rem;
-	border: 0.0625rem solid #9cb2c9;
+	border: 0.0625rem solid var(--editq-btn-border);
 	border-radius: 0.34rem;
-	background: #f0f6fe;
-	color: #1f456d;
+	background: #fff8e6;
+	color: var(--editq-btn-text);
 	font-family: inherit;
 	font-size: 0.78rem;
 	font-weight: 700;
@@ -374,7 +391,7 @@ details[open] > .editq-fold-title::before {
 	padding: 0.62rem;
 	display: grid;
 	gap: 0.55rem;
-	background: #fbfdff;
+	background: var(--editq-card-bg);
 }
 
 /* dead selector:
@@ -407,9 +424,9 @@ details[open] > .editq-fold-title::before {
 
 .editq-review-client,
 .editq-review-plan {
-	border: 0.0625rem solid #d5deea;
+	border: 0.0625rem solid var(--editq-card-border);
 	border-radius: 0.4rem;
-	background: #fbfdff;
+	background: #fffef8;
 	padding: 0.45rem 0.5rem;
 }
 
@@ -433,7 +450,7 @@ details[open] > .editq-fold-title::before {
 .editq-review-client-key {
 	font-size: 0.72rem;
 	font-weight: 700;
-	color: #42596f;
+	color: var(--editq-subtle);
 }
 
 .editq-review-client-val {
@@ -460,7 +477,7 @@ details[open] > .editq-fold-title::before {
 	flex-wrap: nowrap;
 	gap: 0.7rem;
 	font-size: 0.7rem;
-	color: #4a6078;
+	color: var(--editq-muted);
 	white-space: nowrap;
 }
 
@@ -479,7 +496,7 @@ details[open] > .editq-fold-title::before {
 	column-gap: 0.35rem;
 	align-items: baseline;
 	padding: 0.12rem 0;
-	border-top: 0.0625rem solid #e6ecf3;
+	border-top: 0.0625rem solid var(--editq-line);
 }
 
 .editq-review-row:first-child {
@@ -489,12 +506,12 @@ details[open] > .editq-fold-title::before {
 .editq-review-row-head {
 	font-size: 0.67rem;
 	font-weight: 700;
-	color: #445d78;
+	color: var(--editq-subtle);
 }
 
 .editq-review-row-total {
 	font-weight: 700;
-	color: #2f4f69;
+	color: var(--editq-card-head-text);
 }
 
 .editq-review-col-label {
@@ -509,12 +526,12 @@ details[open] > .editq-fold-title::before {
 }
 
 .editq-review-col-preex {
-	color: #1e6996;
+	color: var(--editq-accent);
 }
 
 .editq-review-empty {
 	font-size: 0.78rem;
-	color: #5a7088;
+	color: var(--editq-muted);
 }
 
 .editq-dep-name,
@@ -523,7 +540,7 @@ details[open] > .editq-fold-title::before {
 	min-width: 0;
 	box-sizing: border-box;
 	padding: 0.4rem 0.48rem;
-	border: 0.0625rem solid #b6c7d8;
+	border: 0.0625rem solid var(--editq-input-border);
 	border-radius: 0.34rem;
 	background: #fff;
 	color: inherit;

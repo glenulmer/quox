@@ -377,10 +377,12 @@ body {
 .quote-plan-table-selected {
 	--quote-table-border: #bfd2ea;
 	--quote-table-row-border: #d9e5f4;
-	--quote-table-body-bg: #f8fbff;
+	--quote-table-body-bg: #eef4fc;
 	--quote-table-head-bg: #b7d1ef;
-	--quote-table-name-bg: #e2ebf7;
+	--quote-table-name-bg: #eef4fc;
 	--quote-table-name-head-bg: #a4bfdc;
+	--quote-selected-detail-size: 0.648rem;
+	background: #eef4fc;
 }
 
 .quote-plan-table-row {
@@ -397,6 +399,69 @@ body {
 .quote-plan-table-head {
 	background: var(--quote-table-head-bg);
 	font-weight: 700;
+}
+
+.quote-plan-table-selected .quote-plan-table-panel + .quote-plan-table-panel {
+	border-top: 0.0625rem solid #c5d4e6;
+}
+
+.quote-plan-table-selected .quote-plan-table-panel .quote-plan-table-row {
+	border-top: 0;
+}
+
+.quote-plan-table-selected .quote-plan-table-selected-base-row,
+.quote-plan-table-selected .quote-plan-table-selected-surch-row {
+	border-top: 0.0625rem solid #d3dfef;
+}
+
+.quote-plan-table-selected .quote-plan-table-selected-detail-row .quote-plan-cell {
+	text-align: right;
+	font-size: var(--quote-selected-detail-size);
+	font-style: italic;
+	font-weight: 400;
+	line-height: 1;
+	padding-top: 0.08rem;
+	padding-bottom: 0.08rem;
+}
+
+.quote-plan-table-selected .quote-plan-table-selected-base-row .quote-plan-cell,
+.quote-plan-table-selected .quote-plan-table-selected-surch-row .quote-plan-cell,
+.quote-plan-table-selected .quote-plan-table-selected-base-row .quote-plan-cell-pick,
+.quote-plan-table-selected .quote-plan-table-selected-surch-row .quote-plan-cell-pick {
+	font-size: var(--quote-selected-detail-size);
+	line-height: 1;
+}
+
+.quote-plan-table-selected .quote-plan-table-selected-detail-row .quote-plan-cell-pick {
+	text-align: right;
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+}
+
+.quote-plan-table-selected .quote-plan-table-selected-detail-row .quote-plan-selected-detail-name {
+	text-align: right;
+}
+
+.quote-plan-table-selected .quote-plan-selected-detail-split {
+	display: flex;
+	width: 100%;
+	align-items: center;
+}
+
+.quote-plan-table-selected .quote-plan-selected-detail-split-left {
+	flex: 0 0 25%;
+	max-width: 25%;
+	text-align: right;
+}
+
+.quote-plan-table-selected .quote-plan-selected-detail-split-right {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.quote-plan-selected-detail-empty {
+	color: transparent;
 }
 
 .quote-plan-head-plan {
@@ -514,8 +579,8 @@ body {
 	font-family: inherit;
 	font-size: 0.74rem;
 	line-height: 1;
-	text-align: center;
-	text-align-last: center;
+	text-align: left;
+	text-align-last: left;
 }
 
 .quote-plan-total-cell {

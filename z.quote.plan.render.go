@@ -302,28 +302,85 @@ func QuotePlanDesktopAddonPickNamedView(name string, addon QuotePlanAddon_t) Ele
 
 func QuotePlanDesktopCategCellView(x QuotePlan_t, categId CategId_t) Elem_t {
 	addon, ok := QuotePlanAddonByCateg(x, categId)
-	if !ok { return Div().Class(`quote-plan-cell-pick`) }
+	if !ok { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
 	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
-		return Div().Class(`quote-plan-cell-pick`)
+		return Div(`&nbsp;`).Class(`quote-plan-cell-pick`)
 	}
 	return QuotePlanDesktopAddonPickView(x.planId, addon)
 }
 
 func QuotePlanDesktopVisionCellView(x QuotePlan_t) Elem_t {
 	addon, ok := QuotePlanAddonByTag(x, `vision`)
-	if !ok { return Div().Class(`quote-plan-cell-pick`) }
-	if !addon.priceOk { return Div().Class(`quote-plan-cell-pick`) }
+	if !ok { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
+	if !addon.priceOk { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
 	return Div(PriceText(addon.base+addon.surcharge, addon.priceOk)).Class(`quote-plan-cell-pick`, `quote-plan-cell-money`)
 }
 
 func QuotePlanDesktopSelectedCategCellView(itemId int, x QuotePlan_t, categId CategId_t) Elem_t {
 	addon, ok := QuotePlanAddonByCateg(x, categId)
-	if !ok { return Div().Class(`quote-plan-cell-pick`) }
+	if !ok { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
 	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
-		return Div().Class(`quote-plan-cell-pick`)
+		return Div(`&nbsp;`).Class(`quote-plan-cell-pick`)
 	}
 	name := QuoteSelectedCatKey(itemId, categId)
 	return QuotePlanDesktopAddonPickNamedView(name, addon)
+}
+
+func QuotePlanDesktopSelectedAmountCategCellView(x QuotePlan_t, categId CategId_t, showBase bool) Elem_t {
+	addon, ok := QuotePlanAddonByCateg(x, categId)
+	if !ok { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
+	if !addon.priceOk && addon.addon == 0 && addon.level == 0 && addon.label == `` {
+		return Div(`&nbsp;`).Class(`quote-plan-cell-pick`)
+	}
+	amount := addon.surcharge
+	if showBase { amount = addon.base }
+	return Div(PriceText(amount, addon.priceOk)).Class(`quote-plan-cell-pick`, `quote-plan-cell-money`)
+}
+
+func QuotePlanDesktopSelectedAmountVisionCellView(x QuotePlan_t, showBase bool) Elem_t {
+	addon, ok := QuotePlanAddonByTag(x, `vision`)
+	if !ok { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
+	if !addon.priceOk { return Div(`&nbsp;`).Class(`quote-plan-cell-pick`) }
+	amount := addon.surcharge
+	if showBase { amount = addon.base }
+	return Div(PriceText(amount, addon.priceOk)).Class(`quote-plan-cell-pick`, `quote-plan-cell-money`)
+}
+
+func QuotePlanDesktopSelectedAmountRow(row QuotePlan_t, categs []Categ_t, showVision, showBase bool) Elem_t {
+	total := row.surcharge
+	planAmount := row.planSurcharge
+	if showBase {
+		total = row.base
+		planAmount = row.planBase
+	}
+
+	var cols []Elem_t
+	cols = append(cols,
+		Div(`&nbsp;`).Class(`quote-plan-cell`, `quote-plan-action-cell`, `quote-plan-selected-detail-empty`),
+		Div(PriceText(total, true)).Class(`quote-plan-cell`, `quote-plan-total-cell`),
+		Div(`&nbsp;`).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`, `quote-plan-selected-detail-empty`),
+		Div(`&nbsp;`).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`, `quote-plan-selected-detail-empty`),
+		Div().Class(`quote-plan-cell`, `quote-plan-name-cell`, `quote-plan-selected-detail-name`).Wrap(
+			Div().Class(`quote-plan-selected-detail-split`).Wrap(
+				Div(PriceText(planAmount, row.planOk)).Class(`quote-plan-selected-detail-split-left`),
+				Div(`&nbsp;`).Class(`quote-plan-selected-detail-split-right`, `quote-plan-selected-detail-empty`),
+			),
+		),
+	)
+	for _, categ := range categs {
+		cols = append(cols, Div().Class(`quote-plan-cell`).Wrap(QuotePlanDesktopSelectedAmountCategCellView(row, categ.categId, showBase)))
+	}
+	if showVision {
+		cols = append(cols, Div().Class(`quote-plan-cell`).Wrap(QuotePlanDesktopSelectedAmountVisionCellView(row, showBase)))
+	}
+	cols = append(cols, Div(`&nbsp;`).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`, `quote-plan-selected-detail-empty`))
+
+	rowClass := `quote-plan-table-selected-surch-row`
+	if showBase { rowClass = `quote-plan-table-selected-base-row` }
+	return Div().
+		Class(`quote-plan-table-row`, `quote-plan-table-selected-detail-row`, rowClass).
+		KV(`style`, QuotePlanDesktopGridStyle(categs, showVision)).
+		Wrap(cols)
 }
 
 func PriceTextWholeEuro(amount EuroCent_t, ok bool) string {
@@ -373,10 +430,13 @@ func QuotePlanDesktopSelectedRow(item QuoteSelectedItem_t, row QuotePlan_t, cate
 		cols = append(cols, Div().Class(`quote-plan-cell`).Wrap(QuotePlanDesktopVisionCellView(row)))
 	}
 	cols = append(cols, Div(PriceTextWholeEuro(row.commission, true)).Class(`quote-plan-cell`, `quote-plan-cell-money`, `quote-plan-cell-money-right`))
-	return Div().
-		Class(`quote-plan-table-row`).
+	mainRow := Div().
+		Class(`quote-plan-table-row`, `quote-plan-table-selected-main-row`).
 		KV(`style`, QuotePlanDesktopGridStyle(categs, showVision)).
 		Wrap(cols)
+	baseRow := QuotePlanDesktopSelectedAmountRow(row, categs, showVision, true)
+	surchRow := QuotePlanDesktopSelectedAmountRow(row, categs, showVision, false)
+	return Div().Class(`quote-plan-table-panel`).Wrap(mainRow, baseRow, surchRow)
 }
 
 func QuotePlanDesktopView(data QuotePlans_t) Elem_t {

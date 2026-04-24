@@ -11,9 +11,6 @@ import (
 func main() {
 	Bootstrap()
 	defer App.DB.Close()
-	if true {
-		SetForcedQuoteDefaults()
-	}
 
 	r := chi.NewRouter()
 	r.Use(SessionMiddleware)
