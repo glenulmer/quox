@@ -47,6 +47,10 @@ func EditQEuroCentText(v EuroCent_t) string {
 	return Str(v.String(), ` €`)
 }
 
+func EditQEuroCentOrDash(v EuroCent_t) string {
+	return v.OutEuro()
+}
+
 func EditQPreexTotal(vars UIBagVars_t) EuroCent_t {
 	charges := EditQPreexCharges(vars)
 	var total EuroCent_t
@@ -293,10 +297,10 @@ func EditQReviewPreexByItemCateg(vars UIBagVars_t) (map[int]EuroCent_t, map[stri
 func EditQReviewPriceRow(label string, total, base, surch, preex EuroCent_t, class ...string) Elem_t {
 	return Div().Class(`editq-review-row`).Class(class...).Wrap(
 		Div(label).Class(`editq-review-col-label`),
-		Div(EditQEuroCentText(total)).Class(`editq-review-col-money`),
-		Div(EditQEuroCentText(base)).Class(`editq-review-col-money`),
-		Div(EditQEuroCentText(surch)).Class(`editq-review-col-money`),
-		Div(EditQEuroCentText(preex)).Class(`editq-review-col-money`, `editq-review-col-preex`),
+		Div(EditQEuroCentOrDash(total)).Class(`editq-review-col-money`),
+		Div(EditQEuroCentOrDash(base)).Class(`editq-review-col-money`),
+		Div(EditQEuroCentOrDash(surch)).Class(`editq-review-col-money`),
+		Div(EditQEuroCentOrDash(preex)).Class(`editq-review-col-money`, `editq-review-col-preex`),
 	)
 }
 

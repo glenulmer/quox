@@ -11,6 +11,9 @@ import (
 )
 
 const sheet = `Sheet1`
+const quoteSheet = `Quote`
+const summarySheet = `Summary`
+const xlSummaryPlanBlue = `#E6F2FC`
 const nameCell = `A3`
 const birthCell = `A4`
 const sickCell = `A8`
@@ -235,6 +238,277 @@ func EuroCentText(amount EuroCent_t) string {
 	return Str(amount.String(), ` €`)
 }
 
+func SummaryEuroText(amount EuroCent_t) string {
+	if amount == 0 { return `-` }
+	return EuroCentText(amount)
+}
+
+func SummaryDateText(x CalDate_t) string {
+	if !Valid(x) { return `-` }
+	return x.Format(`yyyy-mm-dd`)
+}
+
+func SummaryBoolText(x bool) string {
+	return If(x, `Yes`, `No`)
+}
+
+func SummaryControlText(vars UIBagVars_t, name string) string {
+	out := Trim(EditQReviewControlValue(vars, name))
+	if out == `` { return `-` }
+	return out
+}
+
+func SummaryAddonText(x QuotePlanAddon_t) string {
+	if x.addon == 0 { return `` }
+	return AddonName(CatChoice_t{ addon:x.addon, label:x.label })
+}
+
+func SummaryVisionPaid(row QuotePlan_t) EuroCent_t {
+	for _, addon := range row.addons {
+		if addon.categId > 0 { continue }
+		if !Contains(Lower(Trim(addon.categ)), `vision`) { continue }
+		if !addon.priceOk { return 0 }
+		return addon.base + addon.surcharge
+	}
+	return 0
+}
+
+func SummaryPreexMaps(vars UIBagVars_t) (map[int]EuroCent_t, map[string]EuroCent_t, map[string]string) {
+	byItem := make(map[int]EuroCent_t)
+	byItemCateg := make(map[string]EuroCent_t)
+	notes := make(map[string]string)
+
+	for _, x := range EditQPreexCharges(vars) {
+		key := Str(x.itemId, `:`, x.categId)
+		byItem[x.itemId] += x.applied
+		byItemCateg[key] += x.applied
+		if x.applied > 0 && Trim(x.note) != `` && Trim(notes[key]) == `` {
+			notes[key] = x.note
+		}
+	}
+	return byItem, byItemCateg, notes
+}
+
+func WriteSummaryKV(ex *sky.File, tab string, row int, key, val string, keyStyle int) error {
+	if e := SetXlCell(ex, tab, Str(`A`, row), key, keyStyle); e != nil { return e }
+	return SetXlCell(ex, tab, Str(`B`, row), val, 0)
+}
+
+func SummaryHeadStyle(ex *sky.File) int {
+	if ex == nil { return 0 }
+	style, e := ex.NewStyle(&sky.Style{
+		Font: &sky.Font{ Bold:true },
+	})
+	if e != nil { return 0 }
+	return style
+}
+
+func SummaryTitleStyle(ex *sky.File) int {
+	if ex == nil { return 0 }
+	style, e := ex.NewStyle(&sky.Style{
+		Font: &sky.Font{ Bold:true, Size:14 },
+	})
+	if e != nil { return 0 }
+	return style
+}
+
+func SummaryPlanStyle(ex *sky.File) int {
+	if ex == nil { return 0 }
+	style, e := ex.NewStyle(&sky.Style{
+		Fill: sky.Fill{
+			Type: `pattern`,
+			Color: []string{xlSummaryPlanBlue},
+			Pattern: 1,
+		},
+	})
+	if e != nil { return 0 }
+	return style
+}
+
+func SummaryPlanHeadStyle(ex *sky.File) int {
+	if ex == nil { return 0 }
+	style, e := ex.NewStyle(&sky.Style{
+		Font: &sky.Font{ Bold:true },
+		Fill: sky.Fill{
+			Type: `pattern`,
+			Color: []string{xlSummaryPlanBlue},
+			Pattern: 1,
+		},
+	})
+	if e != nil { return 0 }
+	return style
+}
+
+func WriteXlSummary(ex *sky.File, vars QuoteVars_t) error {
+	if ex == nil { return Error(`nil excel file`) }
+	if ix, e := ex.GetSheetIndex(summarySheet); e == nil && ix >= 0 {
+		if e := ex.DeleteSheet(summarySheet); e != nil { return e }
+	}
+	if _, e := ex.NewSheet(summarySheet); e != nil { return e }
+	_ = ex.SetColWidth(summarySheet, `A`, `A`, 34)
+	_ = ex.SetColWidth(summarySheet, `B`, `B`, 40)
+	_ = ex.SetColWidth(summarySheet, `C`, `C`, 16)
+	_ = ex.SetColWidth(summarySheet, `D`, `D`, 42)
+	showGrid := false
+	if e := ex.SetSheetView(summarySheet, 0, &sky.ViewOptions{ ShowGridLines:&showGrid }); e != nil { return e }
+
+	titleStyle := SummaryTitleStyle(ex)
+	headStyle := SummaryHeadStyle(ex)
+	planStyle := SummaryPlanStyle(ex)
+	planHeadStyle := SummaryPlanHeadStyle(ex)
+
+	row := 1
+	if e := SetXlCell(ex, summarySheet, `A1`, `Quote Summary`, titleStyle); e != nil { return e }
+	if e := ex.SetCellStyle(summarySheet, `A1`, `D1`, titleStyle); e != nil { return e }
+	row += 2
+
+	bag := UIBagVarsFromQuoteVars(vars)
+	core := []struct{ key, val string }{
+		{ `Client name`, ClientName(vars) },
+		{ `Segment`, SummaryControlText(bag, `segment`) },
+		{ `Birth date`, SummaryDateText(vars.core.birth) },
+		{ `Buy date`, SummaryDateText(vars.core.buy) },
+		{ `Sick cover`, vars.core.sickCover.OutEuro() },
+		{ `Prior cover`, SummaryControlText(bag, `priorCov`) },
+		{ `Exam`, SummaryControlText(bag, `exam`) },
+		{ `Specialist`, SummaryControlText(bag, `specref`) },
+		{ `Vision`, SummaryBoolText(vars.core.vision) },
+		{ `Temp visa`, SummaryBoolText(vars.core.tempVisa) },
+		{ `No PVN`, SummaryBoolText(vars.core.noPVN) },
+		{ `Natural medicine`, SummaryBoolText(vars.core.naturalMed) },
+	}
+	for _, x := range core {
+		if e := WriteSummaryKV(ex, summarySheet, row, x.key, x.val, headStyle); e != nil { return e }
+		row++
+	}
+	row++
+
+	plans := SelectedXlPlans(vars)
+	preexByItem, preexByItemCateg, preexNoteByItemCateg := SummaryPreexMaps(bag)
+	if len(plans) == 0 {
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `No selected plans`, headStyle); e != nil { return e }
+		row += 2
+	}
+	for k, plan := range plans {
+		planTop := row
+		preexRow := 0
+		visionRow := 0
+		categHeadRow := 0
+		itemId := plan.row.item.itemId
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), Str(`Plan `, k+1), headStyle); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`B`, row), plan.row.row.label, headStyle); e != nil { return e }
+		row++
+		if plan.plan.exactAge {
+			if e := WriteSummaryKV(ex, summarySheet, row, `Age mode`, `Exact-age`, headStyle); e != nil { return e }
+			row++
+		}
+
+		preexRow = row
+		if e := WriteSummaryKV(ex, summarySheet, row, `Pre-ex total`, SummaryEuroText(preexByItem[itemId]), headStyle); e != nil { return e }
+		row++
+		if vars.core.vision {
+			visionRow = row
+			if e := WriteSummaryKV(ex, summarySheet, row, `Vision correction`, SummaryEuroText(SummaryVisionPaid(plan.row.row)), headStyle); e != nil { return e }
+			row++
+			row++
+		}
+
+		categHeadRow = row
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Category`, headStyle); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`B`, row), `Selected addon`, headStyle); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`C`, row), `Pre-ex`, headStyle); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`D`, row), `Optional note`, headStyle); e != nil { return e }
+		row++
+
+		planKey := Str(itemId, `:`, 0)
+		planPreex := preexByItemCateg[planKey]
+		planNote := ``
+		if planPreex > 0 { planNote = preexNoteByItemCateg[planKey] }
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Plan`, 0); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`B`, row), ``, 0); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`C`, row), SummaryEuroText(planPreex), 0); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`D`, row), planNote, 0); e != nil { return e }
+		row++
+
+		for _, addon := range plan.row.row.addons {
+			if addon.categId <= 0 { continue }
+			key := Str(itemId, `:`, addon.categId)
+			preex := preexByItemCateg[key]
+			note := ``
+			if preex > 0 { note = preexNoteByItemCateg[key] }
+			if e := SetXlCell(ex, summarySheet, Str(`A`, row), addon.categ, 0); e != nil { return e }
+			if e := SetXlCell(ex, summarySheet, Str(`B`, row), SummaryAddonText(addon), 0); e != nil { return e }
+			if e := SetXlCell(ex, summarySheet, Str(`C`, row), SummaryEuroText(preex), 0); e != nil { return e }
+			if e := SetXlCell(ex, summarySheet, Str(`D`, row), note, 0); e != nil { return e }
+			row++
+		}
+
+		planLow := row - 1
+		if planStyle != 0 {
+			if e := ex.SetCellStyle(summarySheet, Str(`A`, planTop), Str(`D`, planLow), planStyle); e != nil { return e }
+		}
+		if planHeadStyle != 0 {
+			if e := ex.SetCellStyle(summarySheet, Str(`A`, planTop), Str(`B`, planTop), planHeadStyle); e != nil { return e }
+			if e := ex.SetCellStyle(summarySheet, Str(`A`, preexRow), Str(`A`, preexRow), planHeadStyle); e != nil { return e }
+			if visionRow > 0 {
+				if e := ex.SetCellStyle(summarySheet, Str(`A`, visionRow), Str(`A`, visionRow), planHeadStyle); e != nil { return e }
+			}
+			if e := ex.SetCellStyle(summarySheet, Str(`A`, categHeadRow), Str(`D`, categHeadRow), planHeadStyle); e != nil { return e }
+		}
+		row++
+	}
+
+	deps := EditQDependents(bag, false)
+	if len(deps) > 0 {
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Dependants`, headStyle); e != nil { return e }
+		row += 2
+	}
+	for _, dep := range deps {
+		charges := EditQDependentCharges(bag, dep)
+		var nonzero []EditQPreexCharge_t
+		for _, x := range charges {
+			if x.applied <= 0 { continue }
+			nonzero = append(nonzero, x)
+		}
+		if Trim(dep.name) == `` && Trim(dep.birth) == `` && !dep.vision && len(nonzero) == 0 { continue }
+
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Dependant`, headStyle); e != nil { return e }
+		row++
+		if e := WriteSummaryKV(ex, summarySheet, row, `Name`, dep.name, headStyle); e != nil { return e }
+		row++
+		if e := WriteSummaryKV(ex, summarySheet, row, `Birth date`, dep.birth, headStyle); e != nil { return e }
+		row++
+		if e := WriteSummaryKV(ex, summarySheet, row, `Vision`, SummaryBoolText(dep.vision), headStyle); e != nil { return e }
+		row++
+
+		if len(nonzero) == 0 {
+			if e := WriteSummaryKV(ex, summarySheet, row, `Pre-ex charges`, `-`, headStyle); e != nil { return e }
+			row += 2
+			continue
+		}
+
+		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Plan / Category`, headStyle); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`B`, row), `Pre-ex`, headStyle); e != nil { return e }
+		if e := SetXlCell(ex, summarySheet, Str(`C`, row), `Optional note`, headStyle); e != nil { return e }
+		row++
+		for _, x := range nonzero {
+			if e := SetXlCell(ex, summarySheet, Str(`A`, row), Str(x.plan, ` / `, x.level), 0); e != nil { return e }
+			if e := SetXlCell(ex, summarySheet, Str(`B`, row), EuroCentText(x.applied), 0); e != nil { return e }
+			if e := SetXlCell(ex, summarySheet, Str(`C`, row), x.note, 0); e != nil { return e }
+			row++
+		}
+		row++
+	}
+
+	return nil
+}
+
+func FinalizeXlSheets(ex *sky.File, vars QuoteVars_t) error {
+	if ex == nil { return Error(`nil excel file`) }
+	if e := ex.SetSheetName(sheet, quoteSheet); e != nil { return e }
+	return WriteXlSummary(ex, vars)
+}
+
 func XlPreexByItem(vars QuoteVars_t) map[int]EuroCent_t {
 	out := make(map[int]EuroCent_t)
 	bag := UIBagVarsFromQuoteVars(vars)
@@ -329,7 +603,7 @@ type XlDepLine_t struct {
 
 func XlDepLabel(dep Dependant_t, depId, age int) string {
 	name := Trim(dep.name)
-	if name == `` { name = Str(`Dependant `, depId) }
+	if name == `` { name = `Dependant` }
 	if age > 0 { return Str(name, `'s monthly cost (age `, age, `)`) }
 	return Str(name, `'s monthly cost`)
 }
@@ -571,5 +845,6 @@ func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim b
 		if e := DeleteXlRows(ex, sheet, monthWithEmpRow, monthWithEmpRow); e != nil { return e }
 	}
 	if e := TrimXlDepRows(ex, vars); e != nil { return e }
-	return EnforceSlimLayout(ex, vars, slim)
+	if e := EnforceSlimLayout(ex, vars, slim); e != nil { return e }
+	return FinalizeXlSheets(ex, vars)
 }

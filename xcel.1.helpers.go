@@ -90,8 +90,8 @@ func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
 
 	fname = XlFileName(ClientName(vars), slim)
 	_ = ex.DeleteSheet(xlStyleSheet)
-	_ = ex.AddPicture(sheet, `A1`, xlHeaderPic, nil)
-	SetXlDefaultCell(ex, sheet, nameCell)
+	_ = ex.AddPicture(quoteSheet, `A1`, xlHeaderPic, nil)
+	SetXlDefaultCell(ex, quoteSheet, nameCell)
 	if e = ex.SaveAs(Str(path, `/`, fname)); e != nil {
 		Log(e)
 		return ``, ``, false
