@@ -1,5 +1,8 @@
 /quox
 
+# Generated work exports
+assets/work/*
+
 # Go build artifacts
 *.exe
 *.exe~
