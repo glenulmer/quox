@@ -175,7 +175,7 @@ func QuoteControlDefs() []QuoteControl_t {
 
 		{ name:`birth`, label:`Birth date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.birth.Format(`yyyymmdd`) } },
 		{ name:`buy`, label:`Buy date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.buy.Format(`yyyymmdd`) } },
-		{ name:`sickCover`, label:`Sick cover`, kind:quoteNumber, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, min:0, max:150000, step:1000, defaultValue:QuoteDefaultStatic(`75000`) },
+		{ name:`sickCover`, label:`Sick cover`, kind:quoteNumber, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, min:0, max:150000, step:1000, defaultValue:QuoteDefaultStatic(`80000`) },
 
 		{ name:`priorCov`, label:`Prior cover`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_priorcov_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_priorcov_chooser`) },
 		{ name:`exam`, label:`Exam`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_noexam_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_noexam_chooser`) },

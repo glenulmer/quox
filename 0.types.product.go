@@ -32,6 +32,7 @@ type Plan_t struct {
 	exactAge bool
 	segmask    SegBits_t
 	topNote string
+	topNoteStyle string
 }
 
 type Deductible_t struct {

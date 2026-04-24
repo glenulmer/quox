@@ -49,6 +49,7 @@ func LoadFamilyTips() map[FamilyId_t][]string {
 		ftips := out[family]
 		out[family] = append(ftips, tip)
 	}
+	if rows.HasError() { panic(rows.Message()) }
 
 	return out
 }
@@ -65,6 +66,7 @@ func LoadCategIdMap() IdMap_t[Categ_t] {
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(int(x.categId), x)
 	}
+	if rows.HasError() { panic(rows.Message()) }
 	return out
 }
 
@@ -78,8 +80,10 @@ func PlanNCCategs(planId PlanId_t) []CategId_t {
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(&categ)
+		if rows.HasError() { panic(rows.Message()) }
 		out = append(out, categ)
 	}
+	if rows.HasError() { panic(rows.Message()) }
 
 	return out
 }
@@ -102,12 +106,13 @@ func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
 			&p.nc.promise, &p.nc.note,
 			&p.nc.adult.months, &p.nc.adult.flat, &p.nc.child.months, &p.nc.child.flat, 
 			&p.name, &p.provName, &p.exactAge, &p.segmask,
-			&p.topNote,
+			&p.topNote, &p.topNoteStyle,
 		)
 		if rows.HasError() { panic(rows.Message()) }
 		p.ncCategs = PlanNCCategs(p.planId)
 		out.Add(int(p.planId), p)
 	}
+	if rows.HasError() { panic(rows.Message()) }
 	return out
 }
 
@@ -125,12 +130,14 @@ func LoadLevelIdMap() IdMap_t[Level_t] {
 	rows := App.DB.Call(`klec_levels_query`)
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
+	var nostring string
 	for rows.Next() {
 		var x Level_t
-		rows.Scan(&x.levelId, &x.label, &x.categId, &x.segments, &x.canStack)
+		rows.Scan(&x.levelId, &x.label, &nostring, &x.categId, &x.segments, &x.canStack)
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(int(x.levelId), x)
 	}
+	if rows.HasError() { panic(rows.Message()) }
 	return out
 }
 
@@ -155,6 +162,7 @@ func LoadYearVarsIdMap() IdMap_t[YearVars_t] {
 		if isPast || !exists || x.year <= 0 { continue }
 		out.Add(x.year, x)
 	}
+	if rows.HasError() { panic(rows.Message()) }
 	return out
 }
 
@@ -171,6 +179,7 @@ func LoadPrices() map[YAP_t]Price_t {
 		if rows.HasError() { panic(rows.Message()) }
 		prices[yap] = pr
 	}
+	if rows.HasError() { panic(rows.Message()) }
 
 	return prices
 }
@@ -192,6 +201,7 @@ func LoadProducts() map[ProductId_t]Product_t {
 		if rows.HasError() { panic(rows.Message()) }
 		products[p.productId] = p
 	}
+	if rows.HasError() { panic(rows.Message()) }
 	return products
 }
 
@@ -250,6 +260,8 @@ func LoadBenSecs() IdMap_t[BenSec_t] {
 }
 
 type BenSecItem_t struct {
+	section int
+	secsort int
 	benefit int
 	label string
 	isSlim bool
@@ -257,18 +269,22 @@ type BenSecItem_t struct {
 
 func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 	out := IdMap[BenSecItem_t]()
-
-	rows := App.DB.Call(`quo_bensecitems_query`, 0)
-	if rows.HasError() { panic(rows.Message()) }
-
-	defer rows.Close()
-	for rows.Next() {
-		var x BenSecItem_t
-		rows.Scan(&x.benefit, &x.label, &x.isSlim)
+	seq := 0
+	for secId, _ := range App.lookup.benSecs.All() {
+		rows := App.DB.Call(`quo_bensecitems_query`, secId)
 		if rows.HasError() { panic(rows.Message()) }
-		out.Add(x.benefit, x)
+
+		for rows.Next() {
+			var x BenSecItem_t
+			x.section = secId
+			rows.Scan(&x.secsort, &x.benefit, &x.label, &x.isSlim)
+			if rows.HasError() { panic(rows.Message()) }
+			seq++
+			out.Add(seq, x)
+		}
+		if rows.HasError() { panic(rows.Message()) }
+		rows.Close()
 	}
-	if rows.HasError() { panic(rows.Message()) }
 
 	return out
 }

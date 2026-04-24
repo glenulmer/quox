@@ -14,7 +14,7 @@
 1. Keep feedback technical and concrete.
 2. State conclusions and recent actions first. Details afterward.
 3. If I say "shutdown everything", that means kill all persistent terminals & resources that can be released
-4. Any path starting without ~ or / is always relative to the repository root
+4. Any path starting with an alphabetic is relative to the repository root
 
 ## C) Code style
  1. Read docs/CODING_STYLE.md before writing or modifying go code.

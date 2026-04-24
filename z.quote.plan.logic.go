@@ -105,7 +105,7 @@ func CatPrice(buyYear, age, productId int, categId CategId_t, sickCover int, sup
 	base, surcharge, ok = LookupPrice(buyYear, age, productId)
 	if !ok { return 0, 0, false }
 	if categId == catSick {
-		base = ApplyPercent(base, Percent_t(sickCover/45))
+		base *= EuroCent_t(sickCover / 4500)
 	}
 	if suppressSurch { surcharge = 0 }
 	return base, surcharge, true
@@ -394,6 +394,28 @@ func CategRangeMatch(plan Plan_t, categId CategId_t, minLevel, maxLevel int) boo
 	return false
 }
 
+func QuoteCommission(row QuotePlan_t, plan Plan_t, preexByCateg map[CategId_t]EuroCent_t) EuroCent_t {
+	regularBase := row.planBase + preexByCateg[0]
+	pvnBase := EuroCent_t(0)
+
+	for _, addon := range row.addons {
+		if !addon.priceOk || addon.base == 0 { continue }
+		name := Lower(Trim(addon.categ))
+		if Contains(name, `vision`) { continue }
+
+		base := addon.base + preexByCateg[addon.categId]
+		if Contains(name, `pvn`) {
+			pvnBase += base
+			continue
+		}
+		regularBase += base
+	}
+
+	upfront := Commission(regularBase, plan.comonths) + Commission(pvnBase, Months_t(200))
+	commission := ApplyPercent(upfront, Percent_t(20))
+	return EuroFlatFromCent(commission).ToEuroCent()
+}
+
 func VisionAmount(plan Plan_t, planBase EuroCent_t) (EuroCent_t, bool) {
 	if plan.vision.percent > 0 {
 		return ApplyPercent(planBase, plan.vision.percent), true
@@ -572,6 +594,7 @@ func QuotePlans(state State_t) QuotePlans_t {
 			if visionOk {
 				row.base += visionBase
 				row.addons = append(row.addons, QuotePlanAddon_t{
+					categId: CategId_t(-1),
 					categ: `Vision`,
 					base: visionBase,
 					priceOk: true,
@@ -579,20 +602,7 @@ func QuotePlans(state State_t) QuotePlans_t {
 			}
 		}
 
-		regularBase := row.planBase
-		pvnBase := EuroCent_t(0)
-		for _, addon := range row.addons {
-			if !addon.priceOk || addon.base == 0 { continue }
-			name := Lower(Trim(addon.categ))
-			if Contains(name, `vision`) { continue }
-			if Contains(name, `pvn`) {
-				pvnBase += addon.base
-				continue
-			}
-			regularBase += addon.base
-		}
-		upfront := Commission(regularBase, plan.comonths) + Commission(pvnBase, Months_t(200))
-		row.commission = ApplyPercent(upfront, Percent_t(20))
+		row.commission = QuoteCommission(row, plan, nil)
 
 		row.price = row.base + row.surcharge
 		out.plans = append(out.plans, row)

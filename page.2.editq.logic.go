@@ -200,6 +200,8 @@ func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
 
 		for _, addon := range x.row.addons {
 			if !addon.priceOk { continue }
+			if addon.categId <= 0 { continue }
+			if Contains(Lower(Trim(addon.categ)), `vision`) { continue }
 			if addon.base+addon.surcharge <= 0 { continue }
 			modeKey := EditQPreexModeKey(x.item.itemId, addon.categId)
 			mode := EditQPreexMode(vars[modeKey])
@@ -265,6 +267,8 @@ func EditQDependentCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_
 		}
 		for _, addon := range x.row.addons {
 			if !addon.priceOk { continue }
+			if addon.categId <= 0 { continue }
+			if Contains(Lower(Trim(addon.categ)), `vision`) { continue }
 			if addon.base+addon.surcharge <= 0 { continue }
 			modeKey := EditQDepChargeModeKey(dep.depId, x.item.itemId, addon.categId)
 			mode := EditQPreexMode(vars[modeKey])

@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"os"
 	"strings"
@@ -14,8 +16,7 @@ const xlsx = `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
 const template = `assets/ExcelQuote.xlsx`
 const workDir = `assets/work`
-const sheet = `Sheet1`
-const nameCell = `A3`
+const xlHeaderPic = `assets/klexpats.jpg`
 
 func IsSlimXl(req *http.Request) bool {
 	if req == nil { return false }
@@ -68,8 +69,6 @@ func XlFileName(clientName string, slim bool) string {
 }
 
 func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
-	clientName := ClientName(vars)
-
 	ex, e := sky.OpenFile(template)
 	if e != nil {
 		Log(e)
@@ -78,7 +77,7 @@ func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
 	defer ex.Close()
 
 	styles := LoadXlStyles(ex)
-	if e = SetXlStyled(ex, styles, sheet, nameCell, clientName, xlStyleClient); e != nil {
+	if e = WriteXlLayout(ex, styles, vars, slim); e != nil {
 		Log(e)
 		return ``, ``, false
 	}
@@ -89,7 +88,10 @@ func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
 		return ``, ``, false
 	}
 
-	fname = XlFileName(clientName, slim)
+	fname = XlFileName(ClientName(vars), slim)
+	_ = ex.DeleteSheet(xlStyleSheet)
+	_ = ex.AddPicture(sheet, `A1`, xlHeaderPic, nil)
+	SetXlDefaultCell(ex, sheet, nameCell)
 	if e = ex.SaveAs(Str(path, `/`, fname)); e != nil {
 		Log(e)
 		return ``, ``, false

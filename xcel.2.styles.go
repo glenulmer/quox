@@ -10,6 +10,13 @@ const xlStyleSheet = `formats`
 const xlStyleFrom = `B2`
 const xlStyleTo = `J100`
 const xlStyleClient = `Client Name`
+const xlStyleYouPay = `YouPay`
+const xlStyleDeductibleLabel = `DeductibleLabel`
+const xlStyleDeductibleValue = `DeductibleValue`
+const xlStyleCommission = `Commission`
+const xlStyleTipTitle = `TipTitle`
+const xlStyleTipText = `TipText`
+const xlStyleSlimNote = `SlimNote`
 
 func LoadXlStyles(ex *sky.File) map[string]int {
 	out := make(map[string]int)

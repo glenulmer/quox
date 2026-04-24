@@ -168,7 +168,7 @@ begin
          , pn.promise, pn.note 
          , pn.ad_months, pn.ad_flat, pn.ch_months, pn.ch_flat
          , a.name, c.name, c.exact_age, a.segmask
-         , ifnull(n.note,'') note
+         , ifnull(n.note,'') note, ifnull(n.style,'') style
       from plans p
       join families f on p.family = f.family
       join products a on p.plan = a.product

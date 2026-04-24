@@ -19,11 +19,15 @@ type Pack_t interface {
 	Query() string
 }
 
-type tPackRows struct { e error; q string; rows *Rows_t }
+type tPackState struct { e error }
+type tPackRows struct { q string; rows *Rows_t; state *tPackState }
 type tPackRow struct { e error; q string }
 
-func (p tPackRows)Error() error { return p.e }
-func (p tPackRows)HasError() bool { return p.e != nil }
+func (p tPackRows)Error() error {
+	if p.state == nil { return nil }
+	return p.state.e
+}
+func (p tPackRows)HasError() bool { return p.Error() != nil }
 func (p tPackRows)Query() string { return p.q }
 func (tPackRows)IsRow() bool { return false }
 
@@ -32,7 +36,9 @@ func (p tPackRow)HasError() bool { return p.e != nil }
 func (p tPackRow)Query() string { return p.q }
 func (tPackRow)IsRow() bool { return true }
 
-func _PackRows(err error, query string, rows *sql.Rows) tPackRows { return tPackRows{ e:err, q:query, rows:wrapRows(rows) } }
+func _PackRows(err error, query string, rows *sql.Rows) tPackRows {
+	return tPackRows{ q:query, rows:wrapRows(rows), state:&tPackState{ e:err } }
+}
 func _PackRow(err error, query string ) tPackRow { return tPackRow{ e:err, q: query } }
 
 func wrapRows(rows *sql.Rows) *Rows_t {
@@ -62,11 +68,41 @@ func (r *Rows_t)Next() bool { return r.unwrap().Next() }
 func (r *Rows_t)Scan(dest ...interface{}) error { return r.unwrap().Scan(dest...) }
 func (r *Rows_t)NextResultSet() bool { return r.unwrap().NextResultSet() }
 
-func (p tPackRows)Close() error { return p.rows.unwrap().Close() }
-func (p tPackRows)Err() error { return p.rows.unwrap().Err() }
-func (p tPackRows)Next() bool { return p.rows.unwrap().Next() }
-func (p tPackRows)Scan(dest ...interface{}) error { return p.rows.unwrap().Scan(dest...) }
-func (p tPackRows)NextResultSet() bool { return p.rows.unwrap().NextResultSet() }
+func (p tPackRows)setErr(e error) {
+	if e == nil || p.state == nil || p.state.e != nil { return }
+	p.state.e = e
+}
+
+func (p tPackRows)Close() error {
+	if p.rows == nil { return nil }
+	e := p.rows.unwrap().Close()
+	p.setErr(e)
+	return e
+}
+func (p tPackRows)Err() error {
+	if p.rows == nil { return p.Error() }
+	e := p.rows.unwrap().Err()
+	p.setErr(e)
+	return e
+}
+func (p tPackRows)Next() bool {
+	if p.rows == nil { return false }
+	ok := p.rows.unwrap().Next()
+	if !ok { p.setErr(p.rows.unwrap().Err()) }
+	return ok
+}
+func (p tPackRows)Scan(dest ...interface{}) error {
+	if p.rows == nil { return nil }
+	e := p.rows.unwrap().Scan(dest...)
+	p.setErr(e)
+	return e
+}
+func (p tPackRows)NextResultSet() bool {
+	if p.rows == nil { return false }
+	ok := p.rows.unwrap().NextResultSet()
+	if !ok { p.setErr(p.rows.unwrap().Err()) }
+	return ok
+}
 
 type XQL interface { // for DB and Tx
 	Query(q string) tPackRows // *Rows_t
@@ -266,11 +302,12 @@ func mysqlerr(q string, err error) string {
 		if mysqlErr, ok := err.(*MySQLError); ok {
 			return mysqlErr.Message + `::` + q
 		}
+		return err.Error() + `::` + q
 	}
 	return ""
 }
 
-func (p tPackRows)Message() string { return mysqlerr(p.q, p.e) }
+func (p tPackRows)Message() string { return mysqlerr(p.q, p.Error()) }
 func (p tPackRow)Message() string { return mysqlerr(p.q, p.e) }
 
 func (z *DB_t)unwrap() *sql.DB { return (*sql.DB)(z); }

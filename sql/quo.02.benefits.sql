@@ -13,9 +13,9 @@ delimiter ;
 delimiter ###
 create or replace procedure quo_bensecitems_query($sec int)
 begin
-    select b.benefit, b.label, b.slim
+    select b.secsort, b.benefit, b.label, b.slim
       from benefits b
-     where (($sec = 0) or (section = $sec))
+     where section = $sec
      order by b.section, secsort;
 end
 ###

@@ -3,16 +3,30 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${1:-3333}"
-HOST="${2:-127.0.0.1}"
+SLIM_RAW="${2:-false}"
+HOST="${3:-127.0.0.1}"
 TMP_XLSX="/tmp/quox.smoke.download.xlsx"
 TMP_HDR="/tmp/quox.smoke.download.headers.txt"
+SLIM="$(printf '%s' "$SLIM_RAW" | tr '[:upper:]' '[:lower:]')"
+
+if [[ "$SLIM" == "1" ]]; then
+	SLIM="true"
+fi
+if [[ "$SLIM" == "0" ]]; then
+	SLIM="false"
+fi
+if [[ "$SLIM" != "true" && "$SLIM" != "false" ]]; then
+	echo "smoke failed: slim arg must be true/false/1/0"
+	exit 1
+fi
 
 cd "$ROOT"
 rm -f "$TMP_XLSX" "$TMP_HDR"
 
 curl -sS -D "$TMP_HDR" -o "$TMP_XLSX" \
 	-X POST \
-	-d 'DownloadExcel=slim=false' \
+	-d "slim=${SLIM}" \
+	-d "DownloadExcel=slim=${SLIM}" \
 	"http://${HOST}:${PORT}/download-excel"
 
 if ! grep -Eiq '^HTTP/[0-9.]+ 200' "$TMP_HDR"; then
@@ -35,6 +49,15 @@ if [[ -z "$FILE_NAME" ]]; then
 	exit 1
 fi
 
+if [[ "$SLIM" == "true" && "$FILE_NAME" != *.slim.xlsx ]]; then
+	echo "smoke failed: expected slim filename suffix, got: $FILE_NAME"
+	exit 1
+fi
+if [[ "$SLIM" == "false" && "$FILE_NAME" == *.slim.xlsx ]]; then
+	echo "smoke failed: expected non-slim filename, got: $FILE_NAME"
+	exit 1
+fi
+
 if [[ ! -f "$TMP_XLSX" ]]; then
 	echo "smoke failed: download file missing"
 	exit 1
@@ -52,5 +75,6 @@ if [[ ! -f "assets/work/$FILE_NAME" ]]; then
 fi
 
 echo "smoke ok"
+echo "slim=$SLIM"
 echo "file=$FILE_NAME"
 ls -l "$TMP_XLSX" "assets/work/$FILE_NAME"

@@ -73,12 +73,64 @@ func (ex *Excel_t) CopySheet(orig, new string) error {
 
 func (ex *Excel_t) DeleteSheet(name string) { _ = ex.File.DeleteSheet(name) }
 
+func (ex *Excel_t) GetStyle(name string) int {
+	if ex == nil {
+		return 0
+	}
+	return ex.Styles[name]
+}
+
+func (ex *Excel_t) DeleteRow(row int) error {
+	if ex == nil {
+		return Error("nil Excel_t pointer")
+	}
+	return ex.File.RemoveRow(ex.Sheet, row)
+}
+
+func (ex *Excel_t) DeleteCol(col string) error {
+	if ex == nil {
+		return Error("nil Excel_t pointer")
+	}
+	col = strings.ToUpper(strings.TrimSpace(col))
+	if col == `` {
+		return nil
+	}
+	return ex.File.RemoveCol(ex.Sheet, col)
+}
+
+func (ex *Excel_t) DeleteRows(low, high int) {
+	if ex == nil {
+		return
+	}
+	diff := (high - low) + 1
+	for diff > 0 {
+		_ = ex.DeleteRow(low)
+		diff--
+	}
+}
+
 func (ex *Excel_t) SetColWidth(col string, width float64) {
 	col = strings.ToUpper(strings.TrimSpace(col))
 	if col == `` {
 		return
 	}
 	_ = ex.File.SetColWidth(ex.Sheet, col, col, width)
+}
+
+func (ex *Excel_t) AddPicture(col string, row int, fpath, adjust string) error {
+	if ex == nil {
+		return Error("nil Excel_t pointer")
+	}
+	col = strings.ToUpper(strings.TrimSpace(col))
+	if col == `` || row < 1 {
+		return nil
+	}
+	e := ex.File.AddPicture(ex.Sheet, Str(col, row), fpath, nil)
+	if e != nil {
+		Log("xl AddPicture:", fpath, e)
+	}
+	_ = adjust
+	return e
 }
 
 func (ex *Excel_t) Save(target string) error {
@@ -120,6 +172,13 @@ func (ex *Excel_t) StyleCells(UL, LR string, styleId int) {
 	_ = ex.File.SetCellStyle(ex.Sheet, UL, LR, styleId)
 }
 
+func (ex *Excel_t) MergeCells(UL, LR string, styles ...int) {
+	_ = ex.File.MergeCell(ex.Sheet, UL, LR)
+	if k := len(styles); k > 0 {
+		ex.StyleCells(UL, LR, styles[k-1])
+	}
+}
+
 func Col(col int) (c string) {
 	name, e := sky.ColumnNumberToName(col)
 	if e != nil {
@@ -127,6 +186,16 @@ func Col(col int) (c string) {
 	}
 	return name
 }
+
+func ColNumber(name string) int {
+	ix, e := sky.ColumnNameToNumber(strings.ToUpper(strings.TrimSpace(name)))
+	if e != nil || ix < 1 {
+		return 0
+	}
+	return ix
+}
+
+func ColName(col int) string { return Col(col) }
 
 func (ex *Excel_t) GetCellStyle(col string, row int) int {
 	style, e := ex.File.GetCellStyle(ex.Sheet, Str(col, row))

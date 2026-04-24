@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	. "quo2/lib/dec2"
 	. "quo2/lib/output"
 )
 
@@ -115,14 +116,45 @@ func QuoteStateFromVars(vars UIBagVars_t) State_t {
 	return out
 }
 
+func QuoteSelectedPreexByCateg(vars UIBagVars_t, itemId int, row QuotePlan_t) map[CategId_t]EuroCent_t {
+	out := make(map[CategId_t]EuroCent_t)
+	if itemId <= 0 { return out }
+
+	mode := EditQPreexMode(vars[EditQPreexModeKey(itemId, 0)])
+	amount := vars[EditQPreexAmountKey(itemId, 0)]
+	if applied := EditQPreexAppliedAmount(mode, amount, row.planBase); applied > 0 {
+		out[0] = applied
+	}
+
+	for _, addon := range row.addons {
+		if !addon.priceOk { continue }
+		if addon.categId <= 0 { continue } // excludes vision pseudo-row
+		if addon.base <= 0 { continue }
+		mode := EditQPreexMode(vars[EditQPreexModeKey(itemId, addon.categId)])
+		amount := vars[EditQPreexAmountKey(itemId, addon.categId)]
+		if applied := EditQPreexAppliedAmount(mode, amount, addon.base); applied > 0 {
+			out[addon.categId] = applied
+		}
+	}
+
+	return out
+}
+
 func QuoteSelectedPlanRow(state State_t, item QuoteSelectedItem_t) (QuotePlan_t, bool) {
 	work := QuoteCloneState(state)
 	for catId, addon := range item.cats {
 		work.quote[QuotePlanCatControlName(item.planId, catId)] = Str(addon)
 	}
+
 	list := QuotePlans(work).plans
 	for _, row := range list {
-		if row.planId == item.planId { return row, true }
+		if row.planId != item.planId { continue }
+		plan, ok := App.lookup.plans.byId[item.planId]
+		if ok {
+			preexByCateg := QuoteSelectedPreexByCateg(work.quote, item.itemId, row)
+			row.commission = QuoteCommission(row, plan, preexByCateg)
+		}
+		return row, true
 	}
 	return QuotePlan_t{}, false
 }
