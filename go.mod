@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/mssola/useragent v1.0.0 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/tiendc/go-deepcopy v1.7.1 // indirect

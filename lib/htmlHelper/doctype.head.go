@@ -16,6 +16,7 @@ func (x Head_t)CSSTail(t string) Head_t { return append(x, tHeadItem{`cTail`, t}
 func (x Head_t)JS(t string) Head_t      { return append(x, tHeadItem{`js`, t}) }
 func (x Head_t)JSTail(t string) Head_t  { return append(x, tHeadItem{`jsTail`, t}) }
 func (x Head_t)Script(t string) Head_t  { return append(x, tHeadItem{`script`, t}) }
+func (x Head_t)HeadFirstScript(t string) Head_t { return append(x, tHeadItem{`headFirstScript`, t}) }
 func (x Head_t)End() Head_t { return x }
 
 func (x Head_t)Left() string {
@@ -25,6 +26,14 @@ func (x Head_t)Left() string {
 		`<!DOCTYPE html>`, NL,
 		`<html lang="en">`, NL,
 		`<head>`, NL,
+	)
+	for _, item := range x {
+		switch item.kind {
+		case "headFirstScript":
+			b.Add(tab, `<script>`, NL, item.text, NL, tab, "</script>", NL)
+		}
+	}
+	b.Add(
 		`	<meta charset="UTF-8">`, NL,
 		`	<meta name="viewport" content="width=device-width, initial-scale=1.0">`, NL,
 		`	<link rel="icon" href="/static/favicon.ico" type="image/x-icon">`, NL,

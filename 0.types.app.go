@@ -12,7 +12,6 @@ type Price_t struct { base, surcharge EuroCent_t }
 type App_t struct {
 	DB            *DB_t
 	port          string
-	layout        string
 	staticVersion string
 	Auth          func(http.HandlerFunc) http.HandlerFunc
 	sessionStore *SessionStore_t

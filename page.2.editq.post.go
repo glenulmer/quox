@@ -7,9 +7,10 @@ import (
 	. "klpm/pkg.Global"
 )
 
-func RewriteEditQPage(w http.ResponseWriter, state State_t) {
+func RewriteEditQPage(w http.ResponseWriter, req *http.Request, state State_t) {
 	vars := UIBagVars(state)
-	body := EditQBodyView(vars, false)
+	layout := RequestLayout(req)
+	body := EditQBodyView(layout, vars, false)
 	SendResponse(w, RewriteHTML(OuterHTML, `EditQFormBody`, body))
 }
 
@@ -27,7 +28,7 @@ func Page2EditQChange(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	if EditQApply(&state, name, value) {
 		SetState(req, state)
-		RewriteEditQPage(w, state)
+		RewriteEditQPage(w, req, state)
 		return
 	}
 

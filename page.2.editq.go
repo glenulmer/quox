@@ -7,30 +7,30 @@ import (
 	. "klpm/lib/output"
 )
 
-func EditQCSSPath() string {
-	if App.layout == layoutDesktop {
+func EditQCSSPath(layout string) string {
+	if layout == layoutDesktop {
 		return Str(`/static/css/page.2.editq.desktop.css?v=`, App.staticVersion)
 	}
 	return Str(`/static/css/page.2.editq.phone.css?v=`, App.staticVersion)
 }
 
-func EditQBodyView(vars UIBagVars_t, sortForGet bool) Elem_t {
-	if App.layout == layoutDesktop { return EditQDesktopBodyView(vars, sortForGet) }
+func EditQBodyView(layout string, vars UIBagVars_t, sortForGet bool) Elem_t {
+	if layout == layoutDesktop { return EditQDesktopBodyView(vars, sortForGet) }
 	return EditQPhoneBodyView(vars, sortForGet)
 }
 
-func EditQFormView(vars UIBagVars_t, sortForGet bool) Elem_t {
+func EditQFormView(layout string, vars UIBagVars_t, sortForGet bool) Elem_t {
 	return Elem(`form`).
 		Id(`EditQForm`).
 		Class(`editq-form`).
 		KV(`method`, `post`).
 		KV(`action`, `/quote-review-change`).
-		Wrap(EditQBodyView(vars, sortForGet))
+		Wrap(EditQBodyView(layout, vars, sortForGet))
 }
 
-func EditQPageView(vars UIBagVars_t, sortForGet bool) Elem_t {
+func EditQPageView(layout string, vars UIBagVars_t, sortForGet bool) Elem_t {
 	return Elem(`main`).Class(`editq-page`).Wrap(
-		EditQFormView(vars, sortForGet),
+		EditQFormView(layout, vars, sortForGet),
 	)
 }
 
@@ -39,9 +39,12 @@ func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	state.quote = UIBagVars(state)
 	EditQEnsureDefaultDependent(&state)
 	SetState(req, state)
+	layout := RequestLayout(req)
+	mode := DeviceModeFromLayout(layout)
 
 	head := Head().
-		CSS(EditQCSSPath()).
+		HeadFirstScript(DeviceConfirmHeadScript(mode)).
+		CSS(EditQCSSPath(layout)).
 		JSTail(Str(`/static/js/page.2.editq.js?v=`, App.staticVersion)).
 		Title(`Quo2`).
 		End()
@@ -49,7 +52,7 @@ func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	w := Writer(w0)
 	w.Add(
 		head.Left(), NL,
-		EditQPageView(state.quote, true), NL,
+		EditQPageView(layout, state.quote, true), NL,
 		head.Right(), NL,
 	)
 }

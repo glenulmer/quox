@@ -7,12 +7,13 @@ import (
 	. "klpm/pkg.Global"
 )
 
-func RewriteQuotePage(w http.ResponseWriter, state State_t) {
+func RewriteQuotePage(w http.ResponseWriter, req *http.Request, state State_t) {
 	vars := UIBagVars(state)
 	plans := QuotePlans(state)
+	layout := RequestLayout(req)
 	form := any(QuotePhoneFormBodyView(vars))
 	planView := any(QuotePhonePlansView(plans))
-	if App.layout == layoutDesktop {
+	if layout == layoutDesktop {
 		form = QuoteDesktopFormBodyView(vars)
 		planView = QuoteDesktopPlansView(plans)
 	}
@@ -28,15 +29,15 @@ func Page1QuoteChange(w http.ResponseWriter, req *http.Request) {
 	if name == QuoteResetControlName() {
 		state.quote = QuoteDefaultVars()
 		SetState(req, state)
-		RewriteQuotePage(w, state)
+		RewriteQuotePage(w, req, state)
 		return
 	}
 	if QuoteSelectedApply(&state, name, req.FormValue(`value`)) {
 		SetState(req, state)
-		RewriteQuotePage(w, state)
+		RewriteQuotePage(w, req, state)
 		return
 	}
 	QuoteApply(&state, name, req.FormValue(`value`))
 	SetState(req, state)
-	RewriteQuotePage(w, state)
+	RewriteQuotePage(w, req, state)
 }
