@@ -1,4 +1,4 @@
-module pm5
+module klpm
 
 go 1.25.3
 
