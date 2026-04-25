@@ -14,8 +14,10 @@ import (
 const sessionCookie = `klpm_session`
 const deviceCookie = `device`
 const deviceMobile, deviceDesktop = `mobile`, `desktop`
+const layoutQuery = `layout`
 
 type tSessionCtxKey struct{}
+type tSessionCreatedCtxKey struct{}
 
 type SessionStore_t struct {
 	mu sync.RWMutex
@@ -23,6 +25,7 @@ type SessionStore_t struct {
 }
 
 var sessionCtxKey = tSessionCtxKey{}
+var sessionCreatedCtxKey = tSessionCreatedCtxKey{}
 
 func NewSessionStore() *SessionStore_t {
 	return &SessionStore_t{
@@ -71,6 +74,27 @@ func NormalizeDeviceMode(raw string) (mode string, ok bool) {
 func UAMode(r *http.Request) string {
 	if useragent.New(r.UserAgent()).Mobile() { return deviceMobile }
 	return deviceDesktop
+}
+
+func LayoutModeFromQuery(raw string) (mode string, ok bool) {
+	switch strings.TrimSpace(strings.ToLower(raw)) {
+	case `desk`, `desktop`, `wide`:
+		return deviceDesktop, true
+	case `phone`, `mobile`, `iphone`, `tall`:
+		return deviceMobile, true
+	}
+	return ``, false
+}
+
+func PathWithoutLayoutQuery(r *http.Request) string {
+	q := r.URL.Query()
+	q.Del(layoutQuery)
+	path := strings.TrimSpace(r.URL.Path)
+	if path == `` { path = `/` }
+	if s := q.Encode(); s != `` {
+		return path + `?` + s
+	}
+	return path
 }
 
 func (x *SessionStore_t)EnsureToken(raw string) (token string, setCookie bool, created bool) {
@@ -170,6 +194,12 @@ func SessionToken(r *http.Request) string {
 	return strings.TrimSpace(token)
 }
 
+func SessionCreated(r *http.Request) bool {
+	v := r.Context().Value(sessionCreatedCtxKey)
+	created, ok := v.(bool)
+	return ok && created
+}
+
 func SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		raw := ``
@@ -179,10 +209,19 @@ func SessionMiddleware(next http.Handler) http.Handler {
 		token, setCookie, created := App.sessionStore.EnsureToken(raw)
 		if setCookie { SetSessionCookie(w, token) }
 
-		if c, _ := r.Cookie(deviceCookie); c != nil {
+		layoutRaw := strings.TrimSpace(r.URL.Query().Get(layoutQuery))
+		layoutSeen := layoutRaw != ``
+		if mode, ok := LayoutModeFromQuery(layoutRaw); ok {
+			App.sessionStore.SetDevice(token, mode, true)
+			SetDeviceCookie(w, mode)
+		} else if c, _ := r.Cookie(deviceCookie); c != nil {
 			if mode, ok := NormalizeDeviceMode(c.Value); ok {
 				App.sessionStore.SetDevice(token, mode, true)
 			}
+		}
+		if layoutSeen && (r.Method == http.MethodGet || r.Method == http.MethodHead) {
+			http.Redirect(w, r, PathWithoutLayoutQuery(r), http.StatusSeeOther)
+			return
 		}
 
 		mode, confirmed := App.sessionStore.GetDevice(token)
@@ -193,6 +232,7 @@ func SessionMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), sessionCtxKey, token)
+		ctx = context.WithValue(ctx, sessionCreatedCtxKey, created)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -223,6 +263,18 @@ func SetSessionCookie(w http.ResponseWriter, token string) {
 		Path: `/`,
 		MaxAge: 60 * 60 * 24 * 365,
 		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func SetDeviceCookie(w http.ResponseWriter, mode string) {
+	mode, ok := NormalizeDeviceMode(mode)
+	if !ok { return }
+	http.SetCookie(w, &http.Cookie{
+		Name: deviceCookie,
+		Value: mode,
+		Path: `/`,
+		MaxAge: 60 * 60 * 24 * 365,
 		SameSite: http.SameSiteLaxMode,
 	})
 }
