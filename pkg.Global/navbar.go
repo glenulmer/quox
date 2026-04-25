@@ -2,7 +2,7 @@ package globals
 
 import (
 	"net/http"
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 )
 
 // include navbar.css

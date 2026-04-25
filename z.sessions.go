@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-const sessionCookie = `quo2_session`
+const sessionCookie = `klpm_session`
 
 type tSessionCtxKey struct{}
 

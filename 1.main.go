@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"github.com/go-chi/chi/v5"
 
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 )
 
 func main() {
@@ -30,6 +30,6 @@ func main() {
 
 	r.Handle(`/static/*`, http.StripPrefix(`/static/`, http.FileServer(http.Dir(`./static`))))
 
-	Log(`quo2 is running on :`, App.port)
+	Log(`klpm is running on :`, App.port)
 	log.Fatal(http.ListenAndServe(Str(`:`, App.port), r))
 }

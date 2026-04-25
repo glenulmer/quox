@@ -1,6 +1,6 @@
 package decimal
 
-import . "quo2/lib/output"
+import . "klpm/lib/output"
 
 type tVal int64
 type tPrec uint8

@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	. "quo2/lib/htmlHelper"
-	. "quo2/lib/output"
+	. "klpm/lib/htmlHelper"
+	. "klpm/lib/output"
 )
 
 func EditQCSSPath() string {

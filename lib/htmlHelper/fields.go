@@ -1,7 +1,7 @@
 package htmlHelper
 
 import (
-	. `quo2/lib/output`
+	. `klpm/lib/output`
 )
 
 func wid12(wid int) string {

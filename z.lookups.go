@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	. "quo2/lib/dec2"
+	. "klpm/lib/dec2"
 )
 
 func (x YearVars_t)maxCover() EuroFlat_t { return x.cover * 2 }
@@ -36,7 +36,7 @@ type Categ_t struct {
 func LoadFamilyTips() map[FamilyId_t][]string {
 	out := make(map[FamilyId_t][]string)
 
-	rows := App.DB.Call(`quo_family_tips_query`)
+	rows := App.DB.Call(`klpm_family_tips_query`)
 	if rows.HasError() { panic(rows.Message()) }
 
 	var family FamilyId_t
@@ -56,7 +56,7 @@ func LoadFamilyTips() map[FamilyId_t][]string {
 
 func LoadCategIdMap() IdMap_t[Categ_t] {
 	out := IdMap[Categ_t]()
-	rows := App.DB.Call(`quo_categs_query`)
+	rows := App.DB.Call(`klpm_categs_query`)
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
 	for rows.Next() {
@@ -73,7 +73,7 @@ func LoadCategIdMap() IdMap_t[Categ_t] {
 func PlanNCCategs(planId PlanId_t) []CategId_t {
 	var out []CategId_t
 
-	rows := App.DB.Call(`quo_plan_nccategs_query`, planId)
+	rows := App.DB.Call(`klpm_plan_nccategs_query`, planId)
 	if rows.HasError() { panic(rows.Message()) }
 
 	var categ CategId_t
@@ -90,7 +90,7 @@ func PlanNCCategs(planId PlanId_t) []CategId_t {
 
 func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
 	out := IdMap[Plan_t]()
-	rows := App.DB.Call(`quo_plan_details_query`)
+	rows := App.DB.Call(`klpm_plan_details_query`)
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
 	for rows.Next() {
@@ -169,7 +169,7 @@ func LoadYearVarsIdMap() IdMap_t[YearVars_t] {
 func LoadPrices() map[YAP_t]Price_t {
 	prices := make(map[YAP_t]Price_t)
 
-	rows := App.DB.Call(`quo_product_prices`)
+	rows := App.DB.Call(`klpm_product_prices`)
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
 	var yap YAP_t
@@ -192,7 +192,7 @@ type FamilyId_t int
 
 func LoadProducts() map[ProductId_t]Product_t {
 	products := make(map[ProductId_t]Product_t)
-	rows := App.DB.Call(`quo_product_query`)
+	rows := App.DB.Call(`klpm_product_query`)
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
 	var p Product_t
@@ -220,7 +220,7 @@ func LoadPlanAddons() (map[PlanCateg_t]CatChoice_t, map[PlanCateg_t][]CatChoice_
 	defaults := make(map[PlanCateg_t]CatChoice_t)
 	choices := make(map[PlanCateg_t][]CatChoice_t)
 
-	rows := App.DB.Call(`quo_plan_categ_addons`, 0)
+	rows := App.DB.Call(`klpm_plan_categ_addons`, 0)
 	defer rows.Close()
 	if rows.HasError() { panic(rows.Message()) }
 	var k PlanCateg_t
@@ -244,7 +244,7 @@ type BenSec_t struct {
 func LoadBenSecs() IdMap_t[BenSec_t] {
 	out := IdMap[BenSec_t]()
 
-	rows := App.DB.Call(`quo_bensections_query`)
+	rows := App.DB.Call(`klpm_bensections_query`)
 
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
@@ -271,7 +271,7 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 	out := IdMap[BenSecItem_t]()
 	seq := 0
 	for secId, _ := range App.lookup.benSecs.All() {
-		rows := App.DB.Call(`quo_bensecitems_query`, secId)
+		rows := App.DB.Call(`klpm_bensecitems_query`, secId)
 		if rows.HasError() { panic(rows.Message()) }
 
 		for rows.Next() {
@@ -297,7 +297,7 @@ func BenAddon(b, a int) BenAddon_t { return BenAddon_t{ benefit:b, addon:a } }
 func LoadBensByFamily() map[BenFamily_t]string {
 	m := make(map[BenFamily_t]string)
 
-	rows := App.DB.Call(`quo_benefits_family_query`)
+	rows := App.DB.Call(`klpm_benefits_family_query`)
 	if rows.HasError() { panic(rows.Message()) }
 
 	defer rows.Close()
@@ -317,7 +317,7 @@ func LoadBensByFamily() map[BenFamily_t]string {
 func LoadBensByAddon() map[BenAddon_t]string {
 	m := make(map[BenAddon_t]string)
 
-	rows := App.DB.Call(`quo_benefits_addon_query`)
+	rows := App.DB.Call(`klpm_benefits_addon_query`)
 	if rows.HasError() { panic(rows.Message()) }
 
 	defer rows.Close()

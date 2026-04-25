@@ -1,6 +1,6 @@
 package htmlHelper
 
-import . `quo2/lib/output`
+import . `klpm/lib/output`
 
 func Checkbox(name string, value bool) Elem_t {
 	return Elem(`input`).Type(`checkbox`).Name(name).CO(value)

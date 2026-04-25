@@ -1,9 +1,9 @@
 package main
 
 import (
-	. "quo2/lib/dec2"
-	. "quo2/lib/htmlHelper"
-	. "quo2/lib/output"
+	. "klpm/lib/dec2"
+	. "klpm/lib/htmlHelper"
+	. "klpm/lib/output"
 )
 
 func EditQDelButton(name string) Elem_t {

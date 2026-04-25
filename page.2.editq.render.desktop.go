@@ -1,6 +1,6 @@
 package main
 
-import . "quo2/lib/htmlHelper"
+import . "klpm/lib/htmlHelper"
 
 func EditQDesktopBodyView(vars UIBagVars_t, sortForGet bool) Elem_t {
 	return Div().Id(`EditQFormBody`).Class(`editq-body`, `editq-body-desktop`).Wrap(

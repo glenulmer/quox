@@ -4,7 +4,7 @@ import (
 	sky "github.com/xuri/excelize/v2"
 	_ "image/jpeg"
 	_ "image/png"
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 	"strconv"
 	"strings"
 )

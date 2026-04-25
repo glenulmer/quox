@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 )
 
 func DownloadExcel(w http.ResponseWriter, req *http.Request) {

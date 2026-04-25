@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	. "quo2/lib/date"
-	. "quo2/lib/dec2"
-	. "quo2/lib/output"
+	. "klpm/lib/date"
+	. "klpm/lib/dec2"
+	. "klpm/lib/output"
 )
 
 type QuotePlanAddon_t struct {

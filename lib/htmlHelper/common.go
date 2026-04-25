@@ -1,7 +1,7 @@
 package htmlHelper
 
 import (
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 )
 
 func Div(list ...any) Elem_t { return Elem(`div`).Wrap(list...) }

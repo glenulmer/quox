@@ -1,7 +1,7 @@
 package htmlHelper
 
 import (
-	. `quo2/lib/output`
+	. `klpm/lib/output`
 )
 
 type args_t struct {

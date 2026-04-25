@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	. "quo2/lib/date"
-	. "quo2/lib/output"
+	. "klpm/lib/date"
+	. "klpm/lib/output"
 )
 
 const catHospital, catDental = 3, 4
@@ -171,28 +171,28 @@ func QuoteControlDefs() []QuoteControl_t {
 	max := true
 	return []QuoteControl_t{
 		{ name:`clientName`, label:`Client name`, kind:quoteText, placeholder:`Client name`, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:8, desktopSpan:6, defaultValue:QuoteDefaultStatic(``) },
-		{ name:`segment`, label:`Segment`, kind:quoteSelect, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:4, desktopSpan:6, choiceSP:`quo_segments_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_segments_chooser`) },
+		{ name:`segment`, label:`Segment`, kind:quoteSelect, phoneGroup:`top`, desktopGroup:`identity`, phoneSpan:4, desktopSpan:6, choiceSP:`klpm_segments_chooser`, defaultValue:QuoteDefaultSelectFirst(`klpm_segments_chooser`) },
 
 		{ name:`birth`, label:`Birth date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.birth.Format(`yyyymmdd`) } },
 		{ name:`buy`, label:`Buy date`, kind:quoteDate, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, defaultValue:func(x QuoteDefaults_t) string { return x.buy.Format(`yyyymmdd`) } },
 		{ name:`sickCover`, label:`Sick cover`, kind:quoteNumber, phoneGroup:`core`, desktopGroup:`core`, phoneSpan:4, desktopSpan:4, min:0, max:150000, step:1000, defaultValue:QuoteDefaultStatic(`80000`) },
 
-		{ name:`priorCov`, label:`Prior cover`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_priorcov_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_priorcov_chooser`) },
-		{ name:`exam`, label:`Exam`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_noexam_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_noexam_chooser`) },
-		{ name:`specref`, label:`Specialist`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_specialist_chooser`, defaultValue:QuoteDefaultSelectFirst(`quo_specialist_chooser`) },
+		{ name:`priorCov`, label:`Prior cover`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_priorcov_chooser`, defaultValue:QuoteDefaultSelectFirst(`klpm_priorcov_chooser`) },
+		{ name:`exam`, label:`Exam`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_noexam_chooser`, defaultValue:QuoteDefaultSelectFirst(`klpm_noexam_chooser`) },
+		{ name:`specref`, label:`Specialist`, kind:quoteSelect, phoneGroup:`core`, desktopGroup:`filters`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_specialist_chooser`, defaultValue:QuoteDefaultSelectFirst(`klpm_specialist_chooser`) },
 
 		{ name:`vision`, label:`Vision`, kind:quoteCheckbox, phoneGroup:`flags`, desktopGroup:`flags`, phoneSpan:3, desktopSpan:3, defaultValue:QuoteDefaultStatic(`1`) },
 		{ name:`tempVisa`, label:`Temp Visa`, kind:quoteCheckbox, phoneGroup:`flags`, desktopGroup:`flags`, phoneSpan:3, desktopSpan:3, defaultValue:QuoteDefaultStatic(``) },
 		{ name:`noPVN`, label:`No PVN`, kind:quoteCheckbox, phoneGroup:`flags`, desktopGroup:`flags`, phoneSpan:3, desktopSpan:3, defaultValue:QuoteDefaultStatic(``) },
 		{ name:`naturalMed`, label:`Natural Med`, kind:quoteCheckbox, phoneGroup:`flags`, desktopGroup:`flags`, phoneSpan:3, desktopSpan:3, defaultValue:QuoteDefaultStatic(``) },
 
-		{ name:`deductibleMin`, label:`Deductible min`, kind:quoteSelect, phoneGroup:`min`, desktopGroup:`min`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_deductibles_chooser`, choiceArgs:QuoteChoiceArgs(adult, !max), defaultValue:QuoteDefaultSelectFirst(`quo_deductibles_chooser`, adult, !max) },
-		{ name:`hospitalMin`, label:`Hospital min`, kind:quoteSelect, phoneGroup:`min`, desktopGroup:`min`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catHospital, !max), defaultValue:QuoteDefaultSelectFirst(`quo_level_chooser_max`, catHospital, !max) },
-		{ name:`dentalMin`, label:`Dental min`, kind:quoteSelect, phoneGroup:`min`, desktopGroup:`min`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catDental, !max), defaultValue:QuoteDefaultSelectFirst(`quo_level_chooser_max`, catDental, !max) },
+		{ name:`deductibleMin`, label:`Deductible min`, kind:quoteSelect, phoneGroup:`min`, desktopGroup:`min`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_deductibles_chooser`, choiceArgs:QuoteChoiceArgs(adult, !max), defaultValue:QuoteDefaultSelectFirst(`klpm_deductibles_chooser`, adult, !max) },
+		{ name:`hospitalMin`, label:`Hospital min`, kind:quoteSelect, phoneGroup:`min`, desktopGroup:`min`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catHospital, !max), defaultValue:QuoteDefaultSelectFirst(`klpm_level_chooser_max`, catHospital, !max) },
+		{ name:`dentalMin`, label:`Dental min`, kind:quoteSelect, phoneGroup:`min`, desktopGroup:`min`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catDental, !max), defaultValue:QuoteDefaultSelectFirst(`klpm_level_chooser_max`, catDental, !max) },
 
-		{ name:`deductibleMax`, label:`Deductible max`, kind:quoteSelect, phoneGroup:`max`, desktopGroup:`max`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_deductibles_chooser`, choiceArgs:QuoteChoiceArgs(adult, max), defaultValue:QuoteDefaultSelectFirst(`quo_deductibles_chooser`, adult, max) },
-		{ name:`hospitalMax`, label:`Hospital max`, kind:quoteSelect, phoneGroup:`max`, desktopGroup:`max`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catHospital, max), defaultValue:QuoteDefaultSelectFirst(`quo_level_chooser_max`, catHospital, max) },
-		{ name:`dentalMax`, label:`Dental max`, kind:quoteSelect, phoneGroup:`max`, desktopGroup:`max`, phoneSpan:4, desktopSpan:4, choiceSP:`quo_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catDental, max), defaultValue:QuoteDefaultSelectFirst(`quo_level_chooser_max`, catDental, max) },
+		{ name:`deductibleMax`, label:`Deductible max`, kind:quoteSelect, phoneGroup:`max`, desktopGroup:`max`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_deductibles_chooser`, choiceArgs:QuoteChoiceArgs(adult, max), defaultValue:QuoteDefaultSelectFirst(`klpm_deductibles_chooser`, adult, max) },
+		{ name:`hospitalMax`, label:`Hospital max`, kind:quoteSelect, phoneGroup:`max`, desktopGroup:`max`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catHospital, max), defaultValue:QuoteDefaultSelectFirst(`klpm_level_chooser_max`, catHospital, max) },
+		{ name:`dentalMax`, label:`Dental max`, kind:quoteSelect, phoneGroup:`max`, desktopGroup:`max`, phoneSpan:4, desktopSpan:4, choiceSP:`klpm_level_chooser_max`, choiceArgs:QuoteChoiceArgs(catDental, max), defaultValue:QuoteDefaultSelectFirst(`klpm_level_chooser_max`, catDental, max) },
 	}
 }
 
@@ -270,7 +270,7 @@ func QuoteApply(state *State_t, name, value string) {
 
 func CurrentDBDate() CalDate_t {
 	var ymd int
-	App.DB.CallRow(`quo_today_get`).Scan(&ymd)
+	App.DB.CallRow(`klpm_today_get`).Scan(&ymd)
 	return CalDate(ymd)
 }
 

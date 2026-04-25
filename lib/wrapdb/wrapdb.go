@@ -1,7 +1,7 @@
 package wrapdb
 
 import (
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 	sql "database/sql"
 	. "github.com/go-sql-driver/mysql"
 )

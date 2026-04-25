@@ -1,6 +1,6 @@
 package globals
 import (
-	. `quo2/lib/output`
+	. `klpm/lib/output`
     "regexp"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	. "quo2/lib/dec2"
-	. "quo2/lib/output"
+	. "klpm/lib/dec2"
+	. "klpm/lib/output"
 )
 
 const quoteSelectedSeqKey = `sel-seq`

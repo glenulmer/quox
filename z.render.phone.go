@@ -1,6 +1,6 @@
 package main
 
-import . "quo2/lib/htmlHelper"
+import . "klpm/lib/htmlHelper"
 
 func QuotePhoneFormBodyView(vars UIBagVars_t) Elem_t {
 	return Div().Id(`QuoteFormBody`).Wrap(

@@ -1,5 +1,5 @@
 delimiter ###
-create or replace procedure quo_family_tips_query($plan int)
+create or replace procedure klpm_family_tips_query()
 begin
     select x.family, x.tip
       from family_tips x
@@ -10,7 +10,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_plan_nccategs_query($plan int)
+create or replace procedure klpm_plan_nccategs_query($plan int)
 begin
     select categ
       from plan_noclaim_categs x

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	. "quo2/pkg.Global"
+	. "klpm/pkg.Global"
 )
 
 func RewriteEditQPage(w http.ResponseWriter, state State_t) {

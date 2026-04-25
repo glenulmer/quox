@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 
-	. "quo2/lib/date"
-	. "quo2/lib/htmlHelper"
-	. "quo2/lib/output"
+	. "klpm/lib/date"
+	. "klpm/lib/htmlHelper"
+	. "klpm/lib/output"
 )
 
 func QuoteCSSPath() string {

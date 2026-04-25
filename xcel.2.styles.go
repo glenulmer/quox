@@ -3,7 +3,7 @@ package main
 import (
 	sky "github.com/xuri/excelize/v2"
 
-	. "quo2/lib/output"
+	. "klpm/lib/output"
 )
 
 const xlStyleSheet = `formats`

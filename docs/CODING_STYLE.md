@@ -24,8 +24,7 @@ Preserve local style and behavior first. Prefer consistency with surrounding cod
 - CamelCase for exported-ish helpers and page handlers (`GetPrices`, `ProviderSet`).
 - Snake-style segments in identifiers they are intended for limited use, not shared by all go source in the package.
 - Type suffix patterns: `_t` (`ProviderSet_t`, `PriceInfo_t`) for prominent types.
-- Prefix patterns: `tX` for structs intended for local use, `idX` for typed IDs.
-- SQL routine names (procedures/functions) are snake_case and use application specific prefixes (eg klec, quote) for new definitions.
+- SQL routine names (procedures/functions) are snake_case and use application specific prefixes (for this repo, klpm_) for new definitions.
 - For CRUD request/record keys, use canonical explicit names:
 - `provider_id`, `family_id`, `plan_id`, `addon_id`, `account_id`
 - `row_id`, `entity_type`, `verb`
@@ -40,7 +39,7 @@ Preserve local style and behavior first. Prefer consistency with surrounding cod
 - Keep short dense expressions when they improve local readability.
 - Avoid named return signatures in the form `func X() (out T)`.
 - Prefer bare return types: `func X() T`, with a local `out := ...` variable when useful, and `return out`.
-- Never run gofmt. Never run gofmt.
+- Never run gofmt or go fmt.
 
 ## Code Style Patterns
 

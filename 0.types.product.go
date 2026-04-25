@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "quo2/lib/dec2"
+	. "klpm/lib/dec2"
 )
 
 type SegBits_t int

@@ -1,8 +1,8 @@
 package main
 
 import "net/http"
-import . "quo2/lib/wrapdb"
-import . "quo2/lib/dec2"
+import . "klpm/lib/wrapdb"
+import . "klpm/lib/dec2"
 
 type YAP_t struct { year, age, productId int }
 func YAP(y, a, p int) YAP_t { return YAP_t{ y, a, p } }

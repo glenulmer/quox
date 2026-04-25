@@ -1,6 +1,6 @@
 
 delimiter ###
-create or replace procedure quo_bensections_query()
+create or replace procedure klpm_bensections_query()
 begin
     select b.section, b.name
       from benefit_sections b
@@ -11,7 +11,7 @@ delimiter ;
 
 
 delimiter ###
-create or replace procedure quo_bensecitems_query($sec int)
+create or replace procedure klpm_bensecitems_query($sec int)
 begin
     select b.secsort, b.benefit, b.label, b.slim
       from benefits b
@@ -23,7 +23,7 @@ delimiter ;
 
 
 delimiter ###
-create or replace procedure quo_benefits_family_query()
+create or replace procedure klpm_benefits_family_query()
 begin
     select x.benefit, x.family, x.descrip 
       from benefit_family_map x
@@ -35,7 +35,7 @@ delimiter ;
 
 
 delimiter ###
-create or replace procedure quo_benefits_addon_query()
+create or replace procedure klpm_benefits_addon_query()
 begin
     select x.benefit, x.product addon, x.descrip 
       from benefit_product_map x

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	. "quo2/lib/output"
-	. "quo2/lib/wrapdb"
+	. "klpm/lib/output"
+	. "klpm/lib/wrapdb"
 )
 
 const (

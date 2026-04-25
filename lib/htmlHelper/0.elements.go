@@ -2,7 +2,7 @@ package htmlHelper
 
 import (
 	`strings`
-	. `quo2/lib/output`
+	. `klpm/lib/output`
 )
 
 type isWrappable interface { wrappableType() }

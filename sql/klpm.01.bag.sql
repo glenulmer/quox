@@ -1,5 +1,5 @@
 delimiter ###
-create or replace procedure quo_today_get()
+create or replace procedure klpm_today_get()
 begin
     select convert(curdate(),int) today;
 end
@@ -7,7 +7,7 @@ end
 delimiter ;
 
 create or replace view prices as
-    select
+    select 
         b.year as year,
         b.age as age,
         b.product as product,
@@ -22,7 +22,7 @@ create or replace view prices as
     on c.categ = p.categ;
 
 delimiter ###
-create or replace procedure quo_segments_chooser()
+create or replace procedure klpm_segments_chooser()
 begin
     select s.segment, s.name
       from segments s
@@ -32,7 +32,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_level_chooser_max($categ int, $ismax bool)
+create or replace procedure klpm_level_chooser_max($categ int, $ismax bool)
 begin
     if $ismax then
         select level, label from levels l where l.categ = $categ order by level desc;
@@ -45,7 +45,7 @@ delimiter ;
 
 
 delimiter ###
-create or replace procedure quo_segments_query()
+create or replace procedure klpm_segments_query()
 begin
     select s.segment, s.name, s.code
       from segments s
@@ -55,7 +55,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_categs_query()
+create or replace procedure klpm_categs_query()
 begin
     select c.categ, c.name, c.catsur, c.required
       from categs c
@@ -71,7 +71,7 @@ update levels set label = 'No Hospital' where level = 30;
 update levels set label = 'No Dental' where level = 40;
 
 delimiter ###
-create or replace procedure quo_levels_query()
+create or replace procedure klpm_levels_query()
 begin
   select l.level, l.label, c.categ, l.segments, (l.name != c.name) canStack
     from levels l
@@ -93,7 +93,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_deductibles_chooser($adult bool, $ismax bool)
+create or replace procedure klpm_deductibles_chooser($adult bool, $ismax bool)
 begin
     if $adult then
         if $ismax then
@@ -115,7 +115,7 @@ delimiter ;
 update priorcov set descrip='No prior cover' where priorcov=0;
 
 delimiter ###
-create or replace procedure quo_priorcov_chooser()
+create or replace procedure klpm_priorcov_chooser()
 begin
     select priorcov, descrip 
       from priorcov
@@ -125,7 +125,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_noexam_chooser()
+create or replace procedure klpm_noexam_chooser()
 begin
     select 0 noexam, 'Exam OK' descrip union all
     select 1, 'No exam';
@@ -134,7 +134,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_specialist_chooser()
+create or replace procedure klpm_specialist_chooser()
 begin
     select 2 value, 'Not important' descrip union all
     select 1, 'Only referral' union all
@@ -144,7 +144,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure `quo_year_get`(in $year int)
+create or replace procedure klpm_year_get(in $year int)
 begin
     select year, maxshare, cover, (cover*2) maxcover, ltccap 
       from years
@@ -156,7 +156,7 @@ delimiter ;
 
 
 delimiter ###
-create or replace procedure quo_plan_details_query()
+create or replace procedure klpm_plan_details_query()
 begin
     select p.plan, p.family
          , p.hospital, p.dental
@@ -181,11 +181,11 @@ begin
 end
 ###
 delimiter ;
---call quo_plan_details_query;
+--call klpm_plan_details_query;
 
 
 delimiter ###
-create or replace procedure quo_product_query()
+create or replace procedure klpm_product_query()
 begin
     select p.product, c.provider, p.name, p.categ, p.level, p.segmask
       from products p
@@ -196,7 +196,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure quo_product_prices()
+create or replace procedure klpm_product_prices()
 begin
     select p.year, p.age, p.product, p.base, p.surcharge
       from years y
@@ -211,7 +211,7 @@ delimiter ;
 
 
 delimiter ###
-create or replace procedure quo_plan_categ_addons($plan int)
+create or replace procedure klpm_plan_categ_addons($plan int)
 begin
     with
         xcross as (

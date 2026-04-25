@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "quo2/lib/date"
-	. "quo2/lib/dec2"
+	. "klpm/lib/date"
+	. "klpm/lib/dec2"
 )
 
 type ChoiceId_t int
