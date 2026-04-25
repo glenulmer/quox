@@ -400,7 +400,7 @@ func EditQHeaderView(vars UIBagVars_t) Elem_t {
 
 func EditQQuoteReviewCardView(vars UIBagVars_t) Elem_t {
 	backBtn := Elem(`a`).
-		KV(`href`, `/quote`).
+		KV(`href`, `/`).
 		Class(`editq-title-btn`).
 		Text(`Back to Quote Info`)
 	return EditQTopCardView(`EditQReviewCard`, `Quote Review`, true,

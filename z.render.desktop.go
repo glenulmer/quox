@@ -9,11 +9,14 @@ func QuoteDesktopFormBodyView(vars UIBagVars_t) Elem_t {
 				Div().Class(`quote-desk-row`, `quote-desk-row-top`).Wrap(
 					QuoteNamedControlOnlySpanView(layoutDesktop, `clientName`, vars, 0, `quote-desk-no-label`, `quote-desk-name`),
 					QuoteNamedControlOnlySpanView(layoutDesktop, `segment`, vars, 0, `quote-desk-no-label`, `quote-desk-segment`),
-					Div().Class(`quote-desk-flags`).Wrap(
-						QuoteNamedControlSpanView(layoutDesktop, `vision`, vars, 1, `quote-desk-flag`),
-						QuoteNamedControlSpanView(layoutDesktop, `tempVisa`, vars, 1, `quote-desk-flag`),
-						QuoteNamedControlSpanView(layoutDesktop, `noPVN`, vars, 1, `quote-desk-flag`),
-						QuoteNamedControlSpanView(layoutDesktop, `naturalMed`, vars, 1, `quote-desk-flag`),
+					Div().Class(`quote-desk-flags-wrap`).Wrap(
+						Div().Class(`quote-desk-flags`).Wrap(
+							QuoteNamedControlSpanView(layoutDesktop, `vision`, vars, 1, `quote-desk-flag`),
+							QuoteNamedControlSpanView(layoutDesktop, `tempVisa`, vars, 1, `quote-desk-flag`),
+							QuoteNamedControlSpanView(layoutDesktop, `noPVN`, vars, 1, `quote-desk-flag`),
+							QuoteNamedControlSpanView(layoutDesktop, `naturalMed`, vars, 1, `quote-desk-flag`),
+						),
+						QuoteResetButton(`quote-desk-reset-btn`),
 					),
 				),
 				Div().Class(`quote-desk-row`, `quote-desk-row-mid`).Wrap(

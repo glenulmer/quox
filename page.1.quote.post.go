@@ -27,6 +27,7 @@ func Page1QuoteChange(w http.ResponseWriter, req *http.Request) {
 	name := strings.TrimSpace(req.FormValue(`name`))
 	state := GetState(req)
 	if name == QuoteResetControlName() {
+		LoadStaticData()
 		state.quote = QuoteDefaultVars()
 		SetState(req, state)
 		RewriteQuotePage(w, req, state)
