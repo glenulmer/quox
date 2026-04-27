@@ -49,7 +49,7 @@ func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	head = head.
 		CSS(EditQCSSPath(layout)).
 		JSTail(Str(`/static/js/page.2.editq.js?v=`, App.staticVersion)).
-		Title(`Quo2`).
+		Title(SiteName).
 		End()
 
 	w := Writer(w0)

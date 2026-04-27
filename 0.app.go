@@ -36,3 +36,5 @@ type App_t struct {
 }
 
 var App App_t
+
+const SiteName = `PM`
