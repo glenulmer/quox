@@ -9,6 +9,7 @@ type ChoiceId_t int
 
 type QuoteVars_t struct {
 	lang LangId_t
+	slim int
 	sortBy string
 	core CoreVars_t
 	choices map[ChoiceId_t]PlanQuoteInfo_t

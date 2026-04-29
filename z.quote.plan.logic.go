@@ -161,9 +161,12 @@ func QuoteVars(state *State_t) QuoteVars_t {
 
 	out := QuoteVars_t{
 		lang: English,
+		slim: 0,
 		sortBy: QuoteSortMode(vars[`sortBy`]),
 		choices: make(map[ChoiceId_t]PlanQuoteInfo_t),
 	}
+	if x := Atoi(vars[`lang`]); x > 0 { out.lang = LangId_t(x) }
+	if x := Atoi(vars[`slim`]); x == 1 { out.slim = 1 }
 
 	out.core.clientName = vars[`clientName`]
 	out.core.email = vars[`email`]
@@ -256,6 +259,8 @@ func UIBagVarsFromQuoteVars(x QuoteVars_t) UIBagVars_t {
 	if x.core.dental.min > 0 { out[`dentalMin`] = Str(int(x.core.dental.min)) }
 	if x.core.dental.max > 0 { out[`dentalMax`] = Str(int(x.core.dental.max)) }
 	out[`sortBy`] = QuoteSortMode(x.sortBy)
+	out[`lang`] = Str(int(x.lang))
+	out[`slim`] = Str(x.slim)
 
 	maxItemId := 0
 	var choiceIds []int

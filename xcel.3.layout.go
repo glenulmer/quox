@@ -42,28 +42,32 @@ var xlPlanCols = []string{`D`, `F`, `H`, `J`, `L`}
 const xlPlanColDeletes = 10
 const xlLogoDir = `assets/logos/`
 
-func BirthLine(vars QuoteVars_t) string {
-	if !Valid(vars.core.birth) { return `` }
-	return Str(`Date of birth: `, vars.core.birth.Format(`d. mon, yyyy`))
+func BirthLine(vars QuoteVars_t, lang LangId_t) string {
+	return BirthDateLine(lang, vars.core.birth)
 }
 
-func SickCoverLine(vars QuoteVars_t) string {
-	if vars.core.sickCover <= 0 { return `` }
-	return Str(`Daily Sick Pay (for a `, vars.core.sickCover.OutEuro(), ` income)`)
+func SickCoverLine(vars QuoteVars_t, lang LangId_t) string {
+	return SickPayIncomeLine(lang, vars.core.sickCover)
 }
 
-func WriteXlHead(ex *sky.File, styles map[string]int, vars QuoteVars_t) error {
+func WriteXlHead(ex *sky.File, styles map[string]int, vars QuoteVars_t, lang LangId_t) error {
 	if e := SetXlStyled(ex, styles, sheet, nameCell, ClientName(vars), xlStyleClient); e != nil { return e }
 
-	if line := BirthLine(vars); line != `` {
+	if line := BirthLine(vars, lang); line != `` {
 		if e := SetXlCell(ex, sheet, birthCell, line, 0); e != nil { return e }
 	}
-	if line := SickCoverLine(vars); line != `` {
+	if line := SickCoverLine(vars, lang); line != `` {
 		if e := SetXlCell(ex, sheet, sickCell, line, 0); e != nil { return e }
 	}
+	if e := SetXlCell(ex, sheet, `A6`, HealthInsuranceLine(lang), 0); e != nil { return e }
+	if e := SetXlCell(ex, sheet, `A7`, LongTermCareLine(lang), 0); e != nil { return e }
+	if vars.core.segment == segmentEmployee {
+		if e := SetXlCell(ex, sheet, `A21`, TotalWithEmployerLine(lang), 0); e != nil { return e }
+	}
+	if e := SetXlCell(ex, sheet, payCell, YourMonthlyCostLine(lang), 0); e != nil { return e }
 
 	if vars.core.segment != segmentEmployee {
-		if e := SetXlStyled(ex, styles, sheet, payCell, `Your monthly cost`, xlStyleYouPay); e != nil { return e }
+		if e := SetXlStyled(ex, styles, sheet, payCell, YourMonthlyCostLine(lang), xlStyleYouPay); e != nil { return e }
 	}
 	return nil
 }
@@ -252,10 +256,12 @@ func SummaryBoolText(x bool) string {
 	return If(x, `Yes`, `No`)
 }
 
-func SummaryControlText(vars UIBagVars_t, name string) string {
-	out := Trim(EditQReviewControlValue(vars, name))
-	if out == `` { return `-` }
-	return out
+func SummaryChoiceText(sp string, id int, args ...any) string {
+	if id <= 0 { return `-` }
+	for _, x := range QuoteChoices(sp, args...) {
+		if x.id == id { return x.label }
+	}
+	return Str(id)
 }
 
 func SummaryAddonText(x QuotePlanAddon_t) string {
@@ -273,20 +279,84 @@ func SummaryVisionPaid(row QuotePlan_t) EuroCent_t {
 	return 0
 }
 
-func SummaryPreexMaps(vars UIBagVars_t) (map[int]EuroCent_t, map[string]EuroCent_t, map[string]string) {
+func XlPreexFromBase(preex Preex_t, base EuroCent_t) EuroCent_t {
+	if preex.amount.euro > 0 { return preex.amount.euro }
+	if preex.amount.percent <= 0 || base <= 0 { return 0 }
+	return EuroCent_t((int64(base) * int64(preex.amount.percent)) / 10000)
+}
+
+func XlPlanBaseByCateg(row QuotePlan_t) map[CategId_t]EuroCent_t {
+	out := make(map[CategId_t]EuroCent_t)
+	out[0] = row.planBase
+	for _, addon := range row.addons {
+		if !addon.priceOk { continue }
+		if addon.categId <= 0 { continue }
+		if addon.base <= 0 { continue }
+		out[addon.categId] += addon.base
+	}
+	return out
+}
+
+func SummaryPreexMaps(vars QuoteVars_t, plans []XlPlanRow_t) (map[int]EuroCent_t, map[string]EuroCent_t, map[string]string) {
 	byItem := make(map[int]EuroCent_t)
 	byItemCateg := make(map[string]EuroCent_t)
 	notes := make(map[string]string)
 
-	for _, x := range EditQPreexCharges(vars) {
-		key := Str(x.itemId, `:`, x.categId)
-		byItem[x.itemId] += x.applied
-		byItemCateg[key] += x.applied
-		if x.applied > 0 && Trim(x.note) != `` && Trim(notes[key]) == `` {
-			notes[key] = x.note
+	for _, x := range plans {
+		itemId := x.row.item.itemId
+		baseByCateg := XlPlanBaseByCateg(x.row.row)
+		for _, preex := range x.choice.preex {
+			applied := XlPreexFromBase(preex, baseByCateg[preex.categ])
+			if applied <= 0 { continue }
+			key := Str(itemId, `:`, preex.categ)
+			byItem[itemId] += applied
+			byItemCateg[key] += applied
+			if Trim(preex.note) != `` && Trim(notes[key]) == `` {
+				notes[key] = preex.note
+			}
 		}
 	}
 	return byItem, byItemCateg, notes
+}
+
+type XlDepCharge_t struct {
+	plan string
+	level string
+	applied EuroCent_t
+	note string
+}
+
+func XlPlanLevelLabel(row QuotePlan_t, categId CategId_t) string {
+	if categId == 0 { return `Plan` }
+	for _, addon := range row.addons {
+		if addon.categId != categId { continue }
+		level := QuoteAddonPickText(addon)
+		if level == `` { return addon.categ }
+		return level
+	}
+	return Str(categId)
+}
+
+func XlDepCharges(dep Dependant_t, plans []XlPlanRow_t) []XlDepCharge_t {
+	var out []XlDepCharge_t
+	for _, plan := range plans {
+		item := ChoiceId_t(plan.row.item.itemId)
+		preexList := dep.preexByChoice[item]
+		if len(preexList) == 0 { continue }
+
+		baseByCateg := XlPlanBaseByCateg(plan.row.row)
+		for _, preex := range preexList {
+			applied := XlPreexFromBase(preex, baseByCateg[preex.categ])
+			if applied <= 0 { continue }
+			out = append(out, XlDepCharge_t{
+				plan: plan.row.row.label,
+				level: XlPlanLevelLabel(plan.row.row, preex.categ),
+				applied: applied,
+				note: preex.note,
+			})
+		}
+	}
+	return out
 }
 
 func WriteSummaryKV(ex *sky.File, tab string, row int, key, val string, keyStyle int) error {
@@ -362,16 +432,15 @@ func WriteXlSummary(ex *sky.File, vars QuoteVars_t) error {
 	if e := ex.SetCellStyle(summarySheet, `A1`, `D1`, titleStyle); e != nil { return e }
 	row += 2
 
-	bag := UIBagVarsFromQuoteVars(vars)
 	core := []struct{ key, val string }{
 		{ `Client name`, ClientName(vars) },
-		{ `Segment`, SummaryControlText(bag, `segment`) },
+		{ `Segment`, SummaryChoiceText(`klpm_segments_chooser`, vars.core.segment) },
 		{ `Birth date`, SummaryDateText(vars.core.birth) },
 		{ `Buy date`, SummaryDateText(vars.core.buy) },
 		{ `Sick cover`, vars.core.sickCover.OutEuro() },
-		{ `Prior cover`, SummaryControlText(bag, `priorCov`) },
-		{ `Exam`, SummaryControlText(bag, `exam`) },
-		{ `Specialist`, SummaryControlText(bag, `specref`) },
+		{ `Prior cover`, SummaryChoiceText(`klpm_priorcov_chooser`, vars.core.priorCov) },
+		{ `Exam`, SummaryChoiceText(`klpm_noexam_chooser`, vars.core.exam) },
+		{ `Specialist`, SummaryChoiceText(`klpm_specialist_chooser`, vars.core.specref) },
 		{ `Vision`, SummaryBoolText(vars.core.vision) },
 		{ `Temp visa`, SummaryBoolText(vars.core.tempVisa) },
 		{ `No PVN`, SummaryBoolText(vars.core.noPVN) },
@@ -384,7 +453,7 @@ func WriteXlSummary(ex *sky.File, vars QuoteVars_t) error {
 	row++
 
 	plans := SelectedXlPlans(vars)
-	preexByItem, preexByItemCateg, preexNoteByItemCateg := SummaryPreexMaps(bag)
+	preexByItem, preexByItemCateg, preexNoteByItemCateg := SummaryPreexMaps(vars, plans)
 	if len(plans) == 0 {
 		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `No selected plans`, headStyle); e != nil { return e }
 		row += 2
@@ -458,30 +527,25 @@ func WriteXlSummary(ex *sky.File, vars QuoteVars_t) error {
 		row++
 	}
 
-	deps := EditQDependants(bag, false)
+	deps := vars.dependants
 	if len(deps) > 0 {
 		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Dependants`, headStyle); e != nil { return e }
 		row += 2
 	}
 	for _, dep := range deps {
-		charges := EditQDependantCharges(bag, dep)
-		var nonzero []EditQPreexCharge_t
-		for _, x := range charges {
-			if x.applied <= 0 { continue }
-			nonzero = append(nonzero, x)
-		}
-		if Trim(dep.name) == `` && Trim(dep.birth) == `` && !dep.vision && len(nonzero) == 0 { continue }
+		charges := XlDepCharges(dep, plans)
+		if Trim(dep.name) == `` && !Valid(dep.birth) && !dep.vision && len(charges) == 0 { continue }
 
 		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Dependant`, headStyle); e != nil { return e }
 		row++
 		if e := WriteSummaryKV(ex, summarySheet, row, `Name`, dep.name, headStyle); e != nil { return e }
 		row++
-		if e := WriteSummaryKV(ex, summarySheet, row, `Birth date`, dep.birth, headStyle); e != nil { return e }
+		if e := WriteSummaryKV(ex, summarySheet, row, `Birth date`, SummaryDateText(dep.birth), headStyle); e != nil { return e }
 		row++
 		if e := WriteSummaryKV(ex, summarySheet, row, `Vision`, SummaryBoolText(dep.vision), headStyle); e != nil { return e }
 		row++
 
-		if len(nonzero) == 0 {
+		if len(charges) == 0 {
 			if e := WriteSummaryKV(ex, summarySheet, row, `Pre-ex charges`, `-`, headStyle); e != nil { return e }
 			row += 2
 			continue
@@ -491,7 +555,7 @@ func WriteXlSummary(ex *sky.File, vars QuoteVars_t) error {
 		if e := SetXlCell(ex, summarySheet, Str(`B`, row), `Pre-ex`, headStyle); e != nil { return e }
 		if e := SetXlCell(ex, summarySheet, Str(`C`, row), `Optional note`, headStyle); e != nil { return e }
 		row++
-		for _, x := range nonzero {
+		for _, x := range charges {
 			if e := SetXlCell(ex, summarySheet, Str(`A`, row), Str(x.plan, ` / `, x.level), 0); e != nil { return e }
 			if e := SetXlCell(ex, summarySheet, Str(`B`, row), EuroCentText(x.applied), 0); e != nil { return e }
 			if e := SetXlCell(ex, summarySheet, Str(`C`, row), x.note, 0); e != nil { return e }
@@ -510,22 +574,15 @@ func FinalizeXlSheets(ex *sky.File, vars QuoteVars_t) error {
 }
 
 func XlPreexByItem(vars QuoteVars_t) map[int]EuroCent_t {
-	out := make(map[int]EuroCent_t)
-	bag := UIBagVarsFromQuoteVars(vars)
-	for _, x := range EditQPreexCharges(bag) {
-		out[x.itemId] += x.applied
-	}
-	return out
+	plans := SelectedXlPlans(vars)
+	byItem, _, _ := SummaryPreexMaps(vars, plans)
+	return byItem
 }
 
 func XlPreexByItemCateg(vars QuoteVars_t) map[string]EuroCent_t {
-	out := make(map[string]EuroCent_t)
-	bag := UIBagVarsFromQuoteVars(vars)
-	for _, x := range EditQPreexCharges(bag) {
-		key := Str(x.itemId, `:`, x.categId)
-		out[key] += x.applied
-	}
-	return out
+	plans := SelectedXlPlans(vars)
+	_, byItemCateg, _ := SummaryPreexMaps(vars, plans)
+	return byItemCateg
 }
 
 func XlPvnPreex(itemId int, row QuotePlan_t, byItemCateg map[string]EuroCent_t) EuroCent_t {
@@ -583,17 +640,17 @@ func PlanCosts(row QuotePlan_t) (hic, pvn, sick EuroCent_t) {
 	return hic, pvn, sick
 }
 
-func SickAfterLine(row QuotePlan_t, vars QuoteVars_t) string {
+func SickAfterLine(row QuotePlan_t, vars QuoteVars_t, lang LangId_t) string {
 	for _, addon := range row.addons {
 		if !addon.priceOk { continue }
 		if !Contains(Lower(Trim(addon.categ)), `sick`) { continue }
 		daily := (int(vars.core.sickCover) / 4500) * 10
-		if daily <= 0 { return `Not selected` }
-		after := `29th`
-		if addon.level%2 == 1 { after = `43rd` }
-		return Str(daily, ` €/day as of `, after, ` day`)
+		if daily <= 0 { return SickPayWaitingLine(lang, 0, 0, false) }
+		waitingDays := 29
+		if addon.level%2 == 1 { waitingDays = 43 }
+		return SickPayWaitingLine(lang, daily, waitingDays, true)
 	}
-	return `Not selected`
+	return SickPayWaitingLine(lang, 0, 0, false)
 }
 
 type XlDepLine_t struct {
@@ -601,11 +658,8 @@ type XlDepLine_t struct {
 	price EuroCent_t
 }
 
-func XlDepLabel(dep Dependant_t, depId, age int) string {
-	name := Trim(dep.name)
-	if name == `` { name = `Dependant` }
-	if age > 0 { return Str(name, `'s monthly cost (age `, age, `)`) }
-	return Str(name, `'s monthly cost`)
+func XlDepLabel(dep Dependant_t, depId, age int, lang LangId_t) string {
+	return DependantMonthlyCostLine(lang, dep.name, age)
 }
 
 func XlDepState(vars QuoteVars_t, dep Dependant_t) State_t {
@@ -667,7 +721,7 @@ func XlDepPrice(vars QuoteVars_t, dep Dependant_t, item ChoiceId_t, plan Plan_t,
 	return total, age, true
 }
 
-func XlDepLines(vars QuoteVars_t, x XlPlanRow_t) []XlDepLine_t {
+func XlDepLines(vars QuoteVars_t, x XlPlanRow_t, lang LangId_t) []XlDepLine_t {
 	var out []XlDepLine_t
 	item := ChoiceId_t(x.row.item.itemId)
 
@@ -676,14 +730,14 @@ func XlDepLines(vars QuoteVars_t, x XlPlanRow_t) []XlDepLine_t {
 		if !ok { continue }
 
 		out = append(out, XlDepLine_t{
-			label: XlDepLabel(dep, i+1, age),
+			label: XlDepLabel(dep, i+1, age, lang),
 			price: price,
 		})
 	}
 	return out
 }
 
-func WriteXlPlanCostRows(ex *sky.File, col string, x XlPlanRow_t, vars QuoteVars_t, preexByItem map[int]EuroCent_t, preexByItemCateg map[string]EuroCent_t) error {
+func WriteXlPlanCostRows(ex *sky.File, col string, x XlPlanRow_t, vars QuoteVars_t, preexByItem map[int]EuroCent_t, preexByItemCateg map[string]EuroCent_t, lang LangId_t) error {
 	hic, pvn, sick := PlanCosts(x.row.row)
 	preex := preexByItem[x.row.item.itemId]
 	pvnForEmployer := pvn + XlPvnPreex(x.row.item.itemId, x.row.row, preexByItemCateg)
@@ -691,7 +745,7 @@ func WriteXlPlanCostRows(ex *sky.File, col string, x XlPlanRow_t, vars QuoteVars
 	if e := SetXlCell(ex, sheet, Str(col, hicRow), HICLine(hic, preex), 0); e != nil { return e }
 	if e := SetXlCell(ex, sheet, Str(col, pvnRow), EuroCentText(pvn), 0); e != nil { return e }
 	if e := SetXlCell(ex, sheet, Str(col, sickRow), EuroCentText(sick), 0); e != nil { return e }
-	if e := SetXlCell(ex, sheet, Str(col, sickAfterRow), SickAfterLine(x.row.row, vars), 0); e != nil { return e }
+	if e := SetXlCell(ex, sheet, Str(col, sickAfterRow), SickAfterLine(x.row.row, vars, lang), 0); e != nil { return e }
 
 	youPay := total
 	if vars.core.segment == segmentEmployee {
@@ -699,7 +753,7 @@ func WriteXlPlanCostRows(ex *sky.File, col string, x XlPlanRow_t, vars QuoteVars
 	}
 
 	row := firstDepRow
-	for _, dep := range XlDepLines(vars, x) {
+	for _, dep := range XlDepLines(vars, x, lang) {
 		if row >= monthWithEmpRow { break }
 		if e := SetXlCell(ex, sheet, Str(`A`, row), dep.label, 0); e != nil { return e }
 		if e := SetXlCell(ex, sheet, Str(col, row), EuroCentText(dep.price), 0); e != nil { return e }
@@ -725,9 +779,9 @@ func BenefitOffer(item BenSecItem_t, family FamilyId_t, addons map[CategId_t]Add
 	return offer
 }
 
-func WriteXlPlanColumn(ex *sky.File, styles map[string]int, col string, x XlPlanRow_t, vars QuoteVars_t, preexByItem map[int]EuroCent_t, preexByItemCateg map[string]EuroCent_t, slim bool) error {
+func WriteXlPlanColumn(ex *sky.File, styles map[string]int, col string, x XlPlanRow_t, vars QuoteVars_t, preexByItem map[int]EuroCent_t, preexByItemCateg map[string]EuroCent_t, slim bool, lang LangId_t) error {
 	if e := WriteXlPlanHead(ex, styles, col, x); e != nil { return e }
-	if e := WriteXlPlanCostRows(ex, col, x, vars, preexByItem, preexByItemCateg); e != nil { return e }
+	if e := WriteXlPlanCostRows(ex, col, x, vars, preexByItem, preexByItemCateg, lang); e != nil { return e }
 
 	family := x.plan.familyId
 	row := benefitRow
@@ -781,28 +835,28 @@ func TrimXlPlanCols(ex *sky.File, count int) error {
 	return nil
 }
 
-func WriteXlPlans(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool) error {
+func WriteXlPlans(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, lang LangId_t) error {
 	plans := SelectedXlPlans(vars)
 	preexByItem := XlPreexByItem(vars)
 	preexByItemCateg := XlPreexByItemCateg(vars)
 	for k, col := range xlPlanCols {
 		if k >= len(plans) { break }
-		if e := WriteXlPlanColumn(ex, styles, col, plans[k], vars, preexByItem, preexByItemCateg, slim); e != nil { return e }
+		if e := WriteXlPlanColumn(ex, styles, col, plans[k], vars, preexByItem, preexByItemCateg, slim, lang); e != nil { return e }
 	}
 	return TrimXlPlanCols(ex, len(plans))
 }
 
-func XlSlimNote(vars QuoteVars_t) string {
-	msg := `All plans include obligatory Long-Term Care insurance`
+func XlSlimNote(vars QuoteVars_t, lang LangId_t) string {
+	msg := Str(`All plans include `, LongTermCareLine(lang))
 	if vars.core.sickCover > 0 {
-		msg = Str(msg, ` and daily sick pay for an income of `, vars.core.sickCover.OutEuro())
+		msg = Str(msg, ` and `, SickPayIncomeLine(lang, vars.core.sickCover))
 	}
 	return Str(msg, `.`)
 }
 
-func WriteXlFooterNote(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, row int) error {
+func WriteXlFooterNote(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, row int, lang LangId_t) error {
 	text := `Prices subject to increase in January each year. `
-	if slim { text = Str(text, XlSlimNote(vars)) }
+	if slim { text = Str(text, XlSlimNote(vars, lang)) }
 	return SetXlStyled(ex, styles, sheet, Str(`A`, row), text, xlStyleSlimNote)
 }
 
@@ -835,12 +889,15 @@ func SetXlDefaultCell(ex *sky.File, tab, cell string) {
 	})
 }
 
-func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, lang LangId_t) error {
-	if e := WriteXlHead(ex, styles, vars); e != nil { return e }
+func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t) error {
+	lang := vars.lang
+	if lang <= 0 { lang = English }
+	slim := vars.slim == 1
+	if e := WriteXlHead(ex, styles, vars, lang); e != nil { return e }
 	lastRow, e := WriteXlBenefits(ex, styles, slim)
 	if e != nil { return e }
-	if e = WriteXlFooterNote(ex, styles, vars, slim, lastRow+2); e != nil { return e }
-	if e := WriteXlPlans(ex, styles, vars, slim); e != nil { return e }
+	if e = WriteXlFooterNote(ex, styles, vars, slim, lastRow+2, lang); e != nil { return e }
+	if e := WriteXlPlans(ex, styles, vars, slim, lang); e != nil { return e }
 	if vars.core.segment != segmentEmployee {
 		if e := DeleteXlRows(ex, sheet, monthWithEmpRow, monthWithEmpRow); e != nil { return e }
 	}

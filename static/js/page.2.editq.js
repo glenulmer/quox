@@ -134,7 +134,6 @@
 		if (el instanceof HTMLButtonElement) return;
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
-		if (name === 'lang' || name === 'slim') return;
 		const value = controlValue(el);
 		if (el instanceof HTMLTextAreaElement) {
 			autosize(el);
@@ -154,7 +153,30 @@
 		if (!el.matches(selector)) return;
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
-		if (name === 'DownloadExcel') return;
+		if (name === 'DownloadExcel') {
+			ev.preventDefault();
+			const lang = document.querySelector('#EditQForm select[name="lang"]');
+			const slim = document.querySelector('#EditQForm select[name="slim"]');
+			const save = (key, value) => {
+				const form = new FormData();
+				form.append('name', key);
+				form.append('value', value);
+				return fetch('/quote-review-change', {
+					method: 'POST',
+					body: form,
+					credentials: 'same-origin',
+				});
+			};
+			const langVal = lang instanceof HTMLSelectElement ? lang.value : '';
+			const slimVal = slim instanceof HTMLSelectElement ? slim.value : '0';
+			Promise.all([
+				save('lang', langVal),
+				save('slim', slimVal),
+			]).finally(() => {
+				window.location.assign('/download-excel');
+			});
+			return;
+		}
 		ev.preventDefault();
 		sendIfChanged(name, controlValue(el), true);
 	};

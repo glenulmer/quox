@@ -19,6 +19,7 @@ func DefaultVars() {
 	// qvars.core.segment = 4
 	AddPlan(`Inter`, `LA-VNS U`, `29S`)
 	AddPlan(`HanseMerkur`, `KVS3`, `Private`)
+	qvars.lang = German;
 }
 
 func AddPlan(prov, plan string, addons ...string) {
@@ -37,14 +38,10 @@ func AddPlan(prov, plan string, addons ...string) {
 	planId := PlanID(prov, plan)
 	if planId <= 0 { panic(Error(`plan not found: `, prov, ` / `, plan)) }
 
-	if AutoChoose.qvars.choices == nil {
-		AutoChoose.qvars.choices = make(map[ChoiceId_t]PlanQuoteInfo_t)
-	}
+	if AutoChoose.qvars.choices == nil { AutoChoose.qvars.choices = make(map[ChoiceId_t]PlanQuoteInfo_t) }
 
 	next := 0
-	for choiceId := range AutoChoose.qvars.choices {
-		if int(choiceId) > next { next = int(choiceId) }
-	}
+	for choiceId := range AutoChoose.qvars.choices { if int(choiceId) > next { next = int(choiceId) } }
 	choiceId := ChoiceId_t(next + 1)
 	choice := PlanQuoteInfo_t{
 		plan: PlanId_t(planId),

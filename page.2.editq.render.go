@@ -346,11 +346,16 @@ func EditQReviewPlanView(vars UIBagVars_t, item QuoteSelectedItem_t, row QuotePl
 	)
 }
 
-func EditQReviewExportButtonsView() Elem_t {
+func EditQReviewExportButtonsView(vars UIBagVars_t) Elem_t {
+	state := QuoteStateFromVars(vars)
+	quote := QuoteVars(&state)
+
 	langs := []Elem_t{}
-	langDefault := `0`
+	langDefault := Str(int(quote.lang))
+	slimDefault := `0`
+	if quote.slim == 1 { slimDefault = `1` }
 	for id, x := range App.lookup.languages.All() {
-		if len(langs) == 0 { langDefault = Str(id) }
+		if len(langs) == 0 && langDefault == `0` { langDefault = Str(id) }
 		langs = append(langs, Option().KV(`value`, id).Text(x.label))
 	}
 	if len(langs) == 0 { langs = append(langs, Option().KV(`value`, `0`).Text(`Default`)) }
@@ -364,14 +369,12 @@ func EditQReviewExportButtonsView() Elem_t {
 				Select(
 					Option().KV(`value`, `0`).Text(`Complete`),
 					Option().KV(`value`, `1`).Text(`Slim`),
-				).Name(`slim`).Choose(`0`),
+				).Name(`slim`).Choose(slimDefault),
 			),
 			Elem(`button`).
-				Type(`submit`).
+				Type(`button`).
 				Name(`DownloadExcel`).
 				Value(`1`).
-				KV(`formaction`, `/download-excel`).
-				KV(`formmethod`, `post`).
 				Class(`editq-title-btn`).
 				Text(`Get Excel`),
 		)
@@ -390,7 +393,7 @@ func EditQQuoteReviewBody(vars UIBagVars_t) Elem_t {
 		plans = append(plans, Div(`No plans selected.`).Class(`editq-review-empty`))
 	}
 	return Div().Class(`editq-review`).Wrap(
-		EditQReviewExportButtonsView(),
+		EditQReviewExportButtonsView(vars),
 		EditQReviewClientView(vars),
 		Div().Class(`editq-review-plans`).Wrap(plans),
 	)

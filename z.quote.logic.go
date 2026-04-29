@@ -245,6 +245,8 @@ func quoteBaseDefaultVars() UIBagVars_t {
 		out[x.name] = x.defaultValue(ctx)
 	}
 	out[`sortBy`] = sortByPrice
+	out[`lang`] = Str(int(English))
+	out[`slim`] = `0`
 	return out
 }
 

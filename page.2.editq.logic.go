@@ -400,6 +400,15 @@ func EditQApply(state *State_t, name, value string) bool {
 		state.quote[name] = value
 		return true
 	}
+	if name == `lang` {
+		if Atoi(value) <= 0 { value = Str(int(English)) }
+		state.quote[name] = value
+		return true
+	}
+	if name == `slim` {
+		if Atoi(value) == 1 { state.quote[name] = `1` } else { state.quote[name] = `0` }
+		return true
+	}
 
 	if itemId, categId, ok := EditQPreexModeControl(name); ok {
 		state.quote[EditQPreexModeKey(itemId, categId)] = EditQPreexMode(value)
