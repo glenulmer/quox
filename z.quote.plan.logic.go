@@ -160,6 +160,7 @@ func QuoteVars(state *State_t) QuoteVars_t {
 	vars := UIBagVars(work)
 
 	out := QuoteVars_t{
+		lang: English,
 		sortBy: QuoteSortMode(vars[`sortBy`]),
 		choices: make(map[ChoiceId_t]PlanQuoteInfo_t),
 	}
@@ -209,7 +210,7 @@ func QuoteVars(state *State_t) QuoteVars_t {
 		out.choices[choiceId] = choice
 	}
 
-	deps := EditQDependents(vars, false)
+	deps := EditQDependants(vars, false)
 	for _, dep := range deps {
 		x := Dependant_t{
 			name: dep.name,
@@ -217,7 +218,7 @@ func QuoteVars(state *State_t) QuoteVars_t {
 			vision: dep.vision,
 			preexByChoice: make(map[ChoiceId_t][]Preex_t),
 		}
-		for _, charge := range EditQDependentCharges(vars, dep) {
+		for _, charge := range EditQDependantCharges(vars, dep) {
 			choiceId := ChoiceId_t(charge.itemId)
 			x.preexByChoice[choiceId] = append(x.preexByChoice[choiceId], QuotePreex(charge))
 		}
@@ -234,7 +235,7 @@ func QuotePreexModeAmount(preex Preex_t) (mode, amount string) {
 }
 
 func UIBagVarsFromQuoteVars(x QuoteVars_t) UIBagVars_t {
-	out := QuoteDefaultVars()
+	out := quoteBaseDefaultVars()
 	out[`clientName`] = x.core.clientName
 	out[`email`] = x.core.email
 	if x.core.segment > 0 { out[`segment`] = Str(x.core.segment) }

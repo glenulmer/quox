@@ -17,7 +17,7 @@ func RewriteEditQPage(w http.ResponseWriter, req *http.Request, state State_t) {
 func Page2EditQEntry(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	state.quote = UIBagVars(state)
-	EditQEnsureDefaultDependent(&state)
+	EditQDropPreinsertedDependant(&state)
 	SetState(req, state)
 	http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
 }

@@ -336,11 +336,6 @@ func LoadBensByAddon() map[BenAddon_t]string {
 	return m
 }
 
-type Lang_t struct {
-	lang int
-	label string
-}
-
 func LoadLangIdMap() IdMap_t[Lang_t] {
 	out := IdMap[Lang_t]()
 	rows := App.DB.Call(`languages_query`)
@@ -348,9 +343,9 @@ func LoadLangIdMap() IdMap_t[Lang_t] {
 	defer rows.Close()
 	var x Lang_t
 	for rows.Next() {
-		rows.Scan(&x.lang, &x.label)
+		rows.Scan(&x.langId, &x.label)
 		if rows.HasError() { panic(rows.Message()) }
-		out.Add(int(x.lang), x)
+		out.Add(int(x.langId), x)
 	}
 	if rows.HasError() { panic(rows.Message()) }
 	return out

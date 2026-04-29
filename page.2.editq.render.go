@@ -118,8 +118,8 @@ func EditQPreexChargesView(vars UIBagVars_t) Elem_t {
 	)
 }
 
-func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
-	charges := EditQDependentCharges(vars, dep)
+func EditQDependantView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
+	charges := EditQDependantCharges(vars, dep)
 	appliedByItem := make(map[int]EuroCent_t)
 	planByItem := make(map[int]EuroCent_t)
 	for _, x := range charges {
@@ -187,9 +187,9 @@ func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 	if len(depRows) == 0 {
 		depRows = append(depRows, Div(`No selected plan available.`).Class(`editq-preex-empty`))
 	}
-	return Div().Class(`editq-dependent`).Wrap(
-		Div().Class(`editq-dependent-fields-row`).Wrap(
-			QuoteInputText(EditQDepNameKey(dep.depId), dep.name, `Dependent name`).Class(`editq-dep-name`),
+	return Div().Class(`editq-dependant`).Wrap(
+		Div().Class(`editq-dependant-fields-row`).Wrap(
+			QuoteInputText(EditQDepNameKey(dep.depId), dep.name, `Dependant name`).Class(`editq-dep-name`),
 			QuoteInputDate(EditQDepBirthKey(dep.depId), dep.birth).Class(`editq-dep-birth`),
 			Elem(`label`).Class(`editq-check`, `editq-dep-vision`).KV(`title`, `Vision`).Wrap(
 				QuoteCheckbox(EditQDepVisionKey(dep.depId), dep.vision),
@@ -197,30 +197,29 @@ func EditQDependentView(vars UIBagVars_t, dep EditQDep_t) Elem_t {
 			),
 			EditQDelButton(EditQDepDelControlName(dep.depId)).Class(`editq-dep-del`),
 		),
-		Div().Class(`editq-preex-charges`, `editq-dependent-preex`).Wrap(
+		Div().Class(`editq-preex-charges`, `editq-dependant-preex`).Wrap(
 			Div(`Pre-existing conditions charges`).Class(`editq-section-title`),
 			Div().Class(`editq-preex-list`).Wrap(depRows),
 		),
 	)
 }
 
-func EditQDependentsView(vars UIBagVars_t, sortForGet bool) Elem_t {
-	deps := EditQDependents(vars, sortForGet)
-	namedCount := 0
+func EditQDependantsView(vars UIBagVars_t, sortForGet bool) Elem_t {
+	deps := EditQDependants(vars, sortForGet)
+	depCount := len(deps)
 	var list []Elem_t
 	for _, dep := range deps {
-		if Trim(dep.name) != `` { namedCount++ }
-		list = append(list, EditQDependentView(vars, dep))
+		list = append(list, EditQDependantView(vars, dep))
 	}
 	if len(deps) < editQDepMaxCount {
-		list = append(list, EditQAddButton(EditQDepAddControlName(), `Add`, `editq-add-dependent`))
+		list = append(list, EditQAddButton(EditQDepAddControlName(), `Add Dependant`, `editq-add-dependant`))
 	}
 	return EditQTopCardView(
-		`EditQDependentsCard`,
-		Str(`Dependents (`, namedCount, `)`),
+		`EditQDependantsCard`,
+		Str(`Dependants (`, depCount, `)`),
 		false,
-		Div().Class(`editq-section`, `editq-dependents`).Wrap(
-			Div().Class(`editq-dependent-list`).Wrap(list),
+		Div().Class(`editq-section`, `editq-dependants`).Wrap(
+			Div().Class(`editq-dependant-list`).Wrap(list),
 		),
 	)
 }

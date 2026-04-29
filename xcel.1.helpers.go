@@ -30,17 +30,6 @@ func IsSlimXl(req *http.Request) bool {
 	return false
 }
 
-func XlLang(req *http.Request) int {
-	lang := 0
-	if req != nil { lang = Atoi(req.FormValue(`lang`)) }
-	first := 0
-	for id, _ := range App.lookup.languages.All() {
-		if first == 0 { first = id }
-		if id == lang { return lang }
-	}
-	return first
-}
-
 func ClientName(vars QuoteVars_t) string {
 	name := Trim(vars.core.clientName)
 	if name == `` { return `Customer` }
@@ -79,7 +68,7 @@ func XlFileName(clientName string, slim bool) string {
 	return Str(name, ` overview`, slimPart, `.xlsx`)
 }
 
-func CreateXlQuote(vars QuoteVars_t, slim bool, lang int) (path, fname string, ok bool) {
+func CreateXlQuote(vars QuoteVars_t, slim bool, lang LangId_t) (path, fname string, ok bool) {
 	ex, e := sky.OpenFile(template)
 	if e != nil {
 		Log(e)

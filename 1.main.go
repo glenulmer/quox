@@ -11,6 +11,7 @@ import (
 func main() {
 	Bootstrap()
 	defer App.DB.Close()
+	DefaultVars()
 
 	r := chi.NewRouter()
 	r.Use(SessionMiddleware)

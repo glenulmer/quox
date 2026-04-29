@@ -458,13 +458,13 @@ func WriteXlSummary(ex *sky.File, vars QuoteVars_t) error {
 		row++
 	}
 
-	deps := EditQDependents(bag, false)
+	deps := EditQDependants(bag, false)
 	if len(deps) > 0 {
 		if e := SetXlCell(ex, summarySheet, Str(`A`, row), `Dependants`, headStyle); e != nil { return e }
 		row += 2
 	}
 	for _, dep := range deps {
-		charges := EditQDependentCharges(bag, dep)
+		charges := EditQDependantCharges(bag, dep)
 		var nonzero []EditQPreexCharge_t
 		for _, x := range charges {
 			if x.applied <= 0 { continue }
@@ -835,7 +835,7 @@ func SetXlDefaultCell(ex *sky.File, tab, cell string) {
 	})
 }
 
-func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, lang int) error {
+func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, lang LangId_t) error {
 	if e := WriteXlHead(ex, styles, vars); e != nil { return e }
 	lastRow, e := WriteXlBenefits(ex, styles, slim)
 	if e != nil { return e }

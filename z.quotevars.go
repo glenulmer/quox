@@ -8,6 +8,7 @@ import (
 type ChoiceId_t int
 
 type QuoteVars_t struct {
+	lang LangId_t
 	sortBy string
 	core CoreVars_t
 	choices map[ChoiceId_t]PlanQuoteInfo_t

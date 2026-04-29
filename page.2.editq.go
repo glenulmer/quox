@@ -37,7 +37,8 @@ func EditQPageView(layout string, vars UIBagVars_t, sortForGet bool) Elem_t {
 func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	state.quote = UIBagVars(state)
-	EditQEnsureDefaultDependent(&state)
+	if len(QuoteSelectedItems(state.quote)) == 0 { http.Redirect(w0, req, `/`, http.StatusSeeOther); return }
+	EditQDropPreinsertedDependant(&state)
 	SetState(req, state)
 	layout := RequestLayout(req)
 	mode := DeviceModeFromLayout(layout)

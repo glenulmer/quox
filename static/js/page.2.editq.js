@@ -2,10 +2,10 @@
 	const selector = '#EditQForm input[name], #EditQForm textarea[name], #EditQForm select[name], #EditQForm button[name]';
 	const lastSent = new Map();
 	const debounceMs = 240;
-	const foldIds = ['EditQPreexCard', 'EditQDependentsCard', 'EditQReviewCard'];
+	const foldIds = ['EditQPreexCard', 'EditQDependantsCard', 'EditQReviewCard'];
 	const foldDefaults = new Map([
 		['EditQPreexCard', false],
-		['EditQDependentsCard', false],
+		['EditQDependantsCard', false],
 		['EditQReviewCard', true],
 	]);
 	const foldState = new Map();

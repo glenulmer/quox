@@ -226,7 +226,7 @@ func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
 	return out
 }
 
-func EditQDependentCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_t {
+func EditQDependantCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_t {
 	work := QuoteStateFromVars(vars)
 	work.quote[`birth`] = dep.birth
 	if dep.vision {
@@ -303,17 +303,20 @@ func EditQPlanUsesExactAge(planId int) bool {
 	return false
 }
 
-func EditQCurrentYear() int {
+func EditQDefaultDependantBirth(vars UIBagVars_t) string {
 	year := 0
-	row := App.DB.CallRow(`klec_current_year_query`).Scan(&year)
-	if !row.HasError() && year > 0 { return year }
-	today := CurrentDBDate()
-	if today.Year() > 0 { return today.Year() }
-	return 2026
-}
-
-func EditQDefaultDependentBirth() string {
-	return fmt.Sprintf(`%04d-06-15`, EditQCurrentYear()-4)
+	buy := QuoteParseBuyDate(vars[`buy`])
+	if buy.Year() > 0 { year = buy.Year() }
+	if year <= 0 {
+		_, _, def := QuoteBuyBounds()
+		if def.Year() > 0 { year = def.Year() }
+	}
+	if year <= 0 {
+		today := CurrentDBDate()
+		if today.Year() > 0 { year = today.Year() }
+	}
+	if year <= 0 { year = 2026 }
+	return fmt.Sprintf(`%04d-06-15`, year-4)
 }
 
 func EditQBirthSortKey(v string) string {
@@ -323,7 +326,7 @@ func EditQBirthSortKey(v string) string {
 	return v
 }
 
-func EditQDependents(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
+func EditQDependants(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
 	all := make(map[int]EditQDep_t)
 	for key, value := range vars {
 		if depId, ok := EditQDepNameControl(key); ok {
@@ -351,7 +354,6 @@ func EditQDependents(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
 
 	var out []EditQDep_t
 	for _, x := range all {
-		if x.birth == `` { x.birth = EditQDefaultDependentBirth() }
 		out = append(out, x)
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -370,22 +372,22 @@ func EditQDependents(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
 	return out
 }
 
-func EditQDeleteDependent(vars UIBagVars_t, depId int) {
+func EditQDeleteDependant(vars UIBagVars_t, depId int) {
 	prefix := Str(`editq-dep-`, depId, `-`)
 	for key := range vars {
 		if strings.HasPrefix(key, prefix) { delete(vars, key) }
 	}
 }
 
-func EditQAddDependent(state *State_t) bool {
-	deps := EditQDependents(state.quote, false)
+func EditQAddDependant(state *State_t) bool {
+	deps := EditQDependants(state.quote, false)
 	if len(deps) >= editQDepMaxCount { return false }
 	next := 1
 	for _, dep := range deps {
 		if dep.depId >= next { next = dep.depId + 1 }
 	}
 	state.quote[EditQDepNameKey(next)] = ``
-	state.quote[EditQDepBirthKey(next)] = EditQDefaultDependentBirth()
+	state.quote[EditQDepBirthKey(next)] = EditQDefaultDependantBirth(state.quote)
 	state.quote[EditQDepVisionKey(next)] = ``
 	return true
 }
@@ -425,14 +427,11 @@ func EditQApply(state *State_t, name, value string) bool {
 	}
 
 	if EditQDepAddControl(name) {
-		EditQAddDependent(state)
+		EditQAddDependant(state)
 		return true
 	}
 	if depId, ok := EditQDepDelControl(name); ok {
-		EditQDeleteDependent(state.quote, depId)
-		if len(EditQDependents(state.quote, false)) == 0 {
-			EditQAddDependent(state)
-		}
+		EditQDeleteDependant(state.quote, depId)
 		return true
 	}
 
@@ -451,8 +450,20 @@ func EditQApply(state *State_t, name, value string) bool {
 	return false
 }
 
-func EditQEnsureDefaultDependent(state *State_t) {
+func EditQDropPreinsertedDependant(state *State_t) {
+	if state == nil { return }
 	if state.quote == nil { state.quote = QuoteDefaultVars() }
-	if len(EditQDependents(state.quote, false)) > 0 { return }
-	EditQAddDependent(state)
+	deps := EditQDependants(state.quote, false)
+	if len(deps) != 1 { return }
+
+	dep := deps[0]
+	if dep.depId <= 0 { return }
+	if Trim(dep.name) != `` || dep.vision { return }
+	if Trim(dep.birth) != EditQDefaultDependantBirth(state.quote) { return }
+	prefix := Str(`editq-dep-`, dep.depId, `-preex-`)
+	for key, value := range state.quote {
+		if !strings.HasPrefix(key, prefix) { continue }
+		if Trim(value) != `` { return }
+	}
+	EditQDeleteDependant(state.quote, dep.depId)
 }

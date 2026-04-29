@@ -234,7 +234,7 @@ func QuoteAllowsField(name string) bool {
 	return ok
 }
 
-func QuoteDefaultVars() UIBagVars_t {
+func quoteBaseDefaultVars() UIBagVars_t {
 	ctx := QuoteDefaults()
 	out := make(UIBagVars_t)
 	for _, x := range QuoteControlDefs() {
@@ -246,6 +246,17 @@ func QuoteDefaultVars() UIBagVars_t {
 	}
 	out[`sortBy`] = sortByPrice
 	return out
+}
+
+func QuoteDefaultQuoteVars() QuoteVars_t {
+	state := InitState()
+	state.quote = quoteBaseDefaultVars()
+	return QuoteVars(&state)
+}
+
+func QuoteDefaultVars() UIBagVars_t {
+	if !AutoChoose.ready { return quoteBaseDefaultVars() }
+	return UIBagVarsFromQuoteVars(AutoChoose.qvars)
 }
 
 func QuoteSortMode(v string) string {

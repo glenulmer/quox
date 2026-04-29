@@ -24,7 +24,7 @@ body {
 }
 
 .editq-fold-card,
-.editq-dependent {
+.editq-dependant {
 	border: 0.0625rem solid #bfcfdd;
 	border-radius: 0.62rem;
 	background: #f8fcff;
@@ -149,7 +149,7 @@ details[open] > .editq-fold-title::before {
 }
 
 /* dead selector was removed from this live block: .editq-preex-cond-list */
-.editq-dependent-list {
+.editq-dependant-list {
 	display: grid;
 	gap: 0.42rem;
 }
@@ -358,7 +358,7 @@ details[open] > .editq-fold-title::before {
 }
 
 /* dead selector:
-.editq-dependent-head .editq-del-btn {
+.editq-dependant-head .editq-del-btn {
 	height: 1.52rem;
 	min-width: 1.52rem;
 	font-size: 0.66rem;
@@ -366,7 +366,7 @@ details[open] > .editq-fold-title::before {
 }
 */
 
-.editq-dependent {
+.editq-dependant {
 	padding: 0.55rem;
 	display: grid;
 	gap: 0.5rem;
@@ -374,7 +374,7 @@ details[open] > .editq-fold-title::before {
 }
 
 /* dead selector:
-.editq-dependent-head {
+.editq-dependant-head {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
@@ -383,20 +383,20 @@ details[open] > .editq-fold-title::before {
 */
 
 /* dead selector:
-.editq-dependent-head-text {
+.editq-dependant-head-text {
 	display: grid;
 	gap: 0.08rem;
 }
 */
 
 /* dead selector:
-.editq-dependent-title {
+.editq-dependant-title {
 	font-size: 0.81rem;
 	font-weight: 700;
 }
 */
 
-.editq-dependent-fields-row {
+.editq-dependant-fields-row {
 	display: flex;
 	gap: 0.2rem;
 	align-items: center;
@@ -594,12 +594,12 @@ details[open] > .editq-fold-title::before {
 	align-self: center;
 }
 
-.editq-dependent-preex {
+.editq-dependant-preex {
 	margin-top: 0.05rem;
 	padding-right: 0.9rem;
 }
 
-.editq-add-dependent {
+.editq-add-dependant {
 	width: 20%;
 }
 
@@ -607,6 +607,6 @@ details[open] > .editq-fold-title::before {
 	font-size: 0.82rem;
 }
 
-.editq-dependent-preex {
+.editq-dependant-preex {
 	padding-right: 0.9rem;
 }

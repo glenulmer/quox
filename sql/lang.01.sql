@@ -17,5 +17,36 @@ begin
 end
 ###
 delimiter ;
-call languages_query;
+-- call languages_query;
 
+
+delimiter ###
+create or replace function segment_id($segment varchar(50))
+returns int deterministic reads sql data
+begin
+    declare sid int default 0;
+    select segment into sid
+      from segments
+     where code = left($segment,1);
+    return sid;
+end
+###
+delimiter ;
+-- select segment_id('emp');
+
+drop function addon_id;
+delimiter ###
+create or replace function addon_id($prov varchar(50), $level varchar(50), $segment varchar(50))
+returns int deterministic reads sql data
+begin
+    declare $addon int default 0;
+    select product into $addon
+      from products a
+     where provider = provider_id($prov)
+       and level = level_id($level)
+       and segmask & segment_id($segment);
+    return $addon;
+end
+###
+delimiter ;
+-- select addon_id('Inter', '43A', 'e');
