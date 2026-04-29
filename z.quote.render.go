@@ -115,8 +115,8 @@ func QuoteInputSickCover(name, value, buyValue string) Elem_t {
 		KV(`data-max`, max)
 }
 
-func QuoteControlInput(x QuoteControl_t, vars UIBagVars_t) Elem_t {
-	value := vars[x.name]
+func QuoteControlInput(x QuoteControl_t, vars QuoteVars_t) Elem_t {
+	value := QuoteValue(vars, x.name)
 	switch x.kind {
 	case quoteText:
 		return QuoteInputText(x.name, value, x.placeholder)
@@ -125,7 +125,7 @@ func QuoteControlInput(x QuoteControl_t, vars UIBagVars_t) Elem_t {
 		if x.name == `buy` { return QuoteInputBuy(x.name, value) }
 		return QuoteInputDate(x.name, value)
 	case quoteNumber:
-		if x.name == `sickCover` { return QuoteInputSickCover(x.name, value, vars[`buy`]) }
+		if x.name == `sickCover` { return QuoteInputSickCover(x.name, value, QuoteValue(vars, `buy`)) }
 		return QuoteInputNumber(x.name, value, x.min, x.max, x.step)
 	case quoteSelect:
 		return QuoteSelect(x.name, value, QuoteControlChoices(x))
@@ -141,7 +141,7 @@ func QuoteSpanClass(span int) string {
 	return Str(`quote-span-`, span)
 }
 
-func QuoteControlViewSpan(layout string, x QuoteControl_t, vars UIBagVars_t, span int, class ...string) Elem_t {
+func QuoteControlViewSpan(layout string, x QuoteControl_t, vars QuoteVars_t, span int, class ...string) Elem_t {
 	if span == 0 { span = QuoteControlSpan(x, layout) }
 	classes := append([]string{ QuoteSpanClass(span) }, class...)
 	if x.kind == quoteCheckbox {
@@ -156,18 +156,18 @@ func QuoteControlViewSpan(layout string, x QuoteControl_t, vars UIBagVars_t, spa
 	)
 }
 
-func QuoteControlLabelViewSpan(layout string, x QuoteControl_t, label string, vars UIBagVars_t, span int, class ...string) Elem_t {
+func QuoteControlLabelViewSpan(layout string, x QuoteControl_t, label string, vars QuoteVars_t, span int, class ...string) Elem_t {
 	x.label = label
 	return QuoteControlViewSpan(layout, x, vars, span, class...)
 }
 
-func QuoteNamedControlLabelSpanView(layout, name, label string, vars UIBagVars_t, span int, class ...string) Elem_t {
+func QuoteNamedControlLabelSpanView(layout, name, label string, vars QuoteVars_t, span int, class ...string) Elem_t {
 	x, ok := QuoteControlByName(name)
 	if !ok { return Div(`missing field: `, name) }
 	return QuoteControlLabelViewSpan(layout, x, label, vars, span, class...)
 }
 
-func QuoteControlOnlyViewSpan(layout string, x QuoteControl_t, vars UIBagVars_t, span int, class ...string) Elem_t {
+func QuoteControlOnlyViewSpan(layout string, x QuoteControl_t, vars QuoteVars_t, span int, class ...string) Elem_t {
 	if span == 0 { span = QuoteControlSpan(x, layout) }
 	classes := append([]string{ QuoteSpanClass(span) }, class...)
 	return Div().Class(`quote-control`).Class(classes...).Wrap(
@@ -175,7 +175,7 @@ func QuoteControlOnlyViewSpan(layout string, x QuoteControl_t, vars UIBagVars_t,
 	)
 }
 
-func QuoteNamedControlOnlySpanView(layout, name string, vars UIBagVars_t, span int, class ...string) Elem_t {
+func QuoteNamedControlOnlySpanView(layout, name string, vars QuoteVars_t, span int, class ...string) Elem_t {
 	x, ok := QuoteControlByName(name)
 	if !ok { return Div(`missing field: `, name) }
 	return QuoteControlOnlyViewSpan(layout, x, vars, span, class...)
@@ -186,7 +186,7 @@ func QuoteSpacer(span int, class ...string) Elem_t {
 	return Div().Class(classes...)
 }
 
-func QuoteNamedControlSpanView(layout, name string, vars UIBagVars_t, span int, class ...string) Elem_t {
+func QuoteNamedControlSpanView(layout, name string, vars QuoteVars_t, span int, class ...string) Elem_t {
 	x, ok := QuoteControlByName(name)
 	if !ok { return Div(`missing field: `, name) }
 	return QuoteControlViewSpan(layout, x, vars, span, class...)

@@ -2,7 +2,7 @@ package main
 
 import . "klpm/lib/htmlHelper"
 
-func QuoteDesktopFormBodyView(vars UIBagVars_t) Elem_t {
+func QuoteDesktopFormBodyView(vars QuoteVars_t) Elem_t {
 	return Div().Id(`QuoteFormBody`).Wrap(
 		Div().Class(`quote-desk-workbench`).Wrap(
 			Div().Class(`quote-desk-rows`).Wrap(
@@ -41,7 +41,7 @@ func QuoteDesktopFormBodyView(vars UIBagVars_t) Elem_t {
 	)
 }
 
-func QuoteDesktopFormView(vars UIBagVars_t) Elem_t {
+func QuoteDesktopFormView(vars QuoteVars_t) Elem_t {
 	return Elem(`form`).
 		Id(`QuoteForm`).
 		Class(`quote-form`, `quote-form-desktop`).
@@ -57,7 +57,7 @@ func QuoteDesktopPlansView(data QuotePlans_t) Elem_t {
 	)
 }
 
-func QuoteDesktopPageView(vars UIBagVars_t, plans QuotePlans_t) Elem_t {
+func QuoteDesktopPageView(vars QuoteVars_t, plans QuotePlans_t) Elem_t {
 	return Elem(`main`).Class(`quote-page`, `quote-page-desktop`).Wrap(
 		QuoteDesktopFormView(vars),
 		QuoteDesktopPlansView(plans),

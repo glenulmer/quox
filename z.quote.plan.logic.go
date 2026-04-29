@@ -155,80 +155,9 @@ func QuotePreex(x EditQPreexCharge_t) Preex_t {
 }
 
 func QuoteVars(state *State_t) QuoteVars_t {
-	work := InitState()
-	if state != nil { work = *state }
-	vars := UIBagVars(work)
-
-	out := QuoteVars_t{
-		lang: English,
-		slim: 0,
-		sortBy: QuoteSortMode(vars[`sortBy`]),
-		choices: make(map[ChoiceId_t]PlanQuoteInfo_t),
-	}
-	if x := Atoi(vars[`lang`]); x > 0 { out.lang = LangId_t(x) }
-	if x := Atoi(vars[`slim`]); x == 1 { out.slim = 1 }
-
-	out.core.clientName = vars[`clientName`]
-	out.core.email = vars[`email`]
-	out.core.segment = Atoi(vars[`segment`])
-	out.core.birth = QuoteParseBirthDate(vars[`birth`])
-	out.core.buy = QuoteParseBuyDate(vars[`buy`])
-	out.core.sickCover = EuroFlat_t(Atoi(vars[`sickCover`]))
-	out.core.priorCov = Atoi(vars[`priorCov`])
-	out.core.exam = Atoi(vars[`exam`])
-	out.core.specref = Atoi(vars[`specref`])
-	out.core.vision = QuoteVarBool(vars[`vision`])
-	out.core.tempVisa = QuoteVarBool(vars[`tempVisa`])
-	out.core.noPVN = QuoteVarBool(vars[`noPVN`])
-	out.core.naturalMed = QuoteVarBool(vars[`naturalMed`])
-	out.core.deductible.min = EuroFlat_t(Atoi(vars[`deductibleMin`]))
-	out.core.deductible.max = EuroFlat_t(Atoi(vars[`deductibleMax`]))
-	out.core.hospital.min = LevelId_t(Atoi(vars[`hospitalMin`]))
-	out.core.hospital.max = LevelId_t(Atoi(vars[`hospitalMax`]))
-	out.core.dental.min = LevelId_t(Atoi(vars[`dentalMin`]))
-	out.core.dental.max = LevelId_t(Atoi(vars[`dentalMax`]))
-
-	selected := QuoteSelectedItems(vars)
-	for _, item := range selected {
-		choiceId := ChoiceId_t(item.itemId)
-		choice := PlanQuoteInfo_t{
-			plan: PlanId_t(item.planId),
-			addons: make(map[CategId_t]AddonId_t),
-		}
-		for categId, addon := range item.cats {
-			choice.addons[categId] = addon
-		}
-		out.choices[choiceId] = choice
-	}
-
-	for _, charge := range EditQPreexCharges(vars) {
-		choiceId := ChoiceId_t(charge.itemId)
-		choice, ok := out.choices[choiceId]
-		if !ok {
-			choice = PlanQuoteInfo_t{
-				addons: make(map[CategId_t]AddonId_t),
-			}
-		}
-		choice.preex = append(choice.preex, QuotePreex(charge))
-		out.choices[choiceId] = choice
-	}
-
-	deps := EditQDependants(vars, false)
-	for _, dep := range deps {
-		x := Dependant_t{
-			name: dep.name,
-			birth: QuoteParseBirthDate(dep.birth),
-			vision: dep.vision,
-			preexByChoice: make(map[ChoiceId_t][]Preex_t),
-		}
-		for _, charge := range EditQDependantCharges(vars, dep) {
-			choiceId := ChoiceId_t(charge.itemId)
-			x.preexByChoice[choiceId] = append(x.preexByChoice[choiceId], QuotePreex(charge))
-		}
-		out.dependants = append(out.dependants, x)
-	}
-
-	return out
+	if state == nil { return QuoteDefaultVars() }
+	QuoteEnsureDefaults(state)
+	return CloneQuoteVars(state.quote)
 }
 
 func QuotePreexModeAmount(preex Preex_t) (mode, amount string) {
@@ -237,85 +166,10 @@ func QuotePreexModeAmount(preex Preex_t) (mode, amount string) {
 	return editQPreexModePct, ``
 }
 
-func UIBagVarsFromQuoteVars(x QuoteVars_t) UIBagVars_t {
-	out := quoteBaseDefaultVars()
-	out[`clientName`] = x.core.clientName
-	out[`email`] = x.core.email
-	if x.core.segment > 0 { out[`segment`] = Str(x.core.segment) }
-	if Valid(x.core.birth) { out[`birth`] = x.core.birth.Format(`yyyymmdd`) }
-	if Valid(x.core.buy) { out[`buy`] = x.core.buy.Format(`yyyymmdd`) }
-	out[`sickCover`] = Str(int(x.core.sickCover))
-	if x.core.priorCov > 0 { out[`priorCov`] = Str(x.core.priorCov) }
-	if x.core.exam > 0 { out[`exam`] = Str(x.core.exam) }
-	if x.core.specref > 0 { out[`specref`] = Str(x.core.specref) }
-	if x.core.vision { out[`vision`] = `1` } else { out[`vision`] = `` }
-	if x.core.tempVisa { out[`tempVisa`] = `1` } else { out[`tempVisa`] = `` }
-	if x.core.noPVN { out[`noPVN`] = `1` } else { out[`noPVN`] = `` }
-	if x.core.naturalMed { out[`naturalMed`] = `1` } else { out[`naturalMed`] = `` }
-	out[`deductibleMin`] = Str(int(x.core.deductible.min))
-	out[`deductibleMax`] = Str(int(x.core.deductible.max))
-	if x.core.hospital.min > 0 { out[`hospitalMin`] = Str(int(x.core.hospital.min)) }
-	if x.core.hospital.max > 0 { out[`hospitalMax`] = Str(int(x.core.hospital.max)) }
-	if x.core.dental.min > 0 { out[`dentalMin`] = Str(int(x.core.dental.min)) }
-	if x.core.dental.max > 0 { out[`dentalMax`] = Str(int(x.core.dental.max)) }
-	out[`sortBy`] = QuoteSortMode(x.sortBy)
-	out[`lang`] = Str(int(x.lang))
-	out[`slim`] = Str(x.slim)
-
-	maxItemId := 0
-	var choiceIds []int
-	for choiceId := range x.choices { choiceIds = append(choiceIds, int(choiceId)) }
-	sort.Ints(choiceIds)
-
-	for _, itemId := range choiceIds {
-		if itemId <= 0 { continue }
-		choice := x.choices[ChoiceId_t(itemId)]
-		if itemId > maxItemId { maxItemId = itemId }
-		out[QuoteSelectedPlanKey(itemId)] = Str(int(choice.plan))
-
-		var catIds []int
-		for catId := range choice.addons { catIds = append(catIds, int(catId)) }
-		sort.Ints(catIds)
-		for _, catId := range catIds {
-			categId := CategId_t(catId)
-			out[QuoteSelectedCatKey(itemId, categId)] = Str(int(choice.addons[categId]))
-		}
-
-		for _, preex := range choice.preex {
-			mode, amount := QuotePreexModeAmount(preex)
-			out[EditQPreexModeKey(itemId, preex.categ)] = mode
-			out[EditQPreexAmountKey(itemId, preex.categ)] = amount
-			out[EditQPreexNoteKey(itemId, preex.categ)] = preex.note
-		}
-	}
-	out[quoteSelectedSeqKey] = Str(maxItemId)
-
-	for i, dep := range x.dependants {
-		depId := i + 1
-		out[EditQDepNameKey(depId)] = dep.name
-		if Valid(dep.birth) { out[EditQDepBirthKey(depId)] = dep.birth.Format(`yyyy-mm-dd`) }
-		if dep.vision { out[EditQDepVisionKey(depId)] = `1` } else { out[EditQDepVisionKey(depId)] = `` }
-
-		var depChoiceIds []int
-		for choiceId := range dep.preexByChoice { depChoiceIds = append(depChoiceIds, int(choiceId)) }
-		sort.Ints(depChoiceIds)
-		for _, itemId := range depChoiceIds {
-			if itemId <= 0 { continue }
-			for _, preex := range dep.preexByChoice[ChoiceId_t(itemId)] {
-				mode, amount := QuotePreexModeAmount(preex)
-				out[EditQDepChargeModeKey(depId, itemId, preex.categ)] = mode
-				out[EditQDepChargeAmountKey(depId, itemId, preex.categ)] = amount
-				out[EditQDepChargeNoteKey(depId, itemId, preex.categ)] = preex.note
-			}
-		}
-	}
-
-	return out
-}
-
 func QuoteStateFromQuoteVars(vars QuoteVars_t) State_t {
 	out := InitState()
-	out.quote = UIBagVarsFromQuoteVars(vars)
+	out.quote = CloneQuoteVars(vars)
+	QuoteEnsureVars(&out.quote)
 	return out
 }
 

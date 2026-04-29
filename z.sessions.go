@@ -34,23 +34,26 @@ func NewSessionStore() *SessionStore_t {
 }
 
 func InitSessionVars() SessionVars_t {
-	return SessionVarsFromState(InitState())
+	state := InitState()
+	state.quote = QuoteDefaultVars()
+	return SessionVarsFromState(state)
 }
 
 func SessionVarsFromState(state State_t) SessionVars_t {
 	work := InitState()
 	work.user = state.user
-	work.quote = CloneUIBagVars(state.quote)
+	work.quote = CloneQuoteVars(state.quote)
 	return SessionVars_t{
 		user: work.user,
-		quote: QuoteVars(&work),
+		quote: work.quote,
 		device: deviceDesktop,
 		deviceConfirmed: false,
 	}
 }
 
 func StateFromSessionVars(vars SessionVars_t) State_t {
-	out := QuoteStateFromQuoteVars(vars.quote)
+	out := InitState()
+	out.quote = CloneQuoteVars(vars.quote)
 	out.user = vars.user
 	return out
 }

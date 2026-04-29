@@ -8,7 +8,8 @@ import (
 )
 
 func RewriteEditQPage(w http.ResponseWriter, req *http.Request, state State_t) {
-	vars := UIBagVars(state)
+	QuoteEnsureDefaults(&state)
+	vars := state.quote
 	layout := RequestLayout(req)
 	body := EditQBodyView(layout, vars, false)
 	SendResponse(w, RewriteHTML(OuterHTML, `EditQFormBody`, body))
@@ -16,7 +17,7 @@ func RewriteEditQPage(w http.ResponseWriter, req *http.Request, state State_t) {
 
 func Page2EditQEntry(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
-	state.quote = UIBagVars(state)
+	QuoteEnsureDefaults(&state)
 	EditQDropPreinsertedDependant(&state)
 	SetState(req, state)
 	http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)

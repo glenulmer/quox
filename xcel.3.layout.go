@@ -664,8 +664,8 @@ func XlDepLabel(dep Dependant_t, depId, age int, lang LangId_t) string {
 
 func XlDepState(vars QuoteVars_t, dep Dependant_t) State_t {
 	state := QuoteStateFromQuoteVars(vars)
-	if Valid(dep.birth) { state.quote[`birth`] = dep.birth.Format(`yyyymmdd`) }
-	state.quote[`vision`] = If(dep.vision, `1`, ``)
+	if Valid(dep.birth) { state.quote.core.birth = dep.birth }
+	state.quote.core.vision = dep.vision
 	return state
 }
 

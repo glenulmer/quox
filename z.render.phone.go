@@ -2,7 +2,7 @@ package main
 
 import . "klpm/lib/htmlHelper"
 
-func QuotePhoneFormBodyView(vars UIBagVars_t) Elem_t {
+func QuotePhoneFormBodyView(vars QuoteVars_t) Elem_t {
 	return Div().Id(`QuoteFormBody`).Wrap(
 		Div().Id(`QuotePhoneStickyAnchor`).Class(`quote-phone-sticky-anchor`),
 		Elem(`details`).Id(`QuoteInfoCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
@@ -42,7 +42,7 @@ func QuotePhoneFormBodyView(vars UIBagVars_t) Elem_t {
 	)
 }
 
-func QuotePhoneFormView(vars UIBagVars_t) Elem_t {
+func QuotePhoneFormView(vars QuoteVars_t) Elem_t {
 	return Elem(`form`).
 		Id(`QuoteForm`).
 		Class(`quote-form`, `quote-form-phone`).
@@ -70,7 +70,7 @@ func QuotePhonePlansView(data QuotePlans_t) Elem_t {
 	)
 }
 
-func QuotePhonePageView(vars UIBagVars_t, plans QuotePlans_t) Elem_t {
+func QuotePhonePageView(vars QuoteVars_t, plans QuotePlans_t) Elem_t {
 	return Elem(`main`).Class(`quote-page`, `quote-page-phone`).Wrap(
 		QuotePhoneFormView(vars),
 		QuotePhonePlansView(plans),

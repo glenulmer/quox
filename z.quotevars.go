@@ -12,6 +12,8 @@ type QuoteVars_t struct {
 	slim int
 	sortBy string
 	core CoreVars_t
+	planCats map[PlanCateg_t]AddonId_t
+	nextChoiceId int
 	choices map[ChoiceId_t]PlanQuoteInfo_t
 	dependants []Dependant_t
 }
@@ -29,6 +31,7 @@ type Preex_t struct {
 }
 
 type Dependant_t struct {
+	depId int
 	name string
 	birth CalDate_t
 	vision bool
@@ -52,4 +55,30 @@ type CoreVars_t struct {
 	deductible struct { min, max EuroFlat_t }
 	hospital struct { min, max LevelId_t }
 	dental struct { min, max LevelId_t }
+}
+
+func CloneQuoteVars(in QuoteVars_t) QuoteVars_t {
+	out := in
+	out.planCats = make(map[PlanCateg_t]AddonId_t, len(in.planCats))
+	for k, v := range in.planCats { out.planCats[k] = v }
+
+	out.choices = make(map[ChoiceId_t]PlanQuoteInfo_t, len(in.choices))
+	for choiceId, choice := range in.choices {
+		next := choice
+		next.addons = make(map[CategId_t]AddonId_t, len(choice.addons))
+		for categId, addonId := range choice.addons { next.addons[categId] = addonId }
+		next.preex = append([]Preex_t{}, choice.preex...)
+		out.choices[choiceId] = next
+	}
+
+	out.dependants = make([]Dependant_t, 0, len(in.dependants))
+	for _, dep := range in.dependants {
+		next := dep
+		next.preexByChoice = make(map[ChoiceId_t][]Preex_t, len(dep.preexByChoice))
+		for choiceId, preex := range dep.preexByChoice {
+			next.preexByChoice[choiceId] = append([]Preex_t{}, preex...)
+		}
+		out.dependants = append(out.dependants, next)
+	}
+	return out
 }

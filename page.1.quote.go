@@ -15,7 +15,7 @@ func QuoteCSSPath(layout string) string {
 	return Str(`/static/css/page.1.quote.phone.css?v=`, App.staticVersion)
 }
 
-func QuotePageView(layout string, vars UIBagVars_t, plans QuotePlans_t) Elem_t {
+func QuotePageView(layout string, vars QuoteVars_t, plans QuotePlans_t) Elem_t {
 	if layout == layoutDesktop { return QuoteDesktopPageView(vars, plans) }
 	return QuotePhonePageView(vars, plans)
 }
@@ -41,9 +41,9 @@ func querySegment(value string) string {
 func Page1QuoteApplyQuery(state *State_t, req *http.Request) {
 	q := req.URL.Query()
 	if len(q) == 0 { return }
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	QuoteEnsureDefaults(state)
 
-	set := func(name, value string) { state.quote[name] = value }
+	set := func(name, value string) { QuoteSetValue(&state.quote, name, value) }
 	setBool := func(name string, on bool) {
 		if on { set(name, `1`) } else { set(name, ``) }
 	}
@@ -129,7 +129,7 @@ func Page1QuoteApplyQuery(state *State_t, req *http.Request) {
 
 func Page1Quote(w0 http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
-	state.quote = UIBagVars(state)
+	QuoteEnsureDefaults(&state)
 	Page1QuoteApplyQuery(&state, req)
 	SetState(req, state)
 	plans := QuotePlans(state)

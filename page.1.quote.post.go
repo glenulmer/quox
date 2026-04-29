@@ -8,7 +8,8 @@ import (
 )
 
 func RewriteQuotePage(w http.ResponseWriter, req *http.Request, state State_t) {
-	vars := UIBagVars(state)
+	QuoteEnsureDefaults(&state)
+	vars := state.quote
 	plans := QuotePlans(state)
 	layout := RequestLayout(req)
 	form := any(QuotePhoneFormBodyView(vars))

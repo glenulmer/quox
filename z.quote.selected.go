@@ -8,7 +8,6 @@ import (
 	. "klpm/lib/output"
 )
 
-const quoteSelectedSeqKey = `sel-seq`
 const quoteSelectedMaxCount = 5
 
 type QuoteSelectedItem_t struct {
@@ -70,80 +69,67 @@ func QuoteSelectedDelControl(name string) (itemId int, ok bool) {
 	return itemId, true
 }
 
-func QuoteSelectedItems(vars UIBagVars_t) []QuoteSelectedItem_t {
-	all := make(map[int]QuoteSelectedItem_t)
-
-	for key, value := range vars {
-		if itemId, ok := QuoteSelectedPlanControl(key); ok {
-			x := all[itemId]
-			x.itemId = itemId
-			x.planId = Atoi(value)
-			if x.cats == nil { x.cats = make(map[CategId_t]AddonId_t) }
-			all[itemId] = x
-			continue
-		}
-
-		itemId, catId, ok := QuoteSelectedCatControl(key)
-		if !ok { continue }
-		x := all[itemId]
-		x.itemId = itemId
-		if x.cats == nil { x.cats = make(map[CategId_t]AddonId_t) }
-		x.cats[catId] = AddonId_t(Atoi(value))
-		all[itemId] = x
+func QuoteSelectedItems(vars QuoteVars_t) []QuoteSelectedItem_t {
+	QuoteEnsureVars(&vars)
+	var ids []int
+	for choiceId := range vars.choices {
+		if int(choiceId) <= 0 { continue }
+		ids = append(ids, int(choiceId))
 	}
+	sort.Ints(ids)
 
 	var out []QuoteSelectedItem_t
-	for _, x := range all {
-		if x.planId <= 0 { continue }
-		if x.cats == nil { x.cats = make(map[CategId_t]AddonId_t) }
-		out = append(out, x)
+	for _, itemId := range ids {
+		choice := vars.choices[ChoiceId_t(itemId)]
+		if int(choice.plan) <= 0 { continue }
+		cats := make(map[CategId_t]AddonId_t, len(choice.addons))
+		for categId, addon := range choice.addons { cats[categId] = addon }
+		out = append(out, QuoteSelectedItem_t{
+			itemId: itemId,
+			planId: int(choice.plan),
+			cats: cats,
+		})
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].itemId < out[j].itemId })
 	return out
 }
 
 func QuoteCloneState(in State_t) State_t {
 	out := in
-	out.quote = make(UIBagVars_t, len(in.quote))
-	for k, v := range in.quote { out.quote[k] = v }
+	out.quote = CloneQuoteVars(in.quote)
 	return out
 }
 
-func QuoteStateFromVars(vars UIBagVars_t) State_t {
-	out := InitState()
-	out.quote = make(UIBagVars_t, len(vars))
-	for k, v := range vars { out.quote[k] = v }
-	return out
-}
-
-func QuoteSelectedPreexByCateg(vars UIBagVars_t, itemId int, row QuotePlan_t) map[CategId_t]EuroCent_t {
+func QuoteSelectedPreexByCateg(vars QuoteVars_t, itemId int, row QuotePlan_t) map[CategId_t]EuroCent_t {
 	out := make(map[CategId_t]EuroCent_t)
 	if itemId <= 0 { return out }
-
-	mode := EditQPreexMode(vars[EditQPreexModeKey(itemId, 0)])
-	amount := vars[EditQPreexAmountKey(itemId, 0)]
-	if applied := EditQPreexAppliedAmount(mode, amount, row.planBase); applied > 0 {
-		out[0] = applied
-	}
-
-	for _, addon := range row.addons {
-		if !addon.priceOk { continue }
-		if addon.categId <= 0 { continue } // excludes vision pseudo-row
-		if addon.base <= 0 { continue }
-		mode := EditQPreexMode(vars[EditQPreexModeKey(itemId, addon.categId)])
-		amount := vars[EditQPreexAmountKey(itemId, addon.categId)]
-		if applied := EditQPreexAppliedAmount(mode, amount, addon.base); applied > 0 {
-			out[addon.categId] = applied
+	choice, ok := vars.choices[ChoiceId_t(itemId)]
+	if !ok { return out }
+	for _, preex := range choice.preex {
+		base := row.planBase
+		if preex.categ > 0 {
+			base = 0
+			for _, addon := range row.addons {
+				if addon.categId != preex.categ { continue }
+				base = addon.base
+				break
+			}
 		}
+		applied := EuroCent_t(0)
+		if preex.amount.euro > 0 { applied = preex.amount.euro }
+		if preex.amount.percent > 0 && base > 0 {
+			applied = EuroCent_t((int64(base) * int64(preex.amount.percent)) / 10000)
+		}
+		if applied <= 0 { continue }
+		out[preex.categ] += applied
 	}
-
 	return out
 }
 
 func QuoteSelectedPlanRow(state State_t, item QuoteSelectedItem_t) (QuotePlan_t, bool) {
 	work := QuoteCloneState(state)
+	QuoteEnsureVars(&work.quote)
 	for catId, addon := range item.cats {
-		work.quote[QuotePlanCatControlName(item.planId, catId)] = Str(addon)
+		work.quote.planCats[PlanCateg_t{ plan:PlanId_t(item.planId), categ:catId }] = addon
 	}
 
 	list := QuotePlans(work).plans
@@ -176,34 +162,33 @@ func QuoteSelectedRows(state State_t) []QuoteSelectedRow_t {
 }
 
 func QuoteSelectedDrop(state *State_t, itemId int) {
-	if state.quote == nil { return }
-
-	state.quote[QuoteSelectedPlanKey(itemId)] = ``
-	for key := range state.quote {
-		otherId, _, ok := QuoteSelectedCatControl(key)
-		if !ok || otherId != itemId { continue }
-		state.quote[key] = ``
-	}
+	if itemId <= 0 { return }
+	QuoteEnsureDefaults(state)
+	delete(state.quote.choices, ChoiceId_t(itemId))
 }
 
 func QuoteSelectedAdd(state *State_t, planId int) {
 	if planId <= 0 { return }
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	QuoteEnsureDefaults(state)
 	if len(QuoteSelectedItems(state.quote)) >= quoteSelectedMaxCount { return }
 
-	itemId := Atoi(state.quote[quoteSelectedSeqKey]) + 1
-	state.quote[quoteSelectedSeqKey] = Str(itemId)
-	state.quote[QuoteSelectedPlanKey(itemId)] = Str(planId)
+	state.quote.nextChoiceId++
+	itemId := state.quote.nextChoiceId
+	choice := PlanQuoteInfo_t{
+		plan: PlanId_t(planId),
+		addons: make(map[CategId_t]AddonId_t),
+	}
 
 	rows := QuotePlans(*state).plans
 	for _, row := range rows {
 		if row.planId != planId { continue }
 		for _, addon := range row.addons {
 			if !addon.hasMulti || len(addon.choices) == 0 { continue }
-			state.quote[QuoteSelectedCatKey(itemId, addon.categId)] = Str(addon.addon)
+			choice.addons[addon.categId] = addon.addon
 		}
-		return
+		break
 	}
+	state.quote.choices[ChoiceId_t(itemId)] = choice
 }
 
 func QuoteSelectedApply(state *State_t, name, value string) bool {
@@ -219,9 +204,11 @@ func QuoteSelectedApply(state *State_t, name, value string) bool {
 
 	itemId, catId, ok := QuoteSelectedCatControl(name)
 	if !ok { return false }
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
-	if Trim(state.quote[QuoteSelectedPlanKey(itemId)]) == `` { return true }
-
-	state.quote[QuoteSelectedCatKey(itemId, catId)] = value
+	QuoteEnsureDefaults(state)
+	choice, has := state.quote.choices[ChoiceId_t(itemId)]
+	if !has || int(choice.plan) <= 0 { return true }
+	if choice.addons == nil { choice.addons = make(map[CategId_t]AddonId_t) }
+	choice.addons[catId] = AddonId_t(Atoi(value))
+	state.quote.choices[ChoiceId_t(itemId)] = choice
 	return true
 }

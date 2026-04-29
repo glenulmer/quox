@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	. "klpm/lib/date"
 	. "klpm/lib/dec2"
 	. "klpm/lib/output"
 )
@@ -174,15 +175,32 @@ func EditQPreexAppliedAmount(mode, amount string, base EuroCent_t) EuroCent_t {
 	return EuroCent_t((int64(base) * n) / 10000)
 }
 
-func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
-	state := QuoteStateFromVars(vars)
+func EditQChoicePreex(choice PlanQuoteInfo_t, categId CategId_t) (Preex_t, bool) {
+	for _, preex := range choice.preex {
+		if preex.categ != categId { continue }
+		return preex, true
+	}
+	return Preex_t{}, false
+}
+
+func EditQPreexFields(preex Preex_t) (mode, amount, note string) {
+	mode, amount = QuotePreexModeAmount(preex)
+	note = preex.note
+	return mode, amount, note
+}
+
+func EditQPreexCharges(vars QuoteVars_t) []EditQPreexCharge_t {
+	state := QuoteStateFromQuoteVars(vars)
 	selected := QuoteSelectedRows(state)
 	var out []EditQPreexCharge_t
 	for _, x := range selected {
 		if x.row.planOk && x.row.planBase+x.row.planSurcharge > 0 {
-			modeKey := EditQPreexModeKey(x.item.itemId, 0)
-			mode := EditQPreexMode(vars[modeKey])
-			amount := vars[EditQPreexAmountKey(x.item.itemId, 0)]
+			mode, amount, note := editQPreexModePct, ``, ``
+			if choice, ok := vars.choices[ChoiceId_t(x.item.itemId)]; ok {
+				if preex, has := EditQChoicePreex(choice, 0); has {
+					mode, amount, note = EditQPreexFields(preex)
+				}
+			}
 			applied := EditQPreexAppliedAmount(mode, amount, x.row.planBase)
 			out = append(out, EditQPreexCharge_t{
 				itemId: x.item.itemId,
@@ -193,7 +211,7 @@ func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
 				base: x.row.planBase,
 				mode: mode,
 				amount: amount,
-				note: vars[EditQPreexNoteKey(x.item.itemId, 0)],
+				note: note,
 				applied: applied,
 			})
 		}
@@ -203,9 +221,12 @@ func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
 			if addon.categId <= 0 { continue }
 			if Contains(Lower(Trim(addon.categ)), `vision`) { continue }
 			if addon.base+addon.surcharge <= 0 { continue }
-			modeKey := EditQPreexModeKey(x.item.itemId, addon.categId)
-			mode := EditQPreexMode(vars[modeKey])
-			amount := vars[EditQPreexAmountKey(x.item.itemId, addon.categId)]
+			mode, amount, note := editQPreexModePct, ``, ``
+			if choice, ok := vars.choices[ChoiceId_t(x.item.itemId)]; ok {
+				if preex, has := EditQChoicePreex(choice, addon.categId); has {
+					mode, amount, note = EditQPreexFields(preex)
+				}
+			}
 			applied := EditQPreexAppliedAmount(mode, amount, addon.base)
 			level := QuoteAddonPickText(addon)
 			if level == `` { level = addon.categ }
@@ -218,7 +239,7 @@ func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
 				base: addon.base,
 				mode: mode,
 				amount: amount,
-				note: vars[EditQPreexNoteKey(x.item.itemId, addon.categId)],
+				note: note,
 				applied: applied,
 			})
 		}
@@ -226,16 +247,27 @@ func EditQPreexCharges(vars UIBagVars_t) []EditQPreexCharge_t {
 	return out
 }
 
-func EditQDependantCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_t {
-	work := QuoteStateFromVars(vars)
-	work.quote[`birth`] = dep.birth
-	if dep.vision {
-		work.quote[`vision`] = `1`
-	} else {
-		work.quote[`vision`] = ``
+func EditQDepChoicePreex(dep Dependant_t, choiceId ChoiceId_t, categId CategId_t) (Preex_t, bool) {
+	list := dep.preexByChoice[choiceId]
+	for _, preex := range list {
+		if preex.categ != categId { continue }
+		return preex, true
 	}
+	return Preex_t{}, false
+}
+
+func EditQDependantCharges(vars QuoteVars_t, dep EditQDep_t) []EditQPreexCharge_t {
+	work := QuoteStateFromQuoteVars(vars)
+	work.quote.core.birth = QuoteParseBirthDate(dep.birth)
+	work.quote.core.vision = dep.vision
 	_, yearAge, exactAge := PlanAges(work)
 	selected := QuoteSelectedRows(work)
+	depData := Dependant_t{}
+	for _, x := range vars.dependants {
+		if x.depId != dep.depId { continue }
+		depData = x
+		break
+	}
 
 	var out []EditQPreexCharge_t
 	for _, x := range selected {
@@ -246,9 +278,10 @@ func EditQDependantCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_
 			ageMode = `exact`
 		}
 		if x.row.planOk && x.row.planBase+x.row.planSurcharge > 0 {
-			modeKey := EditQDepChargeModeKey(dep.depId, x.item.itemId, 0)
-			mode := EditQPreexMode(vars[modeKey])
-			amount := vars[EditQDepChargeAmountKey(dep.depId, x.item.itemId, 0)]
+			mode, amount, note := editQPreexModePct, ``, ``
+			if preex, has := EditQDepChoicePreex(depData, ChoiceId_t(x.item.itemId), 0); has {
+				mode, amount, note = EditQPreexFields(preex)
+			}
 			applied := EditQPreexAppliedAmount(mode, amount, x.row.planBase)
 			out = append(out, EditQPreexCharge_t{
 				itemId: x.item.itemId,
@@ -261,7 +294,7 @@ func EditQDependantCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_
 				base: x.row.planBase,
 				mode: mode,
 				amount: amount,
-				note: vars[EditQDepChargeNoteKey(dep.depId, x.item.itemId, 0)],
+				note: note,
 				applied: applied,
 			})
 		}
@@ -270,9 +303,10 @@ func EditQDependantCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_
 			if addon.categId <= 0 { continue }
 			if Contains(Lower(Trim(addon.categ)), `vision`) { continue }
 			if addon.base+addon.surcharge <= 0 { continue }
-			modeKey := EditQDepChargeModeKey(dep.depId, x.item.itemId, addon.categId)
-			mode := EditQPreexMode(vars[modeKey])
-			amount := vars[EditQDepChargeAmountKey(dep.depId, x.item.itemId, addon.categId)]
+			mode, amount, note := editQPreexModePct, ``, ``
+			if preex, has := EditQDepChoicePreex(depData, ChoiceId_t(x.item.itemId), addon.categId); has {
+				mode, amount, note = EditQPreexFields(preex)
+			}
 			applied := EditQPreexAppliedAmount(mode, amount, addon.base)
 			level := QuoteAddonPickText(addon)
 			if level == `` { level = addon.categ }
@@ -287,7 +321,7 @@ func EditQDependantCharges(vars UIBagVars_t, dep EditQDep_t) []EditQPreexCharge_
 				base: addon.base,
 				mode: mode,
 				amount: amount,
-				note: vars[EditQDepChargeNoteKey(dep.depId, x.item.itemId, addon.categId)],
+				note: note,
 				applied: applied,
 			})
 		}
@@ -303,9 +337,9 @@ func EditQPlanUsesExactAge(planId int) bool {
 	return false
 }
 
-func EditQDefaultDependantBirth(vars UIBagVars_t) string {
+func EditQDefaultDependantBirth(vars QuoteVars_t) string {
 	year := 0
-	buy := QuoteParseBuyDate(vars[`buy`])
+	buy := vars.core.buy
 	if buy.Year() > 0 { year = buy.Year() }
 	if year <= 0 {
 		_, _, def := QuoteBuyBounds()
@@ -326,35 +360,19 @@ func EditQBirthSortKey(v string) string {
 	return v
 }
 
-func EditQDependants(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
-	all := make(map[int]EditQDep_t)
-	for key, value := range vars {
-		if depId, ok := EditQDepNameControl(key); ok {
-			x := all[depId]
-			x.depId = depId
-			x.name = value
-			all[depId] = x
-			continue
-		}
-		if depId, ok := EditQDepBirthControl(key); ok {
-			x := all[depId]
-			x.depId = depId
-			x.birth = value
-			all[depId] = x
-			continue
-		}
-		if depId, ok := EditQDepVisionControl(key); ok {
-			x := all[depId]
-			x.depId = depId
-			x.vision = QuoteVarBool(value)
-			all[depId] = x
-			continue
-		}
-	}
-
+func EditQDependants(vars QuoteVars_t, sortForGet bool) []EditQDep_t {
 	var out []EditQDep_t
-	for _, x := range all {
-		out = append(out, x)
+	for i, dep := range vars.dependants {
+		depId := dep.depId
+		if depId <= 0 { depId = i + 1 }
+		birth := ``
+		if Valid(dep.birth) { birth = dep.birth.Format(`yyyy-mm-dd`) }
+		out = append(out, EditQDep_t{
+			depId: depId,
+			name: dep.name,
+			birth: birth,
+			vision: dep.vision,
+		})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].depId != out[j].depId { return out[i].depId < out[j].depId }
@@ -372,66 +390,180 @@ func EditQDependants(vars UIBagVars_t, sortForGet bool) []EditQDep_t {
 	return out
 }
 
-func EditQDeleteDependant(vars UIBagVars_t, depId int) {
-	prefix := Str(`editq-dep-`, depId, `-`)
-	for key := range vars {
-		if strings.HasPrefix(key, prefix) { delete(vars, key) }
+func EditQDeleteDependant(vars *QuoteVars_t, depId int) {
+	if vars == nil || depId <= 0 { return }
+	var out []Dependant_t
+	for _, dep := range vars.dependants {
+		if dep.depId == depId { continue }
+		out = append(out, dep)
+	}
+	vars.dependants = out
+}
+
+func EditQSetPreex(preex []Preex_t, categId CategId_t, mode, amount, note string, setMode, setAmount, setNote bool) []Preex_t {
+	pick := -1
+	for i, x := range preex {
+		if x.categ != categId { continue }
+		pick = i
+		break
+	}
+	curr := Preex_t{ categ:categId }
+	if pick >= 0 { curr = preex[pick] }
+
+	if setMode {
+		if EditQPreexMode(mode) == editQPreexModeEur {
+			if curr.amount.percent > 0 {
+				curr.amount.euro = EuroCent_t(curr.amount.percent)
+				curr.amount.percent = 0
+			}
+		} else {
+			if curr.amount.euro > 0 {
+				curr.amount.percent = Percent_t(curr.amount.euro)
+				curr.amount.euro = 0
+			}
+		}
+	}
+	if setAmount {
+		n, ok := EditQParseDecimal100(amount)
+		if !ok || n <= 0 {
+			curr.amount.percent = 0
+			curr.amount.euro = 0
+		} else if EditQPreexMode(mode) == editQPreexModeEur {
+			curr.amount.euro = EuroCent_t(n)
+			curr.amount.percent = 0
+		} else {
+			curr.amount.percent = Percent_t(n)
+			curr.amount.euro = 0
+		}
+	}
+	if setNote {
+		curr.note = note
+	}
+
+	if pick >= 0 {
+		preex[pick] = curr
+		return preex
+	}
+	return append(preex, curr)
+}
+
+func EditQUpsertDep(vars *QuoteVars_t, depId int) int {
+	if vars == nil || depId <= 0 { return -1 }
+	for i, dep := range vars.dependants {
+		if dep.depId != depId { continue }
+		if dep.preexByChoice == nil { dep.preexByChoice = make(map[ChoiceId_t][]Preex_t) }
+		vars.dependants[i] = dep
+		return i
+	}
+	dep := Dependant_t{ depId:depId, preexByChoice:make(map[ChoiceId_t][]Preex_t) }
+	vars.dependants = append(vars.dependants, dep)
+	return len(vars.dependants)-1
+}
+
+func EditQSetDepName(vars *QuoteVars_t, depId int, value string) {
+	if idx := EditQUpsertDep(vars, depId); idx >= 0 {
+		vars.dependants[idx].name = value
 	}
 }
 
+func EditQSetDepBirth(vars *QuoteVars_t, depId int, value string) {
+	if idx := EditQUpsertDep(vars, depId); idx >= 0 {
+		vars.dependants[idx].birth = QuoteParseBirthDate(value)
+	}
+}
+
+func EditQSetDepVision(vars *QuoteVars_t, depId int, value string) {
+	if idx := EditQUpsertDep(vars, depId); idx >= 0 {
+		vars.dependants[idx].vision = QuoteVarBool(value)
+	}
+}
+
+func EditQSetDepPreex(vars *QuoteVars_t, depId int, itemId ChoiceId_t, categId CategId_t, mode, amount, note string, setMode, setAmount, setNote bool) {
+	idx := EditQUpsertDep(vars, depId)
+	if idx < 0 { return }
+	dep := vars.dependants[idx]
+	list := dep.preexByChoice[itemId]
+	list = EditQSetPreex(list, categId, mode, amount, note, setMode, setAmount, setNote)
+	dep.preexByChoice[itemId] = list
+	vars.dependants[idx] = dep
+}
+
 func EditQAddDependant(state *State_t) bool {
+	QuoteEnsureDefaults(state)
 	deps := EditQDependants(state.quote, false)
 	if len(deps) >= editQDepMaxCount { return false }
 	next := 1
 	for _, dep := range deps {
 		if dep.depId >= next { next = dep.depId + 1 }
 	}
-	state.quote[EditQDepNameKey(next)] = ``
-	state.quote[EditQDepBirthKey(next)] = EditQDefaultDependantBirth(state.quote)
-	state.quote[EditQDepVisionKey(next)] = ``
+	state.quote.dependants = append(state.quote.dependants, Dependant_t{
+		depId: next,
+		name: ``,
+		birth: QuoteParseBirthDate(EditQDefaultDependantBirth(state.quote)),
+		vision: false,
+		preexByChoice: make(map[ChoiceId_t][]Preex_t),
+	})
 	return true
 }
 
 func EditQApply(state *State_t, name, value string) bool {
 	if name == `` { return false }
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	QuoteEnsureDefaults(state)
 
 	if name == `clientName` {
-		state.quote[name] = value
+		state.quote.core.clientName = value
 		return true
 	}
 	if name == `lang` {
 		if Atoi(value) <= 0 { value = Str(int(English)) }
-		state.quote[name] = value
+		state.quote.lang = LangId_t(Atoi(value))
 		return true
 	}
 	if name == `slim` {
-		if Atoi(value) == 1 { state.quote[name] = `1` } else { state.quote[name] = `0` }
+		if Atoi(value) == 1 { state.quote.slim = 1 } else { state.quote.slim = 0 }
 		return true
 	}
 
 	if itemId, categId, ok := EditQPreexModeControl(name); ok {
-		state.quote[EditQPreexModeKey(itemId, categId)] = EditQPreexMode(value)
+		choice := state.quote.choices[ChoiceId_t(itemId)]
+		choice.preex = EditQSetPreex(choice.preex, categId, EditQPreexMode(value), ``, ``, true, false, false)
+		state.quote.choices[ChoiceId_t(itemId)] = choice
 		return true
 	}
-	if _, _, ok := EditQPreexAmountControl(name); ok {
-		state.quote[name] = value
+	if itemId, categId, ok := EditQPreexAmountControl(name); ok {
+		choice := state.quote.choices[ChoiceId_t(itemId)]
+		mode, _, _ := EditQPreexFields(Preex_t{})
+		if current, has := EditQChoicePreex(choice, categId); has {
+			mode, _, _ = EditQPreexFields(current)
+		}
+		choice.preex = EditQSetPreex(choice.preex, categId, mode, value, ``, false, true, false)
+		state.quote.choices[ChoiceId_t(itemId)] = choice
 		return true
 	}
-	if _, _, ok := EditQPreexNoteControl(name); ok {
-		state.quote[name] = value
+	if itemId, categId, ok := EditQPreexNoteControl(name); ok {
+		choice := state.quote.choices[ChoiceId_t(itemId)]
+		choice.preex = EditQSetPreex(choice.preex, categId, ``, ``, value, false, false, true)
+		state.quote.choices[ChoiceId_t(itemId)] = choice
 		return true
 	}
 	if depId, itemId, categId, ok := EditQDepChargeModeControl(name); ok {
-		state.quote[EditQDepChargeModeKey(depId, itemId, categId)] = EditQPreexMode(value)
+		EditQSetDepPreex(&state.quote, depId, ChoiceId_t(itemId), categId, EditQPreexMode(value), ``, ``, true, false, false)
 		return true
 	}
-	if _, _, _, ok := EditQDepChargeAmountControl(name); ok {
-		state.quote[name] = value
+	if depId, itemId, categId, ok := EditQDepChargeAmountControl(name); ok {
+		mode := editQPreexModePct
+		for _, dep := range state.quote.dependants {
+			if dep.depId != depId { continue }
+			if preex, has := EditQDepChoicePreex(dep, ChoiceId_t(itemId), categId); has {
+				mode, _, _ = EditQPreexFields(preex)
+			}
+			break
+		}
+		EditQSetDepPreex(&state.quote, depId, ChoiceId_t(itemId), categId, mode, value, ``, false, true, false)
 		return true
 	}
-	if _, _, _, ok := EditQDepChargeNoteControl(name); ok {
-		state.quote[name] = value
+	if depId, itemId, categId, ok := EditQDepChargeNoteControl(name); ok {
+		EditQSetDepPreex(&state.quote, depId, ChoiceId_t(itemId), categId, ``, ``, value, false, false, true)
 		return true
 	}
 
@@ -440,20 +572,20 @@ func EditQApply(state *State_t, name, value string) bool {
 		return true
 	}
 	if depId, ok := EditQDepDelControl(name); ok {
-		EditQDeleteDependant(state.quote, depId)
+		EditQDeleteDependant(&state.quote, depId)
 		return true
 	}
 
-	if _, ok := EditQDepNameControl(name); ok {
-		state.quote[name] = value
+	if depId, ok := EditQDepNameControl(name); ok {
+		EditQSetDepName(&state.quote, depId, value)
 		return true
 	}
-	if _, ok := EditQDepBirthControl(name); ok {
-		state.quote[name] = value
+	if depId, ok := EditQDepBirthControl(name); ok {
+		EditQSetDepBirth(&state.quote, depId, value)
 		return true
 	}
-	if _, ok := EditQDepVisionControl(name); ok {
-		state.quote[name] = value
+	if depId, ok := EditQDepVisionControl(name); ok {
+		EditQSetDepVision(&state.quote, depId, value)
 		return true
 	}
 	return false
@@ -461,7 +593,7 @@ func EditQApply(state *State_t, name, value string) bool {
 
 func EditQDropPreinsertedDependant(state *State_t) {
 	if state == nil { return }
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	QuoteEnsureDefaults(state)
 	deps := EditQDependants(state.quote, false)
 	if len(deps) != 1 { return }
 
@@ -469,10 +601,15 @@ func EditQDropPreinsertedDependant(state *State_t) {
 	if dep.depId <= 0 { return }
 	if Trim(dep.name) != `` || dep.vision { return }
 	if Trim(dep.birth) != EditQDefaultDependantBirth(state.quote) { return }
-	prefix := Str(`editq-dep-`, dep.depId, `-preex-`)
-	for key, value := range state.quote {
-		if !strings.HasPrefix(key, prefix) { continue }
-		if Trim(value) != `` { return }
+	for _, x := range state.quote.dependants {
+		if x.depId != dep.depId { continue }
+		for _, list := range x.preexByChoice {
+			for _, preex := range list {
+				if preex.note != `` { return }
+				if preex.amount.euro > 0 || preex.amount.percent > 0 { return }
+			}
+		}
+		break
 	}
-	EditQDeleteDependant(state.quote, dep.depId)
+	EditQDeleteDependant(&state.quote, dep.depId)
 }

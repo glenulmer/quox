@@ -4,6 +4,7 @@ import (
 	"time"
 
 	. "klpm/lib/date"
+	. "klpm/lib/dec2"
 	. "klpm/lib/output"
 )
 
@@ -220,13 +221,6 @@ func QuoteControlSpan(x QuoteControl_t, layout string) int {
 	return x.phoneSpan
 }
 
-func UIBagVars(state State_t) UIBagVars_t {
-	out := QuoteDefaultVars()
-	for k, v := range state.quote { out[k] = v }
-	out[`sortBy`] = QuoteSortMode(out[`sortBy`])
-	return out
-}
-
 func QuoteAllowsField(name string) bool {
 	if name == `sortBy` { return true }
 	if _, ok := QuoteControlByName(name); ok { return true }
@@ -234,31 +228,298 @@ func QuoteAllowsField(name string) bool {
 	return ok
 }
 
-func quoteBaseDefaultVars() UIBagVars_t {
-	ctx := QuoteDefaults()
-	out := make(UIBagVars_t)
-	for _, x := range QuoteControlDefs() {
-		if x.defaultValue == nil {
-			out[x.name] = ``
-			continue
-		}
-		out[x.name] = x.defaultValue(ctx)
+func QuoteEnsureVars(vars *QuoteVars_t) {
+	if vars == nil { return }
+	if vars.lang <= 0 { vars.lang = English }
+	vars.sortBy = QuoteSortMode(vars.sortBy)
+	if vars.planCats == nil { vars.planCats = make(map[PlanCateg_t]AddonId_t) }
+	if vars.choices == nil { vars.choices = make(map[ChoiceId_t]PlanQuoteInfo_t) }
+	for choiceId, choice := range vars.choices {
+		if choice.addons == nil { choice.addons = make(map[CategId_t]AddonId_t) }
+		vars.choices[choiceId] = choice
 	}
-	out[`sortBy`] = sortByPrice
-	out[`lang`] = Str(int(English))
-	out[`slim`] = `0`
+	for i, dep := range vars.dependants {
+		if dep.preexByChoice == nil { dep.preexByChoice = make(map[ChoiceId_t][]Preex_t) }
+		if dep.depId <= 0 { dep.depId = i + 1 }
+		vars.dependants[i] = dep
+	}
+}
+
+func QuoteVarsEmpty(vars QuoteVars_t) bool {
+	if vars.sortBy != `` { return false }
+	if vars.lang > 0 { return false }
+	if vars.slim != 0 { return false }
+	if Valid(vars.core.buy) || Valid(vars.core.birth) { return false }
+	if vars.core.clientName != `` || vars.core.email != `` { return false }
+	if vars.core.segment != 0 || vars.core.sickCover != 0 { return false }
+	if vars.core.priorCov != 0 || vars.core.exam != 0 || vars.core.specref != 0 { return false }
+	if vars.core.vision || vars.core.tempVisa || vars.core.noPVN || vars.core.naturalMed { return false }
+	if vars.core.deductible.min != 0 || vars.core.deductible.max != 0 { return false }
+	if vars.core.hospital.min != 0 || vars.core.hospital.max != 0 { return false }
+	if vars.core.dental.min != 0 || vars.core.dental.max != 0 { return false }
+	if len(vars.planCats) > 0 || len(vars.choices) > 0 || len(vars.dependants) > 0 { return false }
+	return true
+}
+
+func QuoteEnsureDefaults(state *State_t) {
+	if state == nil { return }
+	if QuoteVarsEmpty(state.quote) {
+		state.quote = QuoteDefaultVars()
+		return
+	}
+	QuoteEnsureVars(&state.quote)
+}
+
+func QuoteValue(vars QuoteVars_t, name string) string {
+	switch name {
+	case `clientName`:
+		return vars.core.clientName
+	case `email`:
+		return vars.core.email
+	case `segment`:
+		return Str(vars.core.segment)
+	case `birth`:
+		if !Valid(vars.core.birth) { return `` }
+		return vars.core.birth.Format(`yyyymmdd`)
+	case `buy`:
+		if !Valid(vars.core.buy) { return `` }
+		return vars.core.buy.Format(`yyyymmdd`)
+	case `sickCover`:
+		return Str(int(vars.core.sickCover))
+	case `priorCov`:
+		return Str(vars.core.priorCov)
+	case `exam`:
+		return Str(vars.core.exam)
+	case `specref`:
+		return Str(vars.core.specref)
+	case `vision`:
+		if vars.core.vision { return `1` }
+		return ``
+	case `tempVisa`:
+		if vars.core.tempVisa { return `1` }
+		return ``
+	case `noPVN`:
+		if vars.core.noPVN { return `1` }
+		return ``
+	case `naturalMed`:
+		if vars.core.naturalMed { return `1` }
+		return ``
+	case `deductibleMin`:
+		return Str(int(vars.core.deductible.min))
+	case `deductibleMax`:
+		return Str(int(vars.core.deductible.max))
+	case `hospitalMin`:
+		return Str(int(vars.core.hospital.min))
+	case `hospitalMax`:
+		return Str(int(vars.core.hospital.max))
+	case `dentalMin`:
+		return Str(int(vars.core.dental.min))
+	case `dentalMax`:
+		return Str(int(vars.core.dental.max))
+	case `sortBy`:
+		return QuoteSortMode(vars.sortBy)
+	case `lang`:
+		return Str(int(vars.lang))
+	case `slim`:
+		return Str(vars.slim)
+	}
+	if planId, categId, ok := QuotePlanCatControl(name); ok {
+		return Str(int(vars.planCats[PlanCateg_t{ plan:PlanId_t(planId), categ:categId }]))
+	}
+	if itemId, ok := QuoteSelectedPlanControl(name); ok {
+		choice, has := vars.choices[ChoiceId_t(itemId)]
+		if !has { return `` }
+		return Str(int(choice.plan))
+	}
+	if itemId, categId, ok := QuoteSelectedCatControl(name); ok {
+		choice, has := vars.choices[ChoiceId_t(itemId)]
+		if !has { return `` }
+		return Str(int(choice.addons[categId]))
+	}
+	if itemId, categId, ok := EditQPreexModeControl(name); ok {
+		choice, has := vars.choices[ChoiceId_t(itemId)]
+		if !has { return editQPreexModePct }
+		preex, has := EditQChoicePreex(choice, categId)
+		if !has { return editQPreexModePct }
+		mode, _, _ := EditQPreexFields(preex)
+		return mode
+	}
+	if itemId, categId, ok := EditQPreexAmountControl(name); ok {
+		choice, has := vars.choices[ChoiceId_t(itemId)]
+		if !has { return `` }
+		preex, has := EditQChoicePreex(choice, categId)
+		if !has { return `` }
+		_, amount, _ := EditQPreexFields(preex)
+		return amount
+	}
+	if itemId, categId, ok := EditQPreexNoteControl(name); ok {
+		choice, has := vars.choices[ChoiceId_t(itemId)]
+		if !has { return `` }
+		preex, has := EditQChoicePreex(choice, categId)
+		if !has { return `` }
+		_, _, note := EditQPreexFields(preex)
+		return note
+	}
+	if depId, ok := EditQDepNameControl(name); ok {
+		for _, dep := range vars.dependants {
+			if dep.depId != depId { continue }
+			return dep.name
+		}
+		return ``
+	}
+	if depId, ok := EditQDepBirthControl(name); ok {
+		for _, dep := range vars.dependants {
+			if dep.depId != depId { continue }
+			if !Valid(dep.birth) { return `` }
+			return dep.birth.Format(`yyyy-mm-dd`)
+		}
+		return ``
+	}
+	if depId, ok := EditQDepVisionControl(name); ok {
+		for _, dep := range vars.dependants {
+			if dep.depId != depId { continue }
+			if dep.vision { return `1` }
+			return ``
+		}
+		return ``
+	}
+	if depId, itemId, categId, ok := EditQDepChargeModeControl(name); ok {
+		for _, dep := range vars.dependants {
+			if dep.depId != depId { continue }
+			preex, has := EditQDepChoicePreex(dep, ChoiceId_t(itemId), categId)
+			if !has { return editQPreexModePct }
+			mode, _, _ := EditQPreexFields(preex)
+			return mode
+		}
+		return editQPreexModePct
+	}
+	if depId, itemId, categId, ok := EditQDepChargeAmountControl(name); ok {
+		for _, dep := range vars.dependants {
+			if dep.depId != depId { continue }
+			preex, has := EditQDepChoicePreex(dep, ChoiceId_t(itemId), categId)
+			if !has { return `` }
+			_, amount, _ := EditQPreexFields(preex)
+			return amount
+		}
+		return ``
+	}
+	if depId, itemId, categId, ok := EditQDepChargeNoteControl(name); ok {
+		for _, dep := range vars.dependants {
+			if dep.depId != depId { continue }
+			preex, has := EditQDepChoicePreex(dep, ChoiceId_t(itemId), categId)
+			if !has { return `` }
+			_, _, note := EditQPreexFields(preex)
+			return note
+		}
+		return ``
+	}
+	return ``
+}
+
+func QuoteSetValue(vars *QuoteVars_t, name, value string) bool {
+	if vars == nil { return false }
+	QuoteEnsureVars(vars)
+	switch name {
+	case `clientName`:
+		vars.core.clientName = value
+		return true
+	case `email`:
+		vars.core.email = value
+		return true
+	case `segment`:
+		vars.core.segment = Atoi(value)
+		return true
+	case `birth`:
+		vars.core.birth = QuoteParseBirthDate(value)
+		return true
+	case `buy`:
+		vars.core.buy = QuoteParseBuyDate(value)
+		return true
+	case `sickCover`:
+		vars.core.sickCover = EuroFlat_t(Atoi(value))
+		return true
+	case `priorCov`:
+		vars.core.priorCov = Atoi(value)
+		return true
+	case `exam`:
+		vars.core.exam = Atoi(value)
+		return true
+	case `specref`:
+		vars.core.specref = Atoi(value)
+		return true
+	case `vision`:
+		vars.core.vision = QuoteVarBool(value)
+		return true
+	case `tempVisa`:
+		vars.core.tempVisa = QuoteVarBool(value)
+		return true
+	case `noPVN`:
+		vars.core.noPVN = QuoteVarBool(value)
+		return true
+	case `naturalMed`:
+		vars.core.naturalMed = QuoteVarBool(value)
+		return true
+	case `deductibleMin`:
+		vars.core.deductible.min = EuroFlat_t(Atoi(value))
+		return true
+	case `deductibleMax`:
+		vars.core.deductible.max = EuroFlat_t(Atoi(value))
+		return true
+	case `hospitalMin`:
+		vars.core.hospital.min = LevelId_t(Atoi(value))
+		return true
+	case `hospitalMax`:
+		vars.core.hospital.max = LevelId_t(Atoi(value))
+		return true
+	case `dentalMin`:
+		vars.core.dental.min = LevelId_t(Atoi(value))
+		return true
+	case `dentalMax`:
+		vars.core.dental.max = LevelId_t(Atoi(value))
+		return true
+	case `sortBy`:
+		vars.sortBy = QuoteSortMode(value)
+		return true
+	case `lang`:
+		lang := Atoi(value)
+		if lang <= 0 { lang = int(English) }
+		vars.lang = LangId_t(lang)
+		return true
+	case `slim`:
+		if Atoi(value) == 1 { vars.slim = 1 } else { vars.slim = 0 }
+		return true
+	}
+	if planId, categId, ok := QuotePlanCatControl(name); ok {
+		vars.planCats[PlanCateg_t{ plan:PlanId_t(planId), categ:categId }] = AddonId_t(Atoi(value))
+		return true
+	}
+	return false
+}
+
+func quoteBaseDefaultVars() QuoteVars_t {
+	ctx := QuoteDefaults()
+	out := QuoteVars_t{
+		lang: English,
+		slim: 0,
+		sortBy: sortByPrice,
+		planCats: make(map[PlanCateg_t]AddonId_t),
+		choices: make(map[ChoiceId_t]PlanQuoteInfo_t),
+	}
+	for _, x := range QuoteControlDefs() {
+		value := ``
+		if x.defaultValue != nil { value = x.defaultValue(ctx) }
+		QuoteSetValue(&out, x.name, value)
+	}
 	return out
 }
 
 func QuoteDefaultQuoteVars() QuoteVars_t {
-	state := InitState()
-	state.quote = quoteBaseDefaultVars()
-	return QuoteVars(&state)
+	if AutoChoose.ready { return CloneQuoteVars(AutoChoose.qvars) }
+	return quoteBaseDefaultVars()
 }
 
-func QuoteDefaultVars() UIBagVars_t {
-	if !AutoChoose.ready { return quoteBaseDefaultVars() }
-	return UIBagVarsFromQuoteVars(AutoChoose.qvars)
+func QuoteDefaultVars() QuoteVars_t {
+	return QuoteDefaultQuoteVars()
 }
 
 func QuoteSortMode(v string) string {
@@ -268,17 +529,20 @@ func QuoteSortMode(v string) string {
 
 func QuoteApply(state *State_t, name, value string) {
 	if !QuoteAllowsField(name) { return }
-	if state.quote == nil { state.quote = QuoteDefaultVars() }
+	QuoteEnsureDefaults(state)
 	switch name {
 	case `sickCover`:
-		value = QuoteNormalizeSickCoverValue(value, state.quote[`buy`])
+		value = QuoteNormalizeSickCoverValue(value, QuoteValue(state.quote, `buy`))
 	case `birth`:
 		value = QuoteNormalizeBirthValue(value)
 	case `buy`:
 		value = QuoteNormalizeBuyValue(value)
 	}
-	state.quote[name] = value
-	if name == `buy` { state.quote[`sickCover`] = QuoteNormalizeSickCoverValue(state.quote[`sickCover`], value) }
+	QuoteSetValue(&state.quote, name, value)
+	if name == `buy` {
+		cover := QuoteNormalizeSickCoverValue(QuoteValue(state.quote, `sickCover`), value)
+		QuoteSetValue(&state.quote, `sickCover`, cover)
+	}
 }
 
 func CurrentDBDate() CalDate_t {
@@ -306,8 +570,7 @@ func QuoteChoiceFirst(sp string, args ...any) string {
 }
 
 func StateValue(state State_t, key string) string {
-	v := state.quote[key]
-	if v == `` { v = state.quote[Q(key)] }
+	v := QuoteValue(state.quote, key)
 	v = Trim(v)
 	if len(v) >= 2 && v[0] == '"' && v[len(v)-1] == '"' { v = v[1:len(v)-1] }
 	return v
