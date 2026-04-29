@@ -134,6 +134,7 @@
 		if (el instanceof HTMLButtonElement) return;
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
+		if (name === 'lang' || name === 'slim') return;
 		const value = controlValue(el);
 		if (el instanceof HTMLTextAreaElement) {
 			autosize(el);

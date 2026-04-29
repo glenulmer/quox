@@ -32,6 +32,8 @@ type App_t struct {
 		benSecItems	IdMap_t[BenSecItem_t]
 		bensByFamily map[BenFamily_t]string
 		bensByAddon  map[BenAddon_t]string
+
+		languages    IdMap_t[Lang_t]
 	}
 }
 

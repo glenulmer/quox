@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	. "klpm/lib/dec2"
+//	. "klpm/lib/output"
 )
 
 func (x YearVars_t)maxCover() EuroFlat_t { return x.cover * 2 }
@@ -23,6 +24,7 @@ func LoadStaticData() {
 	App.lookup.bensByAddon = LoadBensByAddon()
 
 	App.lookup.familyTips = LoadFamilyTips()
+	App.lookup.languages = LoadLangIdMap()
 }
 
 type Categ_t struct {
@@ -332,4 +334,24 @@ func LoadBensByAddon() map[BenAddon_t]string {
 
 	//Log(m)
 	return m
+}
+
+type Lang_t struct {
+	lang int
+	label string
+}
+
+func LoadLangIdMap() IdMap_t[Lang_t] {
+	out := IdMap[Lang_t]()
+	rows := App.DB.Call(`languages_query`)
+	if rows.HasError() { panic(rows.Message()) }
+	defer rows.Close()
+	var x Lang_t
+	for rows.Next() {
+		rows.Scan(&x.lang, &x.label)
+		if rows.HasError() { panic(rows.Message()) }
+		out.Add(int(x.lang), x)
+	}
+	if rows.HasError() { panic(rows.Message()) }
+	return out
 }

@@ -835,7 +835,7 @@ func SetXlDefaultCell(ex *sky.File, tab, cell string) {
 	})
 }
 
-func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool) error {
+func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t, slim bool, lang int) error {
 	if e := WriteXlHead(ex, styles, vars); e != nil { return e }
 	lastRow, e := WriteXlBenefits(ex, styles, slim)
 	if e != nil { return e }

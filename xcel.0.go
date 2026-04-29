@@ -10,8 +10,9 @@ func DownloadExcel(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	vars := QuoteVars(&state)
 	slim := IsSlimXl(req)
+	lang := XlLang(req)
 
-	path, fname, ok := CreateXlQuote(vars, slim)
+	path, fname, ok := CreateXlQuote(vars, slim, lang)
 	if !ok {
 		http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
 		return

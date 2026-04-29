@@ -348,26 +348,33 @@ func EditQReviewPlanView(vars UIBagVars_t, item QuoteSelectedItem_t, row QuotePl
 }
 
 func EditQReviewExportButtonsView() Elem_t {
+	langs := []Elem_t{}
+	langDefault := `0`
+	for id, x := range App.lookup.languages.All() {
+		if len(langs) == 0 { langDefault = Str(id) }
+		langs = append(langs, Option().KV(`value`, id).Text(x.label))
+	}
+	if len(langs) == 0 { langs = append(langs, Option().KV(`value`, `0`).Text(`Default`)) }
+
 	return Div().
 		Class(`editq-card-title-right`).
-		KV(`style`, `width: 100%; justify-content: center;`).
+		KV(`style`, `width: 100%; justify-content: space-between;`).
 		Wrap(
+			Div().KV(`style`, `display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap;`).Wrap(
+				Select(langs).Name(`lang`).Choose(langDefault),
+				Select(
+					Option().KV(`value`, `0`).Text(`Complete`),
+					Option().KV(`value`, `1`).Text(`Slim`),
+				).Name(`slim`).Choose(`0`),
+			),
 			Elem(`button`).
 				Type(`submit`).
 				Name(`DownloadExcel`).
-				Value(`slim=false`).
+				Value(`1`).
 				KV(`formaction`, `/download-excel`).
 				KV(`formmethod`, `post`).
 				Class(`editq-title-btn`).
 				Text(`Get Excel`),
-			Elem(`button`).
-				Type(`submit`).
-				Name(`DownloadExcel`).
-				Value(`slim=true`).
-				KV(`formaction`, `/download-excel`).
-				KV(`formmethod`, `post`).
-				Class(`editq-title-btn`).
-				Text(`Get Slim`),
 		)
 }
 

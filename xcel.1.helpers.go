@@ -30,6 +30,17 @@ func IsSlimXl(req *http.Request) bool {
 	return false
 }
 
+func XlLang(req *http.Request) int {
+	lang := 0
+	if req != nil { lang = Atoi(req.FormValue(`lang`)) }
+	first := 0
+	for id, _ := range App.lookup.languages.All() {
+		if first == 0 { first = id }
+		if id == lang { return lang }
+	}
+	return first
+}
+
 func ClientName(vars QuoteVars_t) string {
 	name := Trim(vars.core.clientName)
 	if name == `` { return `Customer` }
@@ -68,7 +79,7 @@ func XlFileName(clientName string, slim bool) string {
 	return Str(name, ` overview`, slimPart, `.xlsx`)
 }
 
-func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
+func CreateXlQuote(vars QuoteVars_t, slim bool, lang int) (path, fname string, ok bool) {
 	ex, e := sky.OpenFile(template)
 	if e != nil {
 		Log(e)
@@ -77,7 +88,7 @@ func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
 	defer ex.Close()
 
 	styles := LoadXlStyles(ex)
-	if e = WriteXlLayout(ex, styles, vars, slim); e != nil {
+	if e = WriteXlLayout(ex, styles, vars, slim, lang); e != nil {
 		Log(e)
 		return ``, ``, false
 	}
@@ -90,7 +101,7 @@ func CreateXlQuote(vars QuoteVars_t, slim bool) (path, fname string, ok bool) {
 
 	fname = XlFileName(ClientName(vars), slim)
 	_ = ex.DeleteSheet(xlStyleSheet)
-	_ = ex.AddPicture(quoteSheet, `A1`, xlHeaderPic, nil)
+	// _ = ex.AddPicture(quoteSheet, `A1`, xlHeaderPic, nil)
 	SetXlDefaultCell(ex, quoteSheet, nameCell)
 	if e = ex.SaveAs(Str(path, `/`, fname)); e != nil {
 		Log(e)
