@@ -239,7 +239,7 @@ func LoadPlanAddons() (map[PlanCateg_t]CatChoice_t, map[PlanCateg_t][]CatChoice_
 }
 
 type BenSec_t struct {
-	section int
+	section, lang int
 	label string
 }
 
@@ -252,7 +252,7 @@ func LoadBenSecs() IdMap_t[BenSec_t] {
 	defer rows.Close()
 	for rows.Next() {
 		var x BenSec_t
-		rows.Scan(&x.section, &x.label)
+		rows.Scan(&x.section, &x.lang, &x.label)
 		if rows.HasError() { panic(rows.Message()) }
 		out.Add(x.section, x)
 	}
@@ -262,9 +262,8 @@ func LoadBenSecs() IdMap_t[BenSec_t] {
 }
 
 type BenSecItem_t struct {
-	section int
-	secsort int
-	benefit int
+	section, secsort, benefit int
+	lang int
 	label string
 	isSlim bool
 }
@@ -279,7 +278,7 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 		for rows.Next() {
 			var x BenSecItem_t
 			x.section = secId
-			rows.Scan(&x.secsort, &x.benefit, &x.label, &x.isSlim)
+			rows.Scan(&x.secsort, &x.benefit, &x.isSlim, &x.lang, &x.label)
 			if rows.HasError() { panic(rows.Message()) }
 			seq++
 			out.Add(seq, x)
@@ -291,8 +290,8 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 	return out
 }
 
-type BenFamily_t struct { benefit, family int }
-type BenAddon_t struct { benefit, addon int }
+type BenFamily_t struct { benefit, family, lang int }
+type BenAddon_t struct { benefit, addon, lang int }
 func BenFamily(b, f int) BenFamily_t { return BenFamily_t{ benefit:b, family:f } }
 func BenAddon(b, a int) BenAddon_t { return BenAddon_t{ benefit:b, addon:a } }
 
@@ -306,7 +305,7 @@ func LoadBensByFamily() map[BenFamily_t]string {
 	var x BenFamily_t
 	for rows.Next() {
 		var s string
-		rows.Scan(&x.benefit, &x.family, &s)
+		rows.Scan(&x.family, &x.benefit, &x.lang, &s)
 		if rows.HasError() { panic(rows.Message()) }
 		m[x] = s
 	}
@@ -326,7 +325,7 @@ func LoadBensByAddon() map[BenAddon_t]string {
 	var x BenAddon_t
 	for rows.Next() {
 		var s string
-		rows.Scan(&x.benefit, &x.addon, &s)
+		rows.Scan(&x.addon, &x.benefit, &x.lang, &s)
 		if rows.HasError() { panic(rows.Message()) }
 		m[x] = s
 	}

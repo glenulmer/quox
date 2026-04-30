@@ -1,12 +1,12 @@
-create or replace table languages
+create table if not exists languages
 ( lang int not null primary key
 , label varchar(10) not null unique
 , check (lang in (1,2))
 , check (label in ('English','Deutsch'))
 );
 
-insert into languages values (1,'English');
-insert into languages values (2,'Deutsch');
+insert into languages values (1,'English') on duplicate key update label = values(label);
+insert into languages values (2,'Deutsch') on duplicate key update label = values(label);
 
 delimiter ###
 create or replace procedure languages_query() 
@@ -34,7 +34,6 @@ end
 delimiter ;
 -- select segment_id('emp');
 
-drop function addon_id;
 delimiter ###
 create or replace function addon_id($prov varchar(50), $level varchar(50), $segment varchar(50))
 returns int deterministic reads sql data
