@@ -25,3 +25,4 @@
 - Code must be human-readable and simple
 - If I ask for code analysis, stating generalized assumptions means you are wrong - do analysis and report succinctly with specifics
 - Before adding any helper, confirm no equivalent exists in the codebase. Propose it with justification and wait for explicit approval before proceeding.
+- Do not add const values unless you know will use them repeatedly or they are longer than 25 characters. (Instead add a comment that explains the purpose of the hardcoded constant.)

@@ -10,57 +10,39 @@ import (
 	. "klpm/lib/output"
 )
 
-type Excel_t struct { *sky.File }
+type Excel_t struct {
+	*sky.File
+	qvars QuoteVars_t
+	styles map[string]int
+	err error
+}
 
 const xlsx = `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
-const template = `assets/ExcelQuote.xlsx`
-const workDir = `assets/work`
-
-func DownloadExcel(w http.ResponseWriter, req *http.Request) {
-	state := GetState(req)
-	qvars := QuoteVars(&state)
-
-	path, fileName, ok := CreateExcelQuote(qvars)
-	if !ok {
-		http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
-		return
-	}
-
-	SendFileToClient(w, path, fileName, xlsx)
+type xlStatus_t struct {
+	path, fileName string
+	err error
 }
 
-func CreateExcelQuote(qvars QuoteVars_t) (path, fileName string, ok bool) {
-	orig, e := sky.OpenFile(template)
-	if e != nil {
-		Log(e)
-		return ``, ``, false
-	}
-	xl := &Excel_t{orig}
+func CreateExcelQuote(qvars QuoteVars_t) (status xlStatus_t) {
+	orig, e := sky.OpenFile(`assets/ExcelQuote.xlsx`)
+	if e != nil { status.err = e; return status }
+	xl := &Excel_t{orig, qvars, nil, nil}
+	xl.styles = xl.loadXlStyles()
 	defer xl.Close()
 
-	styles := xl.loadXlStyles()
+	e = xl.WriteQuote(); if e != nil { status.err = e; return status }
 
-	if e = xl.WriteClientInfo(styles, qvars); e != nil {
-		Log(e)
-		return ``, ``, false
-	}
-
-	path = workDir
-	if e = os.MkdirAll(path, 0o775); e != nil {
-		Log(e)
-		return ``, ``, false
-	}
+	status.path = `assets/work`
+	e = os.MkdirAll(status.path, 0o775); if e != nil { status.err = e; return status }
 
 	_ = xl.DeleteSheet(xlStyleSheet)
 
-	fileName = Str(safeClientName(qvars), ` overview`, If(qvars.slim, `.slim`, ``), `.xlsx`)
+	status.fileName = Str(safeClientName(qvars), ` overview`, If(qvars.slim, `.slim`, ``), `.xlsx`)
 	xl.setDefaultCell(quoteSheet, nameCell)
-	if e = xl.SaveAs(Str(path, `/`, fileName)); e != nil {
-		return ``, ``, false
-	}
+	e = xl.SaveAs(Str(status.path, `/`, status.fileName)); if e != nil { status.err = e; return status }
 
-	return path, fileName, true
+	return status
 }
 
 const quoteSheet = `Quote`
@@ -136,4 +118,18 @@ func (xl *Excel_t)loadXlStyles() map[string]int {
 	}
 
 	return out
+}
+
+func DownloadExcel(w http.ResponseWriter, req *http.Request) {
+	state := GetState(req)
+	qvars := QuoteVars(&state)
+
+	x := CreateExcelQuote(qvars)
+	if x.err != nil {
+		Log(x.err)
+		http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
+		return
+	}
+
+	SendFileToClient(w, x.path, x.fileName, xlsx)
 }
