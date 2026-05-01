@@ -23,8 +23,60 @@ func LoadStaticData() {
 	App.lookup.bensByFamily = LoadBensByFamily()
 	App.lookup.bensByAddon = LoadBensByAddon()
 
+	App.lookup.planNotes = LoadPlanNotes()
 	App.lookup.familyTips = LoadFamilyTips()
+
 	App.lookup.languages = LoadLangIdMap()
+}
+
+type TopNote_t struct { plan PlanId_t; lang LangId_t }
+
+func LoadPlanNotes() map[TopNote_t]string {
+	out := make(map[TopNote_t]string)
+
+	rows := App.DB.Call(`klpm_topnotel_query`)
+	if rows.HasError() { panic(rows.Message()) }
+
+	var x TopNote_t
+	var note string
+
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&x.plan, &x.lang, &note)
+		if rows.HasError() { panic(rows.Message()) }
+		out[x] = note
+	}
+	if rows.HasError() { panic(rows.Message()) }
+//	Log(out)
+
+	return out
+}
+
+type FamilyTip_t struct {
+	family FamilyId_t
+	lang LangId_t
+}
+
+func LoadFamilyTips() map[FamilyTip_t][]string {
+	out := make(map[FamilyTip_t][]string)
+
+	rows := App.DB.Call(`klpm_tipl_query`)
+	if rows.HasError() { panic(rows.Message()) }
+
+	var x FamilyTip_t
+	var tip string
+
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&x.family, &x.lang, &tip)
+		if rows.HasError() { panic(rows.Message()) }
+		list := out[x]
+		out[x] = append(list, tip)
+	}
+	if rows.HasError() { panic(rows.Message()) }
+//	Log(out)
+
+	return out
 }
 
 type Categ_t struct {
@@ -33,27 +85,6 @@ type Categ_t struct {
 	catsur int
 	required int
 	display int
-}
-
-func LoadFamilyTips() map[FamilyId_t][]string {
-	out := make(map[FamilyId_t][]string)
-
-	rows := App.DB.Call(`klpm_family_tips_query`)
-	if rows.HasError() { panic(rows.Message()) }
-
-	var family FamilyId_t
-	var tip string
-
-	defer rows.Close()
-	for rows.Next() {
-		rows.Scan(&family, &tip)
-		if rows.HasError() { panic(rows.Message()) }
-		ftips := out[family]
-		out[family] = append(ftips, tip)
-	}
-	if rows.HasError() { panic(rows.Message()) }
-
-	return out
 }
 
 func LoadCategIdMap() IdMap_t[Categ_t] {

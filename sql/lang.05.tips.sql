@@ -15,7 +15,7 @@ insert into topnotel_plan (plan, lang, note) select plan, 1, note from plan_topn
 insert into topnotel_plan (plan, lang, note) select plan, 2, 'Nur für Expats.' from plan_topnote;
 
 delimiter ###
-create or replace procedure topnotel_query()
+create or replace procedure klpm_topnotel_query()
 begin
     select plan, lang, note
       from topnotel_plan 
@@ -57,7 +57,7 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure tipl_upsert($family int, $lang int, $pos int, $tip varchar(150))
+create or replace procedure klpm_tipl_upsert($family int, $lang int, $pos int, $tip varchar(150))
 begin
     set $tip = trim(ifnull($tip,''));
 
@@ -75,12 +75,12 @@ end
 delimiter ;
 
 delimiter ###
-create or replace procedure tipl_query()
+create or replace procedure klpm_tipl_query()
 begin
-    select family, lang, pos, lang
+    select family, lang, tip
       from tipl_family 
      where softdel = 0
-    order by family, pos, lang
+    order by family, lang, pos
      ;
 end
 ###

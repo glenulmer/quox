@@ -168,8 +168,7 @@ func QuoteSelectedAdd(state *State_t, planId int) {
 	QuoteEnsureDefaults(state)
 	if len(QuoteSelectedItems(state.quote)) >= quoteSelectedMaxCount { return }
 
-	state.quote.nextChoiceId++
-	itemId := state.quote.nextChoiceId
+	itemId := int(QuoteAllocChoiceId(&state.quote))
 	choice := PlanQuoteInfo_t{
 		plan: PlanId_t(planId),
 		addons: make(map[CategId_t]AddonId_t),

@@ -40,9 +40,7 @@ func AddPlan(prov, plan string, addons ...string) {
 
 	if AutoChoose.qvars.choices == nil { AutoChoose.qvars.choices = make(map[ChoiceId_t]PlanQuoteInfo_t) }
 
-	next := 0
-	for choiceId := range AutoChoose.qvars.choices { if int(choiceId) > next { next = int(choiceId) } }
-	choiceId := ChoiceId_t(next + 1)
+	choiceId := QuoteAllocChoiceId(&AutoChoose.qvars)
 	choice := PlanQuoteInfo_t{
 		plan: PlanId_t(planId),
 		addons: make(map[CategId_t]AddonId_t),

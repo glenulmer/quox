@@ -28,7 +28,8 @@ type App_t struct {
 		planAddons	map[PlanCateg_t]CatChoice_t
 		planAddonChoices map[PlanCateg_t][]CatChoice_t
 
-		familyTips  map[FamilyId_t][]string
+		planNotes   map[TopNote_t]string
+		familyTips  map[FamilyTip_t][]string
 
 		benSecs		IdMap_t[BenSec_t]
 		benSecItems	IdMap_t[BenSecItem_t]

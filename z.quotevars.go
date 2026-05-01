@@ -82,3 +82,11 @@ func CloneQuoteVars(in QuoteVars_t) QuoteVars_t {
 	}
 	return out
 }
+
+func QuoteAllocChoiceId(vars *QuoteVars_t) ChoiceId_t {
+	if vars.choices == nil { vars.choices = make(map[ChoiceId_t]PlanQuoteInfo_t) }
+	max := vars.nextChoiceId
+	for id := range vars.choices { if int(id) > max { max = int(id) } }
+	vars.nextChoiceId = max + 1
+	return ChoiceId_t(vars.nextChoiceId)
+}
