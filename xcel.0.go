@@ -10,6 +10,8 @@ import (
 	. "klpm/lib/output"
 )
 
+type Excel_t struct { *sky.File }
+
 const xlsx = `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
 const template = `assets/ExcelQuote.xlsx`
@@ -17,9 +19,9 @@ const workDir = `assets/work`
 
 func DownloadExcel(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
-	vars := QuoteVars(&state)
+	qvars := QuoteVars(&state)
 
-	path, fileName, ok := CreateXlQuote(vars)
+	path, fileName, ok := CreateExcelQuote(qvars)
 	if !ok {
 		http.Redirect(w, req, `/quote-review`, http.StatusSeeOther)
 		return
@@ -28,17 +30,18 @@ func DownloadExcel(w http.ResponseWriter, req *http.Request) {
 	SendFileToClient(w, path, fileName, xlsx)
 }
 
-func CreateXlQuote(vars QuoteVars_t) (path, fileName string, ok bool) {
-	ex, e := sky.OpenFile(template)
+func CreateExcelQuote(qvars QuoteVars_t) (path, fileName string, ok bool) {
+	orig, e := sky.OpenFile(template)
 	if e != nil {
 		Log(e)
 		return ``, ``, false
 	}
-	defer ex.Close()
+	xl := &Excel_t{orig}
+	defer xl.Close()
 
-	styles := LoadXlStyles(ex)
+	styles := xl.loadXlStyles()
 
-	if e = WriteXlLayout(ex, styles, vars); e != nil {
+	if e = xl.WriteClientInfo(styles, qvars); e != nil {
 		Log(e)
 		return ``, ``, false
 	}
@@ -49,11 +52,11 @@ func CreateXlQuote(vars QuoteVars_t) (path, fileName string, ok bool) {
 		return ``, ``, false
 	}
 
-	_ = ex.DeleteSheet(xlStyleSheet)
+	_ = xl.DeleteSheet(xlStyleSheet)
 
-	fileName = Str(safeClientName(vars), ` overview`, If(vars.slim, `.slim`, ``), `.xlsx`)
-	setXlDefaultCell(ex, quoteSheet, nameCell)
-	if e = ex.SaveAs(Str(path, `/`, fileName)); e != nil {
+	fileName = Str(safeClientName(qvars), ` overview`, If(qvars.slim, `.slim`, ``), `.xlsx`)
+	xl.setDefaultCell(quoteSheet, nameCell)
+	if e = xl.SaveAs(Str(path, `/`, fileName)); e != nil {
 		return ``, ``, false
 	}
 
@@ -63,11 +66,11 @@ func CreateXlQuote(vars QuoteVars_t) (path, fileName string, ok bool) {
 const quoteSheet = `Quote`
 const nameCell = `A3`
 
-func setXlDefaultCell(ex *sky.File, tab, cell string) {
-	if ix, e := ex.GetSheetIndex(tab); e == nil && ix >= 0 {
-		ex.SetActiveSheet(ix)
+func (xl *Excel_t)setDefaultCell(tab, cell string) {
+	if ix, e := xl.GetSheetIndex(tab); e == nil && ix >= 0 {
+		xl.SetActiveSheet(ix)
 	}
-	_ = ex.SetPanes(tab, &sky.Panes{
+	_ = xl.SetPanes(tab, &sky.Panes{
 		Freeze: false,
 		Split: false,
 		TopLeftCell: cell,
@@ -78,8 +81,8 @@ func setXlDefaultCell(ex *sky.File, tab, cell string) {
 }
 
 
-func safeClientName(vars QuoteVars_t) string {
-	name := Trim(vars.core.clientName)
+func safeClientName(qvars QuoteVars_t) string {
+	name := Trim(qvars.core.clientName)
 	if name == `` { return `Customer` }
 
 	name = Replace(name, `/`, `-`)
@@ -101,4 +104,36 @@ func safeClientName(vars QuoteVars_t) string {
 	name = Trim(name)
 	if name == `` { return `Customer` }
 	return name
+}
+
+const xlStyleSheet = `formats`
+const xlStyleFrom = `B2`
+const xlStyleTo = `E50`
+
+func (xl *Excel_t)loadXlStyles() map[string]int {
+	out := make(map[string]int)
+	if xl == nil { return out }
+
+	left, top, e1 := sky.CellNameToCoordinates(xlStyleFrom)
+	right, low, e2 := sky.CellNameToCoordinates(xlStyleTo)
+	if e1 != nil || e2 != nil { return out }
+
+	if left > right { left, right = right, left }
+	if top > low { top, low = low, top }
+
+	for row := top; row <= low; row++ {
+		for col := left; col <= right; col++ {
+			cell, e := sky.CoordinatesToCellName(col, row)
+			if e != nil { continue }
+
+			name, e := xl.GetCellValue(xlStyleSheet, cell)
+			if e != nil || Trim(name) == `` { continue }
+
+			style, e := xl.GetCellStyle(xlStyleSheet, cell)
+			if e != nil || style == 0 { continue }
+			out[name] = style
+		}
+	}
+
+	return out
 }
