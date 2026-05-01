@@ -13,14 +13,15 @@
 
 1. Keep feedback technical and concrete.
 2. State conclusions and recent actions first. Details afterward.
-3. If I say "shutdown everything", that means kill all persistent terminals & resources that can be released
-4. Any path starting with an alphabetic is relative to the repository root
+3. Any path starting with an alphabetic is relative to the repository root
 
 ## C) Code style
- 1. Read docs/CODING_STYLE.md before writing or modifying go code.
+ 1. Read docs/CODING_STYLE.md before writing or modifying go code. If you can't find it, stop and ask me.
 
 ## D) Quality Check
 
 - Keep scope of changes as minimal as possible
+- Do not refactor or build new architecture unless I explicitly tell you to do so
 - Code must be human-readable and simple
-- If I ask for code analysis, stating generalized assumptions means you are wrong and unhelpful. Do analysis and report succinctly and with specifics.
+- If I ask for code analysis, stating generalized assumptions means you are wrong - do analysis and report succinctly with specifics
+- Before adding any helper, confirm no equivalent exists in the codebase. Propose it with justification and wait for explicit approval before proceeding.
