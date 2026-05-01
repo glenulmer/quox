@@ -8,8 +8,6 @@ import (
 )
 
 func (xl *Excel_t)WriteClientInfo() (e checkErr_t) {
-	if xl == nil { return checkErr_t{Error(`nil excel file`)} }
-
 	name := Trim(xl.qvars.core.clientName)
 	if name == `` { name = clientNameDefault() }
 	_ = xl.SetCellValue(quoteSheet, `A3`, name)
@@ -91,7 +89,7 @@ func clientCover(lang LangId_t, cover string) string {
 }
 
 func depNameDefault(lang LangId_t, n int) string {
-	switch lang { case German: return Str(`Angehoerige `, n) }
+	switch lang { case German: return Str(`Angehörige `, n) }
 	return Str(`Dependant `, n)
 }
 

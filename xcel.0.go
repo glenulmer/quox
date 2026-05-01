@@ -47,6 +47,8 @@ func CreateExcelQuote(qvars QuoteVars_t) (status xlStatus_t) {
 }
 
 func (xl *Excel_t)WriteQuote() (e checkErr_t) {
+	lastBenefitRow, e := xl.WriteBenefitNames(); if e.Err() { return e }
+	e = xl.WriteTipsTitle(lastBenefitRow); if e.Err() { return e }
 	e = xl.WriteClientInfo(); if e.Err() { return e }
 	return checkErr_t{}
 }
