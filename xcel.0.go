@@ -25,27 +25,34 @@ type xlStatus_t struct {
 }
 
 func CreateExcelQuote(qvars QuoteVars_t) (status xlStatus_t) {
-	orig, e := sky.OpenFile(`assets/ExcelQuote.xlsx`)
-	if e != nil { status.err = e; return status }
+	orig, err := sky.OpenFile(`assets/ExcelQuote.xlsx`)
+	if err != nil { status.err = err; return status }
 	xl := &Excel_t{orig, qvars, nil, nil}
 	xl.styles = xl.loadXlStyles()
 	defer xl.Close()
 
-	e = xl.WriteQuote(); if e != nil { status.err = e; return status }
+
+	e := xl.WriteQuote(); if e.Err() { status.err = e; return status }
 
 	status.path = `assets/work`
-	e = os.MkdirAll(status.path, 0o775); if e != nil { status.err = e; return status }
+	err = os.MkdirAll(status.path, 0o775); if err != nil { status.err = err; return status }
 
 	_ = xl.DeleteSheet(xlStyleSheet)
 
 	status.fileName = Str(safeClientName(qvars), ` overview`, If(qvars.slim, `.slim`, ``), `.xlsx`)
 	xl.setDefaultCell(quoteSheet, nameCell)
-	e = xl.SaveAs(Str(status.path, `/`, status.fileName)); if e != nil { status.err = e; return status }
+	err = xl.SaveAs(Str(status.path, `/`, status.fileName)); if err != nil { status.err = e; return status }
 
 	return status
 }
 
-const quoteSheet = `Quote`
+func (xl *Excel_t)WriteQuote() (e checkErr_t) {
+	e = xl.WriteClientInfo(); if e.Err() { return e }
+	return checkErr_t{}
+}
+
+
+const quoteSheet = `Sheet1`
 const nameCell = `A3`
 
 func (xl *Excel_t)setDefaultCell(tab, cell string) {

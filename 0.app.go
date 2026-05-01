@@ -9,6 +9,8 @@ func YAP(y, a, p int) YAP_t { return YAP_t{ y, a, p } }
 
 type Price_t struct { base, surcharge EuroCent_t }
 
+const Employee, Freelancer, Student = 1, 2, 4
+
 type App_t struct {
 	DB            *DB_t
 	port          string
@@ -40,3 +42,6 @@ type App_t struct {
 var App App_t
 
 const SiteName = `PM`
+
+type checkErr_t struct { error }
+func (e checkErr_t)Err() bool { return e.error != nil }
