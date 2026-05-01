@@ -89,14 +89,31 @@ func EnforceSlimLayout(ex *sky.File, vars QuoteVars_t, slim bool) error {
 	return nil
 }
 
-func SectionItems(sec int, slim bool) []BenSecItem_t {
+func SectionItems(sec int, slim bool, lang LangId_t) []BenSecItem_t {
 	var out []BenSecItem_t
 	for _, item := range App.lookup.benSecItems.All() {
 		if item.section != sec { continue }
+		if item.lang != int(lang) { continue }
 		if slim && !item.isSlim { continue }
 		out = append(out, item)
 	}
 	return out
+}
+
+func SectionStyleBase(section int) string {
+	switch section {
+	case 0:
+		return `Basics`
+	case 1:
+		return `Hospital Stay`
+	case 2:
+		return `Outpatient`
+	case 3:
+		return `Extras`
+	case 4:
+		return `Dental`
+	}
+	return `Basics`
 }
 
 func MergeXl(ex *sky.File, from, to string, style int) error {
@@ -108,15 +125,17 @@ func MergeXl(ex *sky.File, from, to string, style int) error {
 	return nil
 }
 
-func WriteXlBenefits(ex *sky.File, styles map[string]int, slim bool) (lastRow int, err error) {
+func WriteXlBenefits(ex *sky.File, styles map[string]int, slim bool, lang LangId_t) (lastRow int, err error) {
 	row := benefitRow
 
 	for _, sec := range App.lookup.benSecs.All() {
-		items := SectionItems(sec.section, slim)
+		if sec.lang != int(lang) { continue }
+		items := SectionItems(sec.section, slim, lang)
 		if len(items) == 0 { continue }
 
-		titleName := Str(sec.label, `Title`)
-		labelName := Str(sec.label, `Label`)
+		styleBase := SectionStyleBase(sec.section)
+		titleName := Str(styleBase, `Title`)
+		labelName := Str(styleBase, `Label`)
 		titleStyle := XlStyle(styles, titleName)
 
 		aFrom := Str(`A`, row)
@@ -166,13 +185,13 @@ func SelectedXlPlans(vars QuoteVars_t) []XlPlanRow_t {
 	return out
 }
 
-func OfferByFamily(benefit int, family FamilyId_t) string {
-	s, ok := App.lookup.bensByFamily[BenFamily(benefit, int(family))]
+func OfferByFamily(benefit int, family FamilyId_t, lang LangId_t) string {
+	s, ok := App.lookup.bensByFamily[BenFamily(benefit, int(family), int(lang))]
 	if !ok { return `` }
 	return s
 }
 
-func OfferByAddons(benefit int, addons map[CategId_t]AddonId_t) string {
+func OfferByAddons(benefit int, addons map[CategId_t]AddonId_t, lang LangId_t) string {
 	if len(addons) == 0 { return `` }
 	var ids []int
 	for categId := range addons {
@@ -182,7 +201,7 @@ func OfferByAddons(benefit int, addons map[CategId_t]AddonId_t) string {
 	for _, id := range ids {
 		addon := addons[CategId_t(id)]
 		if addon == 0 { continue }
-		if s, ok := App.lookup.bensByAddon[BenAddon(benefit, int(addon))]; ok && Trim(s) != `` {
+		if s, ok := App.lookup.bensByAddon[BenAddon(benefit, int(addon), int(lang))]; ok && Trim(s) != `` {
 			return s
 		}
 	}
@@ -193,7 +212,7 @@ func EuroWhole(amount EuroCent_t) string {
 	return EuroFlatFromCent(amount).OutEuro()
 }
 
-func NoClaimRefund(plan Plan_t, amount EuroCent_t) string {
+func NoClaimsRefund(plan Plan_t, amount EuroCent_t) string {
 	if amount == 0 {
 		note := Trim(plan.nc.note)
 		if note == `` { return `No refund is available` }
@@ -208,9 +227,9 @@ func NoClaimRefund(plan Plan_t, amount EuroCent_t) string {
 	return Str(line, ` (`, note, `)`)
 }
 
-func SectionValueStyle(sec BenSec_t, benefit int) string {
+func SectionValueStyle(section int, benefit int) string {
 	if benefit == deductibleBenefit { return xlStyleDeductibleValue }
-	return Str(sec.label, `Value`)
+	return Str(SectionStyleBase(section), `Value`)
 }
 
 func PlanNameLine(plan Plan_t) string {
@@ -769,13 +788,13 @@ func WriteXlPlanCostRows(ex *sky.File, col string, x XlPlanRow_t, vars QuoteVars
 func BasicOffer(item BenSecItem_t, x XlPlanRow_t) (offer string, done bool) {
 	if item.section != 0 { return ``, false }
 	if item.secsort == 1 { return Str(EuroWhole(x.row.row.deduct), `/year`), true }
-	if item.secsort == 2 { return NoClaimRefund(x.plan, x.row.row.noClaims), true }
+	if item.secsort == 2 { return NoClaimsRefund(x.plan, x.row.row.noClaims), true }
 	return `-`, true
 }
 
-func BenefitOffer(item BenSecItem_t, family FamilyId_t, addons map[CategId_t]AddonId_t) string {
-	offer := OfferByFamily(item.benefit, family)
-	if over := OfferByAddons(item.benefit, addons); over != `` { return over }
+func BenefitOffer(item BenSecItem_t, family FamilyId_t, addons map[CategId_t]AddonId_t, lang LangId_t) string {
+	offer := OfferByFamily(item.benefit, family, lang)
+	if over := OfferByAddons(item.benefit, addons, lang); over != `` { return over }
 	return offer
 }
 
@@ -786,13 +805,14 @@ func WriteXlPlanColumn(ex *sky.File, styles map[string]int, col string, x XlPlan
 	family := x.plan.familyId
 	row := benefitRow
 	for _, sec := range App.lookup.benSecs.All() {
-		items := SectionItems(sec.section, slim)
+		if sec.lang != int(lang) { continue }
+		items := SectionItems(sec.section, slim, lang)
 		if len(items) == 0 { continue }
 		for _, item := range items {
 			offer, done := BasicOffer(item, x)
-			if !done { offer = BenefitOffer(item, family, x.choice.addons) }
+			if !done { offer = BenefitOffer(item, family, x.choice.addons, lang) }
 			if Trim(offer) == `` { offer = `-` }
-			if e := SetXlStyled(ex, styles, sheet, Str(col, row), offer, SectionValueStyle(sec, item.benefit)); e != nil { return e }
+			if e := SetXlStyled(ex, styles, sheet, Str(col, row), offer, SectionValueStyle(sec.section, item.benefit)); e != nil { return e }
 			row++
 		}
 		row++
@@ -890,18 +910,5 @@ func SetXlDefaultCell(ex *sky.File, tab, cell string) {
 }
 
 func WriteXlLayout(ex *sky.File, styles map[string]int, vars QuoteVars_t) error {
-	lang := vars.lang
-	if lang <= 0 { lang = English }
-	slim := vars.slim == 1
-	if e := WriteXlHead(ex, styles, vars, lang); e != nil { return e }
-	lastRow, e := WriteXlBenefits(ex, styles, slim)
-	if e != nil { return e }
-	if e = WriteXlFooterNote(ex, styles, vars, slim, lastRow+2, lang); e != nil { return e }
-	if e := WriteXlPlans(ex, styles, vars, slim, lang); e != nil { return e }
-	if vars.core.segment != segmentEmployee {
-		if e := DeleteXlRows(ex, sheet, monthWithEmpRow, monthWithEmpRow); e != nil { return e }
-	}
-	if e := TrimXlDepRows(ex, vars); e != nil { return e }
-	if e := EnforceSlimLayout(ex, vars, slim); e != nil { return e }
-	return FinalizeXlSheets(ex, vars)
+	return Error(`Shit code`)
 }

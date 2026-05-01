@@ -53,35 +53,3 @@ func XlFileName(clientName string, slim bool) string {
 	if slim { slimPart = `.slim` }
 	return Str(name, ` overview`, slimPart, `.xlsx`)
 }
-
-func CreateXlQuote(vars QuoteVars_t) (path, fname string, ok bool) {
-	slim := vars.slim == 1
-	ex, e := sky.OpenFile(template)
-	if e != nil {
-		Log(e)
-		return ``, ``, false
-	}
-	defer ex.Close()
-
-	styles := LoadXlStyles(ex)
-	if e = WriteXlLayout(ex, styles, vars); e != nil {
-		Log(e)
-		return ``, ``, false
-	}
-
-	path = workDir
-	if e = os.MkdirAll(path, 0o775); e != nil {
-		Log(e)
-		return ``, ``, false
-	}
-
-	fname = XlFileName(ClientName(vars), slim)
-	_ = ex.DeleteSheet(xlStyleSheet)
-	SetXlDefaultCell(ex, quoteSheet, nameCell)
-	if e = ex.SaveAs(Str(path, `/`, fname)); e != nil {
-		Log(e)
-		return ``, ``, false
-	}
-
-	return path, fname, true
-}

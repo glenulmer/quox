@@ -248,7 +248,7 @@ func QuoteEnsureVars(vars *QuoteVars_t) {
 func QuoteVarsEmpty(vars QuoteVars_t) bool {
 	if vars.sortBy != `` { return false }
 	if vars.lang > 0 { return false }
-	if vars.slim != 0 { return false }
+	if vars.slim { return false }
 	if Valid(vars.core.buy) || Valid(vars.core.birth) { return false }
 	if vars.core.clientName != `` || vars.core.email != `` { return false }
 	if vars.core.segment != 0 || vars.core.sickCover != 0 { return false }
@@ -321,7 +321,8 @@ func QuoteValue(vars QuoteVars_t, name string) string {
 	case `lang`:
 		return Str(int(vars.lang))
 	case `slim`:
-		return Str(vars.slim)
+		if vars.slim { return `1` }
+		return `0`
 	}
 	if planId, categId, ok := QuotePlanCatControl(name); ok {
 		return Str(int(vars.planCats[PlanCateg_t{ plan:PlanId_t(planId), categ:categId }]))
@@ -486,7 +487,7 @@ func QuoteSetValue(vars *QuoteVars_t, name, value string) bool {
 		vars.lang = LangId_t(lang)
 		return true
 	case `slim`:
-		if Atoi(value) == 1 { vars.slim = 1 } else { vars.slim = 0 }
+		vars.slim = QuoteVarBool(value)
 		return true
 	}
 	if planId, categId, ok := QuotePlanCatControl(name); ok {
@@ -500,7 +501,7 @@ func quoteBaseDefaultVars() QuoteVars_t {
 	ctx := QuoteDefaults()
 	out := QuoteVars_t{
 		lang: English,
-		slim: 0,
+		slim: false,
 		sortBy: sortByPrice,
 		planCats: make(map[PlanCateg_t]AddonId_t),
 		choices: make(map[ChoiceId_t]PlanQuoteInfo_t),

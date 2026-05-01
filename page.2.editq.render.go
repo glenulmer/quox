@@ -353,7 +353,7 @@ func EditQReviewExportButtonsView(vars QuoteVars_t) Elem_t {
 	langs := []Elem_t{}
 	langDefault := Str(int(quote.lang))
 	slimDefault := `0`
-	if quote.slim == 1 { slimDefault = `1` }
+	if quote.slim { slimDefault = `1` }
 	for id, x := range App.lookup.languages.All() {
 		if len(langs) == 0 && langDefault == `0` { langDefault = Str(id) }
 		langs = append(langs, Option().KV(`value`, id).Text(x.label))

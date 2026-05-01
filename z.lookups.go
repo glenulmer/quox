@@ -250,11 +250,13 @@ func LoadBenSecs() IdMap_t[BenSec_t] {
 
 	if rows.HasError() { panic(rows.Message()) }
 	defer rows.Close()
+	seq := 0
 	for rows.Next() {
 		var x BenSec_t
 		rows.Scan(&x.section, &x.lang, &x.label)
 		if rows.HasError() { panic(rows.Message()) }
-		out.Add(x.section, x)
+		seq++
+		out.Add(seq, x)
 	}
 	if rows.HasError() { panic(rows.Message()) }
 
@@ -271,13 +273,16 @@ type BenSecItem_t struct {
 func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 	out := IdMap[BenSecItem_t]()
 	seq := 0
-	for secId, _ := range App.lookup.benSecs.All() {
-		rows := App.DB.Call(`klpm_bensecitems_query`, secId)
+	done := make(map[int]bool)
+	for _, sec := range App.lookup.benSecs.All() {
+		if done[sec.section] { continue }
+		done[sec.section] = true
+		rows := App.DB.Call(`klpm_bensecitems_query`, sec.section)
 		if rows.HasError() { panic(rows.Message()) }
 
 		for rows.Next() {
 			var x BenSecItem_t
-			x.section = secId
+			x.section = sec.section
 			rows.Scan(&x.secsort, &x.benefit, &x.isSlim, &x.lang, &x.label)
 			if rows.HasError() { panic(rows.Message()) }
 			seq++
@@ -292,8 +297,8 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 
 type BenFamily_t struct { benefit, family, lang int }
 type BenAddon_t struct { benefit, addon, lang int }
-func BenFamily(b, f int) BenFamily_t { return BenFamily_t{ benefit:b, family:f } }
-func BenAddon(b, a int) BenAddon_t { return BenAddon_t{ benefit:b, addon:a } }
+func BenFamily(b, f, l int) BenFamily_t { return BenFamily_t{ benefit:b, family:f, lang:l } }
+func BenAddon(b, a, l int) BenAddon_t { return BenAddon_t{ benefit:b, addon:a, lang:l } }
 
 func LoadBensByFamily() map[BenFamily_t]string {
 	m := make(map[BenFamily_t]string)

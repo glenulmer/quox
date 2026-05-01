@@ -520,7 +520,7 @@ func EditQApply(state *State_t, name, value string) bool {
 		return true
 	}
 	if name == `slim` {
-		if Atoi(value) == 1 { state.quote.slim = 1 } else { state.quote.slim = 0 }
+		state.quote.slim = QuoteVarBool(value)
 		return true
 	}
 
