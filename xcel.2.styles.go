@@ -9,14 +9,6 @@ import (
 const xlStyleSheet = `formats`
 const xlStyleFrom = `B2`
 const xlStyleTo = `J100`
-const xlStyleClient = `Client Name`
-const xlStyleYouPay = `YouPay`
-const xlStyleDeductibleLabel = `DeductibleLabel`
-const xlStyleDeductibleValue = `DeductibleValue`
-const xlStyleCommission = `Commission`
-const xlStyleTipTitle = `TipTitle`
-const xlStyleTipText = `TipText`
-const xlStyleSlimNote = `SlimNote`
 
 func LoadXlStyles(ex *sky.File) map[string]int {
 	out := make(map[string]int)
@@ -44,22 +36,4 @@ func LoadXlStyles(ex *sky.File) map[string]int {
 	}
 
 	return out
-}
-
-func XlStyle(styles map[string]int, name string) int {
-	if styles == nil { return 0 }
-	return styles[Trim(name)]
-}
-
-func SetXlCell(ex *sky.File, tab, cell string, val interface{}, style int) error {
-	if ex == nil { return Error(`nil excel file`) }
-	if e := ex.SetCellValue(tab, cell, val); e != nil { return e }
-	if style != 0 {
-		if e := ex.SetCellStyle(tab, cell, cell, style); e != nil { return e }
-	}
-	return nil
-}
-
-func SetXlStyled(ex *sky.File, styles map[string]int, tab, cell string, val interface{}, styleName string) error {
-	return SetXlCell(ex, tab, cell, val, XlStyle(styles, styleName))
 }

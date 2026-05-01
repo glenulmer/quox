@@ -297,8 +297,6 @@ func LoadBenSecItems() IdMap_t[BenSecItem_t] {
 
 type BenFamily_t struct { benefit, family, lang int }
 type BenAddon_t struct { benefit, addon, lang int }
-func BenFamily(b, f, l int) BenFamily_t { return BenFamily_t{ benefit:b, family:f, lang:l } }
-func BenAddon(b, a, l int) BenAddon_t { return BenAddon_t{ benefit:b, addon:a, lang:l } }
 
 func LoadBensByFamily() map[BenFamily_t]string {
 	m := make(map[BenFamily_t]string)

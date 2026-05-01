@@ -27,10 +27,6 @@ func QuoteSelectedTitle(count int) string {
 	return Str(`Selected Plans (` , count, ` / `, quoteSelectedMaxCount, `)`)
 }
 
-func QuoteSelectedPlanKey(itemId int) string {
-	return Str(`selplan-`, itemId)
-}
-
 func QuoteSelectedPlanControl(name string) (itemId int, ok bool) {
 	n, err := fmt.Sscanf(name, `selplan-%d`, &itemId)
 	if err != nil || n != 1 || itemId <= 0 { return 0, false }

@@ -251,12 +251,6 @@ func SessionDeviceMode(r *http.Request) string {
 	return mode
 }
 
-func SetSessionDeviceMode(r *http.Request, mode string) {
-	token := SessionToken(r)
-	_, confirmed := App.sessionStore.GetDevice(token)
-	App.sessionStore.SetDevice(token, mode, confirmed)
-}
-
 func SetSessionCookie(w http.ResponseWriter, token string) {
 	token = strings.TrimSpace(token)
 	if token == `` { return }

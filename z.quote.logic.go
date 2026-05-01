@@ -211,11 +211,6 @@ func QuoteControlChoices(x QuoteControl_t) []QuoteChoice_t {
 	return QuoteChoices(x.choiceSP, args...)
 }
 
-func QuoteControlGroup(x QuoteControl_t, layout string) string {
-	if layout == layoutDesktop { return x.desktopGroup }
-	return x.phoneGroup
-}
-
 func QuoteControlSpan(x QuoteControl_t, layout string) int {
 	if layout == layoutDesktop { return x.desktopSpan }
 	return x.phoneSpan

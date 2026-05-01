@@ -35,10 +35,6 @@ func (s style_t)String() string {
     return [...]string{"is-info", "is-success", "is-warning", "is-danger"}[s]
 }
 
-func (s style_t)Title() string { 
-    return [...]string{"Info", "Success", "Warning", "Danger"}[s]
-}
-
 type ClientMessage_i interface {
     jsonString() string
     String() string
@@ -58,18 +54,6 @@ func RewriteHTML(method method_t, target string, htmls ...any) Rewrite_t {
     }
 */
     return Rewrite_t{ method: method, target: `#`+target, html: Str(htmls...) }
-}
-
-func RewriteTBody(tbodyID string, htmls ...any) Rewrite_t {
-    return RewriteHTML(InnerHTML, tbodyID, htmls...)
-}
-
-func RewriteRow(rowID string, htmls ...any) Rewrite_t {
-    return RewriteHTML(OuterHTML, rowID, htmls...)
-}
-
-func RemoveRow(rowID string) Rewrite_t {
-    return RewriteHTML(Remove, rowID, ``)
 }
 
 type Rewrite_t struct {
@@ -127,11 +111,6 @@ type messageList struct {
     messages []ClientMessage_i
 }
 
-func (ml *messageList)HasMessages() bool {
-    if ml == nil { return false }
-    return len(ml.messages) > 0
-}
-
 func MessageList() *messageList {
     return &messageList{make([]ClientMessage_i, 0)}
 }
@@ -163,33 +142,6 @@ func (ml *messageList) Send(w http.ResponseWriter) {
 type SPResult_t struct {
     Errs, NRows, ID int
     Note string
-}
-
-func DBCalls(rows ...*Row_t) *messageList {
-    var res SPResult_t
-    messages := MessageList()
-    for _, row := range rows {
-        pack := row.Scan(&res.Errs, &res.NRows, &res.ID, &res.Note)
-        q := pack.Query()
-
-        switch {
-        case pack.HasError():
-            messages.Append(Note(Danger, pack.Message()+` `+q))
-    
-        case res.Errs > 0:
-            messages.Append(Note(Warning, res.Note + ` ` + q))
-    
-        default:
-            messages.Append(Note(Success, res.Note))
-        }
-    }
-    return messages
-}
-
-func Rewrites(w http.ResponseWriter, rewrites ...ClientMessage_i) {
-    messages := MessageList()
-    for _, rewrite := range rewrites { messages.Append(rewrite) }
-    messages.Send(w)
 }
 
 func SendResponse(w http.ResponseWriter, list ...any) {

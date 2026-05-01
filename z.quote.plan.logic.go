@@ -139,21 +139,6 @@ func IsHospDental(categId CategId_t) bool {
 	return int(categId) == catHospital || int(categId) == catDental
 }
 
-func QuotePreex(x EditQPreexCharge_t) Preex_t {
-	out := Preex_t{
-		categ: x.categId,
-		note: x.note,
-	}
-	n, ok := EditQParseDecimal100(x.amount)
-	if !ok || n <= 0 { return out }
-	if EditQPreexMode(x.mode) == editQPreexModeEur {
-		out.amount.euro = EuroCent_t(n)
-		return out
-	}
-	out.amount.percent = Percent_t(n)
-	return out
-}
-
 func QuoteVars(state *State_t) QuoteVars_t {
 	if state == nil { return QuoteDefaultVars() }
 	QuoteEnsureDefaults(state)
