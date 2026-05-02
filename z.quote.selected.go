@@ -95,7 +95,7 @@ func QuoteSelectedPreexByCateg(vars QuoteVars_t, itemId int, row QuotePlan_t) ma
 	choice, ok := vars.choices[ChoiceId_t(itemId)]
 	if !ok { return out }
 	for _, preex := range choice.preex {
-		base := row.planBase
+		base := row.base
 		if preex.categ > 0 {
 			base = 0
 			for _, addon := range row.addons {

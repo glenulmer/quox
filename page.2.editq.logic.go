@@ -201,14 +201,14 @@ func EditQPreexCharges(vars QuoteVars_t) []EditQPreexCharge_t {
 					mode, amount, note = EditQPreexFields(preex)
 				}
 			}
-			applied := EditQPreexAppliedAmount(mode, amount, x.row.planBase)
+			applied := EditQPreexAppliedAmount(mode, amount, x.row.base)
 			out = append(out, EditQPreexCharge_t{
 				itemId: x.item.itemId,
 				plan: x.row.label,
 				planPrice: x.row.price,
 				categId: 0,
 				level: `Plan`,
-				base: x.row.planBase,
+				base: x.row.base,
 				mode: mode,
 				amount: amount,
 				note: note,
@@ -282,7 +282,7 @@ func EditQDependantCharges(vars QuoteVars_t, dep EditQDep_t) []EditQPreexCharge_
 			if preex, has := EditQDepChoicePreex(depData, ChoiceId_t(x.item.itemId), 0); has {
 				mode, amount, note = EditQPreexFields(preex)
 			}
-			applied := EditQPreexAppliedAmount(mode, amount, x.row.planBase)
+			applied := EditQPreexAppliedAmount(mode, amount, x.row.base)
 			out = append(out, EditQPreexCharge_t{
 				itemId: x.item.itemId,
 				plan: x.row.label,
@@ -291,7 +291,7 @@ func EditQDependantCharges(vars QuoteVars_t, dep EditQDep_t) []EditQPreexCharge_
 				planAgeMode: ageMode,
 				categId: 0,
 				level: `Plan`,
-				base: x.row.planBase,
+				base: x.row.base,
 				mode: mode,
 				amount: amount,
 				note: note,
@@ -411,7 +411,8 @@ func EditQSetPreex(preex []Preex_t, categId CategId_t, mode, amount, note string
 	if pick >= 0 { curr = preex[pick] }
 
 	if setMode {
-		if EditQPreexMode(mode) == editQPreexModeEur {
+		curr.mode = EditQPreexMode(mode)
+		if curr.mode == editQPreexModeEur {
 			if curr.amount.percent > 0 {
 				curr.amount.euro = EuroCent_t(curr.amount.percent)
 				curr.amount.percent = 0
@@ -424,11 +425,14 @@ func EditQSetPreex(preex []Preex_t, categId CategId_t, mode, amount, note string
 		}
 	}
 	if setAmount {
+		modeNow := EditQPreexMode(mode)
+		if mode == `` && curr.mode != `` { modeNow = EditQPreexMode(curr.mode) }
+		curr.mode = modeNow
 		n, ok := EditQParseDecimal100(amount)
 		if !ok || n <= 0 {
 			curr.amount.percent = 0
 			curr.amount.euro = 0
-		} else if EditQPreexMode(mode) == editQPreexModeEur {
+		} else if modeNow == editQPreexModeEur {
 			curr.amount.euro = EuroCent_t(n)
 			curr.amount.percent = 0
 		} else {

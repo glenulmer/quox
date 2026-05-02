@@ -43,6 +43,3 @@ type App_t struct {
 var App App_t
 
 const SiteName = `PM`
-
-type checkErr_t struct { error }
-func (e checkErr_t)Err() bool { return e.error != nil }

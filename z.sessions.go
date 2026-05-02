@@ -151,6 +151,34 @@ func (x *SessionStore_t)SetState(token string, state State_t) {
 	x.mu.Unlock()
 }
 
+func (x *SessionStore_t)MutateState(token string, fn func(*State_t)) State_t {
+	token = strings.TrimSpace(token)
+	state := InitState()
+	if fn == nil { return state }
+
+	x.mu.Lock()
+	if token != `` {
+		if vars, ok := x.byToken[token]; ok {
+			state = StateFromSessionVars(vars)
+		} else {
+			state = StateFromSessionVars(InitSessionVars())
+		}
+	}
+	fn(&state)
+	if token != `` {
+		vars := SessionVarsFromState(state)
+		if prior, ok := x.byToken[token]; ok {
+			vars.deviceConfirmed = prior.deviceConfirmed
+			vars.device = deviceDesktop
+			if mode, modeOK := NormalizeDeviceMode(prior.device); modeOK { vars.device = mode }
+		}
+		x.byToken[token] = vars
+	}
+	x.mu.Unlock()
+
+	return state
+}
+
 func (x *SessionStore_t)GetDevice(token string) (mode string, confirmed bool) {
 	token = strings.TrimSpace(token)
 	if token == `` { return deviceDesktop, false }

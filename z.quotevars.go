@@ -26,6 +26,7 @@ type PlanQuoteInfo_t struct {
 
 type Preex_t struct {
 	categ CategId_t
+	mode string
 	amount struct { percent Percent_t; euro EuroCent_t }
 	note string
 }

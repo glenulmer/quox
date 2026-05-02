@@ -32,7 +32,7 @@ func CreateExcelQuote(qvars QuoteVars_t) (status xlStatus_t) {
 	defer xl.Close()
 
 
-	e := xl.WriteQuote(); if e.Err() { status.err = e; return status }
+	xl.WriteQuote()
 
 	status.path = `assets/work`
 	err = os.MkdirAll(status.path, 0o775); if err != nil { status.err = err; return status }
@@ -41,15 +41,15 @@ func CreateExcelQuote(qvars QuoteVars_t) (status xlStatus_t) {
 
 	status.fileName = Str(safeClientName(qvars), ` overview`, If(qvars.slim, `.slim`, ``), `.xlsx`)
 	xl.setDefaultCell(quoteSheet, nameCell)
-	err = xl.SaveAs(Str(status.path, `/`, status.fileName)); if err != nil { status.err = e; return status }
+	err = xl.SaveAs(Str(status.path, `/`, status.fileName)); if err != nil { status.err = err; return status }
 
 	return status
 }
 
-func (xl *Excel_t)WriteQuote() (e checkErr_t) {
+func (xl *Excel_t)WriteQuote() {
 	selected := QuoteSelectedItems(xl.qvars)
-	lastBenefitRow, e := xl.WriteBenefitNames(); if e.Err() { return e }
-	e = xl.WriteTipsTitle(lastBenefitRow); if e.Err() { return e }
+	lastBenefitRow := xl.WriteBenefitNames()
+	xl.WriteTipsTitle(lastBenefitRow)
 
 	state := InitState()
 	state.quote = xl.qvars
@@ -66,13 +66,11 @@ func (xl *Excel_t)WriteQuote() (e checkErr_t) {
 		plan, ok := App.lookup.plans.byId[item.planId]
 		if !ok { continue }
 
-		e = xl.WritePlanTop(col, item, row, plan); if e.Err() { return e }
-		e = xl.WritePlanMain(lastBenefitRow, col, row, plan); if e.Err() { return e }
+		xl.WritePlanTop(col, item, row, plan)
+		xl.WritePlanMain(lastBenefitRow, col, row, plan)
 	}
 
-	e = xl.WriteClientInfo(); if e.Err() { return e }
-
-	return checkErr_t{}
+	xl.WriteClientInfo()
 }
 
 

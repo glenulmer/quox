@@ -4,7 +4,7 @@ import (
 	. "klpm/lib/output"
 )
 
-func (xl *Excel_t)WriteTipsTitle(lastBenefitRow int) (e checkErr_t) {
+func (xl *Excel_t)WriteTipsTitle(lastBenefitRow int) {
 	i := int(xl.qvars.lang) - 1
 	tipTitle := []string{ `Helpful extra tips`, `Hilfreiche Zusatzhinweise` }[i]
 	priceMsg := []string{ `Prices subject to increase in January each year.`, `Preise können sich jedes Jahr im Januar erhöhen.` }[i]
@@ -20,6 +20,4 @@ func (xl *Excel_t)WriteTipsTitle(lastBenefitRow int) (e checkErr_t) {
 	aPrice := Str(`A`, priceRow)
 	_ = xl.SetCellValue(quoteSheet, aPrice, priceMsg)
 	_ = xl.SetCellStyle(quoteSheet, aPrice, aPrice, xl.styles[`SlimNote`])
-
-	return checkErr_t{}
 }

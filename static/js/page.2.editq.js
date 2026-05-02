@@ -11,6 +11,7 @@
 	const foldState = new Map();
 	let seq = 0;
 	let timer = 0;
+	let postChain = Promise.resolve();
 
 	const captureFoldStates = () => {
 		for (const id of foldIds) {
@@ -83,32 +84,36 @@
 
 	const postChange = (name, value) => {
 		const call = ++seq;
-		const focus = captureFocus();
-		captureFoldStates();
-		const form = new FormData();
-		form.append('name', name);
-		form.append('value', value);
+		postChain = postChain
+			.catch(() => {})
+			.then(() => {
+				const focus = captureFocus();
+				captureFoldStates();
+				const form = new FormData();
+				form.append('name', name);
+				form.append('value', value);
 
-		fetch('/quote-review-change', {
-			method: 'POST',
-			body: form,
-			credentials: 'same-origin',
-		})
-			.then((res) => (res.ok ? res.json() : []))
-			.then((messages) => {
-				if (call !== seq || !Array.isArray(messages)) return;
-				for (const msg of messages) {
-					if (!msg || msg.kind !== 'rewrite') continue;
-					const target = document.querySelector(msg.target);
-					if (!target) continue;
-					if (msg.method === 'outerHTML') target.outerHTML = msg.content;
-					if (msg.method === 'innerHTML') target.innerHTML = msg.content;
-					if (msg.method === 'remove') target.remove();
-					}
-					applyFoldStates();
-					autosizeAll();
-					restoreFocus(focus);
+				return fetch('/quote-review-change', {
+					method: 'POST',
+					body: form,
+					credentials: 'same-origin',
 				})
+					.then((res) => (res.ok ? res.json() : []))
+					.then((messages) => {
+						if (call !== seq || !Array.isArray(messages)) return;
+						for (const msg of messages) {
+							if (!msg || msg.kind !== 'rewrite') continue;
+							const target = document.querySelector(msg.target);
+							if (!target) continue;
+							if (msg.method === 'outerHTML') target.outerHTML = msg.content;
+							if (msg.method === 'innerHTML') target.innerHTML = msg.content;
+							if (msg.method === 'remove') target.remove();
+						}
+						applyFoldStates();
+						autosizeAll();
+						restoreFocus(focus);
+					});
+			})
 			.catch(() => {});
 	};
 

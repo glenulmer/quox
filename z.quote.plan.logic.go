@@ -146,6 +146,10 @@ func QuoteVars(state *State_t) QuoteVars_t {
 }
 
 func QuotePreexModeAmount(preex Preex_t) (mode, amount string) {
+	if EditQPreexMode(preex.mode) == editQPreexModeEur {
+		if preex.amount.euro > 0 { return editQPreexModeEur, preex.amount.euro.String() }
+		return editQPreexModeEur, ``
+	}
 	if preex.amount.euro > 0 { return editQPreexModeEur, preex.amount.euro.String() }
 	if preex.amount.percent > 0 { return editQPreexModePct, EuroCent_t(preex.amount.percent).String() }
 	return editQPreexModePct, ``

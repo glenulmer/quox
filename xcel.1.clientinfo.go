@@ -7,7 +7,7 @@ import (
 	. "klpm/lib/output"
 )
 
-func (xl *Excel_t)WriteClientInfo() (e checkErr_t) {
+func (xl *Excel_t)WriteClientInfo() {
 	name := Trim(xl.qvars.core.clientName)
 	if name == `` { name = clientNameDefault() }
 	_ = xl.SetCellValue(quoteSheet, `A3`, name)
@@ -48,19 +48,14 @@ func (xl *Excel_t)WriteClientInfo() (e checkErr_t) {
 		_ = xl.SetCellValue(quoteSheet, cell, line)
 	}
 
-	e = xl.writeCostRows(); if e.Err() { return e }
+	xl.writeCostRows()
 
 	depN := len(xl.qvars.dependants)
 	if depN > 10 { depN = 10 }
-	for n := 10 - depN; n > 0; n-- {
-		e = checkErr_t{xl.RemoveRow(quoteSheet, 11+depN)}; if e.Err() { return e }
-	}
-
-	return checkErr_t{}
+	for n := 10 - depN; n > 0; n-- { xl.RemoveRow(quoteSheet, 11+depN) }
 }
 
-func (xl *Excel_t)writeCostRows() (e checkErr_t) {
-	if xl == nil { return checkErr_t{Error(`nil excel file`)} }
+func (xl *Excel_t)writeCostRows() {
 	switch xl.qvars.core.segment {
 	case Employee:
 		f21 := xl.baseFont(quoteSheet, `A21`)
@@ -69,9 +64,8 @@ func (xl *Excel_t)writeCostRows() (e checkErr_t) {
 		_ = xl.SetCellRichText(quoteSheet, `A22`, empPays(xl.qvars.lang, f22))
 	default:
 		_ = xl.SetCellValue(quoteSheet, `A22`, otherPays(xl.qvars.lang))
-		e = checkErr_t{xl.RemoveRow(quoteSheet, 21)}; if e.Err() { return e }
+		xl.RemoveRow(quoteSheet, 21)
 	}
-	return checkErr_t{}
 }
 
 func clientNameDefault() string {

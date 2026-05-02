@@ -4,7 +4,7 @@ import (
 	. "klpm/lib/output"
 )
 
-func (xl *Excel_t)WriteBenefitNames() (lastRow int, e checkErr_t) {
+func (xl *Excel_t)WriteBenefitNames() (lastRow int) {
 	row := 24
 	lastRow = row - 1
 	lang := int(xl.qvars.lang)
@@ -35,7 +35,7 @@ func (xl *Excel_t)WriteBenefitNames() (lastRow int, e checkErr_t) {
 
 	if deductibleCell != `` { _ = xl.SetCellStyle(quoteSheet, deductibleCell, deductibleCell, xl.styles[`Spec1Label`]) }
 
-	return lastRow, checkErr_t{}
+	return lastRow
 }
 
 func (xl *Excel_t)sectionStyles(section int) (title, label int) {
