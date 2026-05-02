@@ -1,6 +1,5 @@
 (() => {
 	const selector = '#EditQForm input[name], #EditQForm textarea[name], #EditQForm select[name], #EditQForm button[name]';
-	const lastSent = new Map();
 	const debounceMs = 240;
 	const foldIds = ['EditQPreexCard', 'EditQDependantsCard', 'EditQReviewCard'];
 	const foldDefaults = new Map([
@@ -10,7 +9,7 @@
 	]);
 	const foldState = new Map();
 	let seq = 0;
-	let timer = 0;
+	const timers = new Map();
 	let postChain = Promise.resolve();
 
 	const captureFoldStates = () => {
@@ -117,19 +116,19 @@
 			.catch(() => {});
 	};
 
-	const sendIfChanged = (name, value, force = false) => {
-		if (force) {
-			postChange(name, value);
-			return;
-		}
-		if (lastSent.get(name) === value) return;
-		lastSent.set(name, value);
+	const sendChange = (name, value, force = false) => {
+		if (force) { postChange(name, value); return }
 		postChange(name, value);
 	};
 
 	const schedule = (name, value) => {
-		window.clearTimeout(timer);
-		timer = window.setTimeout(() => sendIfChanged(name, value), debounceMs);
+		const prev = timers.get(name);
+		if (prev) window.clearTimeout(prev);
+		const next = window.setTimeout(() => {
+			timers.delete(name);
+			sendChange(name, value);
+		}, debounceMs);
+		timers.set(name, next);
 	};
 
 	const onChange = (ev) => {
@@ -137,6 +136,7 @@
 		if (!(el instanceof HTMLElement)) return;
 		if (!el.matches(selector)) return;
 		if (el instanceof HTMLButtonElement) return;
+		if (ev.type === 'input' && !(el instanceof HTMLTextAreaElement) && !(el instanceof HTMLInputElement && el.type === 'text')) return;
 		const name = el.getAttribute('name') || '';
 		if (!name) return;
 		const value = controlValue(el);
@@ -149,7 +149,7 @@
 			schedule(name, value);
 			return;
 		}
-		sendIfChanged(name, value);
+		sendChange(name, value);
 	};
 
 	const onClick = (ev) => {
@@ -183,7 +183,7 @@
 			return;
 		}
 		ev.preventDefault();
-		sendIfChanged(name, controlValue(el), true);
+		sendChange(name, controlValue(el), true);
 	};
 
 	const onFoldToggle = (ev) => {
