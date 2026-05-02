@@ -13,9 +13,10 @@ func DefaultVars() {
 	AutoChoose.qvars = QuoteDefaultQuoteVars()
 	AutoChoose.ready = true
 
+/*
 	qvars := &AutoChoose.qvars
 
-	qvars.core.segment = 4
+	qvars.core.segment = 1
 	AddPlan(`Inter`, `LA-VNS U`, `29S`)
 	AddPlan(`HanseMerkur`, `KVS3`, `Private`)
 	AutoChoose.qvars.dependants = append(AutoChoose.qvars.dependants, Dependant_t{
@@ -28,6 +29,7 @@ func DefaultVars() {
 		AutoChoose.qvars.choices[choiceId] = choice
 	}
 	qvars.lang = German;
+*/
 }
 
 func AddPlan(prov, plan string, addons ...string) {
