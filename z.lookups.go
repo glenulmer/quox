@@ -139,7 +139,6 @@ func LoadPlanDetailsIdMap() IdMap_t[Plan_t] {
 			&p.nc.promise, &p.nc.note,
 			&p.nc.adult.months, &p.nc.adult.flat, &p.nc.child.months, &p.nc.child.flat, 
 			&p.name, &p.provName, &p.exactAge, &p.segmask,
-			&p.topNote, &p.topNoteStyle,
 		)
 		if rows.HasError() { panic(rows.Message()) }
 		p.ncCategs = PlanNCCategs(p.planId)

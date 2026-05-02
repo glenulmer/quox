@@ -47,13 +47,30 @@ func CreateExcelQuote(qvars QuoteVars_t) (status xlStatus_t) {
 }
 
 func (xl *Excel_t)WriteQuote() (e checkErr_t) {
-	e = xl.WriteClientInfo(); if e.Err() { return e }
-
-	e = xl.WritePlansTop(); if e.Err() { return e }
-
+	selected := QuoteSelectedItems(xl.qvars)
 	lastBenefitRow, e := xl.WriteBenefitNames(); if e.Err() { return e }
-
 	e = xl.WriteTipsTitle(lastBenefitRow); if e.Err() { return e }
+
+	state := InitState()
+	state.quote = xl.qvars
+	QuoteEnsureVars(&state.quote)
+
+	used := 0
+	for _, item := range selected {
+		if used >= len(planColumns) { break }
+		col := planColumns[used]
+		used++
+
+		row, ok := QuoteSelectedPlanRow(state, item)
+		if !ok { continue }
+		plan, ok := App.lookup.plans.byId[item.planId]
+		if !ok { continue }
+
+		e = xl.WritePlanTop(col, item, row, plan); if e.Err() { return e }
+		e = xl.WritePlanMain(lastBenefitRow, col, row, plan); if e.Err() { return e }
+	}
+
+	e = xl.WriteClientInfo(); if e.Err() { return e }
 
 	return checkErr_t{}
 }

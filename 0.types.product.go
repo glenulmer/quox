@@ -25,14 +25,11 @@ type Plan_t struct {
 	comonths Months_t // months of commission paid
 	ded Deductible_t
 	nc NoClaims_t
-	ncCategs []CategId_t
-	// excluding plan_noclaim_categs, since they seem to be one-off & sparse
-	// excluding plan_incentives, since we have no meaningful content
+	ncCategs []CategId_t // categories that contibute to non-claim bonus
 	name, provName  string
 	exactAge bool
-	segmask    SegBits_t
-	topNote string
-	topNoteStyle string
+	segmask  SegBits_t
+	// excluding plan_incentives, since we have no content yet
 }
 
 type Deductible_t struct {

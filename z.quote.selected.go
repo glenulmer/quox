@@ -89,12 +89,6 @@ func QuoteSelectedItems(vars QuoteVars_t) []QuoteSelectedItem_t {
 	return out
 }
 
-func QuoteCloneState(in State_t) State_t {
-	out := in
-	out.quote = CloneQuoteVars(in.quote)
-	return out
-}
-
 func QuoteSelectedPreexByCateg(vars QuoteVars_t, itemId int, row QuotePlan_t) map[CategId_t]EuroCent_t {
 	out := make(map[CategId_t]EuroCent_t)
 	if itemId <= 0 { return out }
@@ -122,7 +116,8 @@ func QuoteSelectedPreexByCateg(vars QuoteVars_t, itemId int, row QuotePlan_t) ma
 }
 
 func QuoteSelectedPlanRow(state State_t, item QuoteSelectedItem_t) (QuotePlan_t, bool) {
-	work := QuoteCloneState(state)
+	work := state
+	work.quote = CloneQuoteVars(state.quote)
 	QuoteEnsureVars(&work.quote)
 	for catId, addon := range item.cats {
 		work.quote.planCats[PlanCateg_t{ plan:PlanId_t(item.planId), categ:catId }] = addon
