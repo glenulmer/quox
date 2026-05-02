@@ -14,9 +14,8 @@ func DefaultVars() {
 	AutoChoose.ready = true
 
 	qvars := &AutoChoose.qvars
-	_ = qvars
 
-	// qvars.core.segment = 4
+	qvars.core.segment = 2
 	AddPlan(`Inter`, `LA-VNS U`, `29S`)
 	AddPlan(`HanseMerkur`, `KVS3`, `Private`)
 	AutoChoose.qvars.dependants = append(AutoChoose.qvars.dependants, Dependant_t{
