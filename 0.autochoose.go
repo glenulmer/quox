@@ -19,6 +19,15 @@ func DefaultVars() {
 	// qvars.core.segment = 4
 	AddPlan(`Inter`, `LA-VNS U`, `29S`)
 	AddPlan(`HanseMerkur`, `KVS3`, `Private`)
+	AutoChoose.qvars.dependants = append(AutoChoose.qvars.dependants, Dependant_t{
+		depId: 1,
+		birth: QuoteDateAddMonths(qvars.core.buy, -12*8),
+		preexByChoice: make(map[ChoiceId_t][]Preex_t),
+	})
+	for choiceId, choice := range AutoChoose.qvars.choices {
+		choice.preex = EditQSetPreex(choice.preex, 0, editQPreexModeEur, `69`, ``, true, true, false)
+		AutoChoose.qvars.choices[choiceId] = choice
+	}
 	qvars.lang = German;
 }
 

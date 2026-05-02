@@ -66,8 +66,20 @@ func (xl *Excel_t)WriteQuote() {
 		plan, ok := App.lookup.plans.byId[item.planId]
 		if !ok { continue }
 
-		xl.WritePlanTop(col, item, row, plan)
-		xl.WritePlanMain(lastBenefitRow, col, row, plan)
+		xl.WritePlanInfo(lastBenefitRow, col, item, row, plan)
+	}
+
+	if used > 0 && used < len(planColumns) {
+		lastShown, e0 := sky.ColumnNameToNumber(planColumns[used-1])
+		end, e2 := sky.ColumnNameToNumber(planColumns[len(planColumns)-1])
+		start := lastShown + 1
+		if e0 == nil && e2 == nil && start > 0 && end >= start {
+			for col := end; col >= start; col-- {
+				colName, e := sky.ColumnNumberToName(col)
+				if e != nil { continue }
+				_ = xl.RemoveCol(quoteSheet, colName)
+			}
+		}
 	}
 
 	xl.WriteClientInfo()
@@ -152,6 +164,11 @@ func (xl *Excel_t)loadXlStyles() map[string]int {
 func DownloadExcel(w http.ResponseWriter, req *http.Request) {
 	state := GetState(req)
 	qvars := QuoteVars(&state)
+	if len(QuoteSelectedItems(qvars)) == 0 {
+		Log(`download-excel blocked: no selected plans`)
+		http.Redirect(w, req, `/`, http.StatusSeeOther)
+		return
+	}
 
 	x := CreateExcelQuote(qvars)
 	if x.err != nil {
