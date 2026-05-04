@@ -8,7 +8,16 @@ func QuotePhoneFormBodyView(vars QuoteVars_t) Elem_t {
 		Elem(`details`).Id(`QuoteInfoCard`).Class(`quote-card`, `quote-phone-card`, `quote-phone-fold`, `quote-phone-info-fold`).KV(`open`, `open`).Wrap(
 			Elem(`summary`).Class(`quote-card-title`, `quote-phone-fold-title`, `quote-phone-selected-title`).Wrap(
 				Span(`Quote Info`),
-				QuoteResetButton(`quote-phone-selected-edit-btn`),
+				Div().Class(`quote-phone-actions`).Wrap(
+					Elem(`button`).
+						Type(`submit`).
+						KV(`formaction`, `/signout`).
+						KV(`formmethod`, `get`).
+						KV(`formnovalidate`, `formnovalidate`).
+						Class(`quote-edit-quote-btn`, `quote-phone-selected-edit-btn`).
+						Text(`Logout`),
+					QuoteResetButton(`quote-phone-selected-edit-btn`),
+				),
 			),
 			Div().Class(`quote-grid`, `quote-grid-phone`).Wrap(
 			QuoteNamedControlOnlySpanView(layoutPhone, `clientName`, vars, 8, `quote-phone-no-label`),

@@ -30,7 +30,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 func SignOutHandler(w http.ResponseWriter, r *http.Request) {
 	DestroySession(r)
 	ClearSessionCookie(w)
-	http.Redirect(w, r, `/`, http.StatusSeeOther)
+	http.Redirect(w, r, `/signin`, http.StatusSeeOther)
 }
 
 func FindUserInfo(user, pass string) UserInfo_t {
@@ -75,20 +75,28 @@ var getLogin = []byte(`
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="/static/css/login.css">
     <title>Sign in - ` + SiteName + `</title>
 </head>
 <body>
-    <main>
-        <h1>Sign in</h1>
-        <form action="/signin" method="post">
-            <label>Email or Greeting Name</label><br>
-            <input type="text" name="email" required><br><br>
+    <main class="login-page">
+        <section class="login-panel">
+            <h1 class="login-title">Sign in</h1>
+            <p class="login-subtitle">Price Machine 04. May 2026</p>
+            <form action="/signin" method="post">
+                <div class="login-field">
+                    <label>Email or Greeting Name</label>
+                    <input type="text" name="email" required>
+                </div>
 
-            <label>Password</label><br>
-            <input type="password" name="password" required><br><br>
+                <div class="login-field">
+                    <label>Password</label>
+                    <input type="password" name="password" required>
+                </div>
 
-            <button type="submit">Sign in</button>
-        </form>
+                <button type="submit">Sign in</button>
+            </form>
+        </section>
     </main>
 </body>
 </html>`)

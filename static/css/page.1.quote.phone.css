@@ -98,6 +98,12 @@ details[open] > .quote-phone-fold-title::before {
 	gap: 0.5rem;
 }
 
+.quote-phone-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.32rem;
+}
+
 .quote-edit-quote-btn {
 	height: 1.1rem;
 	padding: 0 0.48rem;
@@ -108,9 +114,17 @@ details[open] > .quote-phone-fold-title::before {
 	font-family: inherit;
 	font-size: 0.72rem;
 	font-weight: 700;
-	line-height: 1;
+	line-height: calc(1.1rem - 0.125rem);
 	white-space: nowrap;
 	cursor: pointer;
+	display: inline-block;
+	text-align: center;
+	box-sizing: border-box;
+	appearance: none;
+	-webkit-appearance: none;
+	padding-top: 0;
+	padding-bottom: 0;
+	vertical-align: middle;
 }
 
 .quote-phone-selected-edit-btn {
