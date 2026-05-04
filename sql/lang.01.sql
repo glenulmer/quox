@@ -51,7 +51,7 @@ delimiter ;
 -- select addon_id('Inter', '43A', 'e');
 
 delimiter ###
-create procedure `benl_section_upsert`($section int, $lang int, $label varchar(25))
+create or replace procedure `benl_section_upsert`($section int, $lang int, $label varchar(25))
 begin
     insert into benl_sections (section, lang, label)
     values ($section, $lang, $label)
