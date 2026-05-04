@@ -44,9 +44,7 @@ func Page2EditQ(w0 http.ResponseWriter, req *http.Request) {
 	mode := DeviceModeFromLayout(layout)
 
 	head := Head()
-	if SessionCreated(req) {
-		head = head.HeadFirstScript(DeviceConfirmHeadScript(mode))
-	}
+	head = head.HeadFirstScript(DeviceConfirmHeadScript(mode))
 	head = head.
 		CSS(EditQCSSPath(layout)).
 		JSTail(Str(`/static/js/page.2.editq.js?v=`, App.staticVersion)).

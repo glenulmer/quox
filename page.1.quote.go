@@ -137,9 +137,7 @@ func Page1Quote(w0 http.ResponseWriter, req *http.Request) {
 	mode := DeviceModeFromLayout(layout)
 
 	head := Head()
-	if SessionCreated(req) {
-		head = head.HeadFirstScript(DeviceConfirmHeadScript(mode))
-	}
+	head = head.HeadFirstScript(DeviceConfirmHeadScript(mode))
 	head = head.
 		CSS(QuoteCSSPath(layout)).
 		JSTail(Str(`/static/js/page.1.quote.buy.js?v=`, App.staticVersion)).

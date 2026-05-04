@@ -26,7 +26,7 @@ func DeviceConfirmHeadScript(mode string) string {
 	return Str(
 		`(function(){`,
 		`var s="`, x, `";`,
-		`var d=(window.innerWidth<768||window.matchMedia("(pointer:coarse)").matches)?"mobile":"desktop";`,
+		`var d=(window.innerWidth<900)?"mobile":"desktop";`,
 		`if(d===s){return;}`,
 		`document.cookie="device="+d+"; path=/; max-age=31536000; samesite=lax";`,
 		`if(document.cookie.indexOf("device="+d)>=0){location.replace(location.href);}`,
