@@ -63,7 +63,7 @@ delimiter ;
 
 
 delimiter ###
-create procedure `benl_item_upsert`($benefit int, $lang int, $label varchar(50))
+create or replace procedure `benl_item_upsert`($benefit int, $lang int, $label varchar(50))
 begin
     insert into benl_items (benefit, lang, label)
     values ($benefit, $lang, $label)
