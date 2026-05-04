@@ -19,7 +19,7 @@ begin
 end
 ###
 delimiter ;
-call klpm_bensecitems_query(0);
+-- call klpm_bensecitems_query(0);
 
 delimiter ###
 create or replace procedure klpm_benefits_family_query()
