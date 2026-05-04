@@ -49,3 +49,26 @@ end
 ###
 delimiter ;
 -- select addon_id('Inter', '43A', 'e');
+
+delimiter ###
+create procedure `benl_section_upsert`($section int, $lang int, $label varchar(25))
+begin
+    insert into benl_sections (section, lang, label)
+    values ($section, $lang, $label)
+    on duplicate key update
+        label = $label;
+end
+###
+delimiter ;
+
+
+delimiter ###
+create procedure `benl_item_upsert`($benefit int, $lang int, $label varchar(50))
+begin
+    insert into benl_items (benefit, lang, label)
+    values ($benefit, $lang, $label)
+    on duplicate key update
+        label = $label;
+end
+###
+delimiter ;
